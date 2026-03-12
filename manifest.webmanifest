@@ -1,0 +1,36 @@
+{
+  "id": "/sec-hacienda/",
+  "name": "SEC. HACIENDA",
+  "short_name": "SEC.HACIENDA",
+  "start_url": "/sec-hacienda/",
+  "scope": "/sec-hacienda/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#06402B",
+  "capture_links": "existing-client-navigate",
+  "launch_handler": { "client_mode": "navigate-existing" },
+
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://botheart911.github.io/sec-hacienda/manifest.webmanifest", 
+      "id": "/sec-hacienda/"
+    }
+  ],
+
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dqqeavica/image/upload/v1773350454/hacienda_id9f13.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://res.cloudinary.com/dqqeavica/image/upload/v1773350454/hacienda_id9f13.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
