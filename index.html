@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>SECRETARIA DE HACIENDA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="https://res.cloudinary.com/dqqeavica/image/upload/v1773350454/hacienda_id9f13.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#06402B"/>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root{
+      --primary:#06402B;
+      --primary-2:#04281C;
+      --ok:#16a34a;
+      --error:#dc2626;
+      --scrim:rgba(0,0,0,.35);
+      --card-bg: rgba(255,255,255,.06);
+      --card-border:#ddd;
+    }
+    html,body{
+      margin:0; padding:0; height:100%; width:100%;
+      overflow-x:hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#111;
+      background: url('https://res.cloudinary.com/dqqeavica/image/upload/v1746905870/fondo_verde_tvntsi.png') center/cover fixed no-repeat;
+    }
+    .container{ max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .view{ display:none; opacity:0; transform: translateY(8px);
+      transition: opacity .25s ease, transform .25s ease;
+      box-sizing:border-box; padding:16px;
+    }
+    .view.active{ display:block; opacity:1; transform: translateY(0); }
+
+    .card{
+      background: var(--card-bg);
+      backdrop-filter: blur(3px);
+      border: 2px solid var(--card-border); border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.18);
+      max-width: 860px; margin: 16px auto; padding: 20px 20px 16px;
+    }
+    .narrow{ max-width: 560px; margin: 0 auto; }
+    h1,h2,h3{ margin: 8px 0 12px; text-align:center; }
+    p.helper{ color:#444; font-size:.95rem; text-align:center; margin:8px 0 16px; font-weight:600; }
+    label{ display:block; font-weight:800; margin: 10px 0 6px; color:var(--primary); }
+    input, select, textarea, button{
+      width:100%; padding:12px; box-sizing:border-box;
+      border:1.5px solid #ccc; border-radius:8px; background:#fff;
+      outline:none; transition: border-color .2s ease, transform .08s ease;
+      font-size:16px;
+    }
+    input:focus, select:focus, textarea:focus{ border-color:var(--primary); }
+    button{
+      cursor:pointer; border:2px solid var(--primary);
+      background:#fff; color:#000; font-weight:800;
+    }
+    button:hover{ background:var(--primary-2); color:#fff; border-color:var(--primary-2); }
+    .btn-primary{ background:var(--primary); color:#fff; }
+    .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-row > *{ flex:1; }
+    .muted{ color:#666; font-size:.85rem; }
+    .center{ text-align:center; }
+    .image-center{ display:flex; justify-content:center; }
+    .brand{ width:240px; border-radius:12px; display:block; margin:12px auto 4px; }
+    .chip{
+      padding:8px 12px; border-radius:999px; border:2px solid var(--primary);
+      background:#fff; font-weight:800; color:#000; text-decoration:none;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      width:auto;
+    }
+    .danger{ background:#e11; border-color:#e11; color:#fff; }
+
+    .loader{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.35);
+      z-index:9999; backdrop-filter: blur(2px);
+      opacity:1; transition: opacity .12s ease;
+    }
+    .loader.hidden{ opacity:0; pointer-events:none; }
+    .spinner-ios{ position:relative; width:64px; height:64px; }
+    .spinner-ios i{
+      position:absolute; left:50%; top:50%;
+      width:6px; height:18px; margin:-9px 0 0 -3px;
+      background:#fff; border-radius:3px;
+      opacity:.2; animation:iosFade 1.2s linear infinite; transform-origin: center center;
+    }
+    @keyframes iosFade{ 0%, 39%, 100% { opacity:.2; } 40% { opacity:1; } }
+    .spinner-ios i:nth-child(1)  { transform: rotate(  0deg) translateY(-24px); animation-delay:-1.1s; }
+    .spinner-ios i:nth-child(2)  { transform: rotate( 30deg) translateY(-24px); animation-delay:-1.0s; }
+    .spinner-ios i:nth-child(3)  { transform: rotate( 60deg) translateY(-24px); animation-delay:-0.9s; }
+    .spinner-ios i:nth-child(4)  { transform: rotate( 90deg) translateY(-24px); animation-delay:-0.8s; }
+    .spinner-ios i:nth-child(5)  { transform: rotate(120deg) translateY(-24px); animation-delay:-0.7s; }
+    .spinner-ios i:nth-child(6)  { transform: rotate(150deg) translateY(-24px); animation-delay:-0.6s; }
+    .spinner-ios i:nth-child(7)  { transform: rotate(180deg) translateY(-24px); animation-delay:-0.5s; }
+    .spinner-ios i:nth-child(8)  { transform: rotate(210deg) translateY(-24px); animation-delay:-0.4s; }
+    .spinner-ios i:nth-child(9)  { transform: rotate(240deg) translateY(-24px); animation-delay:-0.3s; }
+    .spinner-ios i:nth-child(10) { transform: rotate(270deg) translateY(-24px); animation-delay:-0.2s; }
+    .spinner-ios i:nth-child(11) { transform: rotate(300deg) translateY(-24px); animation-delay:-0.1s; }
+    .spinner-ios i:nth-child(12) { transform: rotate(330deg) translateY(-24px); animation-delay: 0s; }
+
+    .hidden{ display:none !important; }
+    @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
+
+    /* Cards list (solicitudes) */
+    .count-row{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin: 8px 0 10px;
+      color:#111;
+    }
+    .count-pill{
+      background:#fff; border:2px solid #ddd; border-radius:999px;
+      padding:6px 10px; font-weight:1000; color:var(--primary);
+    }
+    .filter-input{
+      max-width:420px;
+      border-radius:999px;
+      padding:10px 12px;
+    }
+
+    .sol-list{ display:flex; flex-direction:column; gap:12px; margin-top:10px; }
+    .sol-card{
+      background: rgba(255,255,255,.92);
+      border:2px solid #ddd;
+      border-radius:16px;
+      padding:12px;
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .sol-head{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+    }
+    .sol-title{
+      font-weight:1000;
+      color:#111;
+      margin:0;
+      font-size:1rem;
+    }
+    .sol-meta{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:4px;
+      margin:0;
+    }
+    .sol-meta p{ margin:0; font-weight:700; color:#222; overflow-wrap:anywhere; }
+    .sol-actions{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .icon-btn{
+      width:44px; height:44px;
+      border-radius:12px;
+      border:2px solid #ddd;
+      background:#fff;
+      display:inline-flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      box-shadow:0 4px 10px rgba(0,0,0,.14);
+      flex:0 0 auto;
+    }
+    .icon-btn img{ width:28px; height:28px; object-fit:contain; }
+    .right-icons{ display:flex; gap:10px; align-items:center; }
+    .btn-respond{
+      width:auto;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:1000;
+      background: var(--primary);
+      color:#fff;
+      border:2px solid var(--primary);
+    }
+    .btn-respond:hover{ background: var(--primary-2); border-color: var(--primary-2); }
+
+    /* PDF inputs status */
+    .pdf-status{ margin-top:6px; font-size:.9rem; font-weight:800; color:#16a34a; }
+  </style>
+</head>
+<body>
+  <!-- Loader -->
+  <div id="loader" class="loader hidden" aria-live="polite" aria-busy="true">
+    <div class="spinner-ios" role="status" aria-label="Cargando">
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- VISTA INSTALAR -->
+    <section id="view-instalar" class="view">
+      <div class="card narrow" style="text-align:center;">
+        <h2 style="color:var(--primary);">SECRETARIA DE HACIENDA</h2>
+        <img class="brand" alt="Instalar" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766349498/slider_zcq18s.gif" />
+        <p style="font-weight:700;">Herramienta de uso exclusivo para personal autorizado</p>
+        <p class="muted" style="margin-top:14px;"><b>Si NO visualizas el botón Instalar</b> INICIA sesión de google.</p>
+        <div class="btn-row" style="justify-content:center; margin-top:12px;">
+          <button id="btn-instalar" class="btn-primary" style="display:none;">Instalar la App</button>
+        </div>
+        <p class="muted" style="margin-top:14px;"><b>Si ya instalaste la App</b> refresca la página o búscala en el escritorio.</p>
+      </div>
+    </section>
+
+    <!-- VISTA LOGIN -->
+    <section id="view-login" class="view active">
+      <div class="card narrow">
+        <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">SECRETARIA DE HACIENDA</h1>
+        <p class="helper"><b>Solo el personal autorizado de esta secretaría tiene acceso a esta App</b></p>
+
+        <label>Documento</label>
+        <div style="position:relative;">
+          <input id="login-doc" type="password" inputmode="numeric" autocomplete="off" placeholder="Sin puntos ni espacios" />
+          <button type="button" id="toggle-doc" aria-label="Mostrar documento"
+            style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;border:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;">
+            <img id="toggle-doc-img" src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Mostrar" style="width:22px;height:22px;">
+          </button>
+        </div>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
+
+    <!-- VISTA INICIO -->
+    <section id="view-inicio" class="view">
+      <div class="card narrow">
+        <div class="btn-row" style="margin-bottom:12px;">
+          <button class="chip danger" id="btn-logout">Cerrar Sesión</button>
+        </div>
+
+        <h2 id="inicio-nombre" style="color:var(--primary); font-weight:1000; margin-top:6px;"></h2>
+        <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:700;"></p>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-agregar" class="btn-primary">AGREGAR SOLICITUD</button>
+          <button id="btn-pendientes" class="btn-primary">PENDIENTES PREDIAL</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="btn-atendidas-chat" class="btn-primary">ATENDIDAS CHAT</button>
+          <button id="btn-atendidas-pres" class="btn-primary">ATENDIDAS PRESENCIAL</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
+
+    <!-- VISTA PENDIENTES -->
+    <section id="view-lista" class="view">
+      <div class="card">
+        <h2 id="lista-title" style="color:var(--primary); margin-bottom:8px;">PENDIENTES PREDIAL</h2>
+
+        <div class="count-row">
+          <span class="count-pill">TOTAL: <span id="lista-count">0</span></span>
+          <input id="lista-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
+          <button id="lista-refresh" class="chip">Refrescar</button>
+        </div>
+
+        <div id="lista-wrap" class="sol-list"></div>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="lista-back" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA RESPUESTA SOLICITUD -->
+    <section id="view-respuesta" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary); margin-bottom:8px;">RESPUESTA SOLICITUD</h2>
+
+        <div id="resp-head" class="narrow" style="background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px;"></div>
+
+        <label>Respuesta (opcional)</label>
+        <textarea id="respuesta" rows="4" placeholder="Escribe si tienes algo anexo que referir, de lo contrario, solo adjunta los recibos."></textarea>
+
+        <div style="margin-top:10px;">
+          <h3 style="text-align:left; margin:10px 0 6px; color:#333;">Adjuntar Recibos (PDF)</h3>
+          <div class="muted" style="margin:0 0 10px;"><b>Máximo 2 MB por archivo.</b> Debes adjuntar al menos 1 PDF.</div>
+
+          <label>Recibo 1</label>
+          <input id="recibo1" type="file" accept="application/pdf" />
+          <div id="recibo1-status" class="pdf-status"></div>
+
+          <label>Recibo 2</label>
+          <input id="recibo2" type="file" accept="application/pdf" />
+          <div id="recibo2-status" class="pdf-status"></div>
+
+          <label>Recibo 3</label>
+          <input id="recibo3" type="file" accept="application/pdf" />
+          <div id="recibo3-status" class="pdf-status"></div>
+
+          <label>Recibo 4</label>
+          <input id="recibo4" type="file" accept="application/pdf" />
+          <div id="recibo4-status" class="pdf-status"></div>
+
+          <label>Recibo 5</label>
+          <input id="recibo5" type="file" accept="application/pdf" />
+          <div id="recibo5-status" class="pdf-status"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="resp-guardar" class="btn-primary">Guardar</button>
+          <button id="resp-back" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA AGREGAR SOLICITUD -->
+    <section id="view-agregar" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary);">AGREGAR SOLICITUD</h2>
+
+        <label>Nombre del propietario</label>
+        <input id="Propietario" type="text" placeholder="Nombre del propietario" />
+
+        <label>Documento o NIT</label>
+        <input id="identidad" type="password" inputmode="numeric" placeholder="sin puntos, espacios ni guiones" />
+
+        <label>Residencia</label>
+        <select id="upd-residencia">
+          <option value="" disabled selected>Selecciona tu Residencia</option>
+          <option value="ACAPULCO I">ACAPULCO I</option>
+          <option value="ACAPULCO II">ACAPULCO II</option>
+          <option value="AGUAMARINA">AGUAMARINA</option>
+          <option value="ALCALA I">ALCALA I</option>
+          <option value="ALFONSO LOPEZ">ALFONSO LOPEZ</option>
+          <option value="ALTAGRACIA I">ALTAGRACIA I</option>
+          <option value="ALTAGRACIA II">ALTAGRACIA II</option>
+          <option value="ALTAGRACIA IV">ALTAGRACIA IV</option>
+          <option value="APROVITEF">APROVITEF</option>
+          <option value="ARAGON I">ARAGON I</option>
+          <option value="ARAGON II">ARAGON II</option>
+          <option value="ARAGON III">ARAGON III</option>
+          <option value="ARAGON IV">ARAGON IV</option>
+          <option value="ARBOLEDA I">ARBOLEDA I</option>
+          <option value="ARBOLEDA II">ARBOLEDA II</option>
+          <option value="BALCONES DE ALEJANDRIA">BALCONES DE ALEJANDRIA</option>
+          <option value="BILBAO">BILBAO</option>
+          <option value="CALA I">CALA I</option>
+          <option value="CANALES">CANALES</option>
+          <option value="CANCUN">CANCUN</option>
+          <option value="CAMALA">CAMALA</option>
+          <option value="CASA DEL SOL I">CASA DEL SOL I</option>
+          <option value="CASA DEL SOL II">CASA DEL SOL II</option>
+          <option value="CENTRO">CENTRO</option>
+          <option value="COLEGIO I">COLEGIO I</option>
+          <option value="COLEGIO II">COLEGIO II</option>
+          <option value="COLEGIO III">COLEGIO III</option>
+          <option value="DUBAI">DUBAI</option>
+          <option value="EL JORDAN">EL JORDAN</option>
+          <option value="EL PORTAL DEL RUBI">EL PORTAL DEL RUBI</option>
+          <option value="GAITAN">GAITAN</option>
+          <option value="HANGARES">HANGARES</option>
+          <option value="INVASION BRISAS DEL CARMEN">INVASION BRISAS DEL CARMEN</option>
+          <option value="INVASION VILLA MAGDALENA">INVASION VILLA MAGDALENA</option>
+          <option value="INVASION VILLA MARIANA">INVASION VILLA MARIANA</option>
+          <option value="IQUEIMA">IQUEIMA</option>
+          <option value="JARDINES DE BABILONIA">JARDINES DE BABILONIA</option>
+          <option value="LA CAPILLA">LA CAPILLA</option>
+          <option value="LA CEIBA">LA CEIBA</option>
+          <option value="LA ESPERANZA">LA ESPERANZA</option>
+          <option value="LA PAZ">LA PAZ</option>
+          <option value="LA UNION">LA UNION</option>
+          <option value="LAS ROSAS">LAS ROSAS</option>
+          <option value="LAS VILLAS">LAS VILLAS</option>
+          <option value="LIBERTADOR">LIBERTADOR</option>
+          <option value="LLERAS">LLERAS</option>
+          <option value="LOS MANGOS I">LOS MANGOS I</option>
+          <option value="LOS MANGOS II">LOS MANGOS II</option>
+          <option value="LOS MANGOS III">LOS MANGOS III</option>
+          <option value="LOS MANGOS IV">LOS MANGOS IV</option>
+          <option value="LOS MANGOS V">LOS MANGOS V</option>
+          <option value="LOS MANGOS VI">LOS MANGOS VI</option>
+          <option value="LOS MANGOS VII">LOS MANGOS VII</option>
+          <option value="LOS PIJAOS">LOS PIJAOS</option>
+          <option value="MINUTO DE DIOS">MINUTO DE DIOS</option>
+          <option value="MIRADOR DE LA ESPERANZA">MIRADOR DE LA ESPERANZA</option>
+          <option value="MIRADOR DEL SOL">MIRADOR DEL SOL</option>
+          <option value="MONACO">MONACO</option>
+          <option value="OBRERO">OBRERO</option>
+          <option value="OBRERO DELIRIO">OBRERO DELIRIO</option>
+          <option value="ORQUÍDEAS I">ORQUÍDEAS I</option>
+          <option value="ORQUÍDEAS II">ORQUÍDEAS II</option>
+          <option value="ORQUÍDEAS REAL I">ORQUÍDEAS REAL I</option>
+          <option value="ORQUÍDEAS REAL II">ORQUÍDEAS REAL II</option>
+          <option value="ORQUÍDEAS REAL III">ORQUÍDEAS REAL III</option>
+          <option value="ORQUÍDEAS REAL IV">ORQUÍDEAS REAL IV</option>
+          <option value="PARADERO I">PARADERO I</option>
+          <option value="PARADERO II">PARADERO II</option>
+          <option value="PARAISO">PARAISO</option>
+          <option value="PAKISTAN I">PAKISTAN I</option>
+          <option value="PAKISTAN II">PAKISTAN II</option>
+          <option value="PAKISTAN III">PAKISTAN III</option>
+          <option value="PALO VERDE">PALO VERDE</option>
+          <option value="PARQUES DE ALEJANDRIA I">PARQUES DE ALEJANDRIA I</option>
+          <option value="PARQUES DE ALEJANDRIA II">PARQUES DE ALEJANDRIA II</option>
+          <option value="PARQUES DE ALEJANDRIA III">PARQUES DE ALEJANDRIA III</option>
+          <option value="PARQUES DE ALEJANDRIA IV">PARQUES DE ALEJANDRIA IV</option>
+          <option value="PARQUES DE PAKISTAN I">PARQUES DE PAKISTAN I</option>
+          <option value="PARQUES DE PAKISTAN II">PARQUES DE PAKISTAN II</option>
+          <option value="PARQUES DE PAKISTAN III">PARQUES DE PAKISTAN III</option>
+          <option value="PARQUES DE PAKISTAN IV">PARQUES DE PAKISTAN IV</option>
+          <option value="PARQUES DE PAKISTAN V">PARQUES DE PAKISTAN V</option>
+          <option value="PORTAL DEL RUBY">PORTAL DEL RUBY</option>
+          <option value="PRADERAS DE PALMA REAL">PRADERAS DE PALMA REAL</option>
+          <option value="PRADOS DE SAN REMO">PRADOS DE SAN REMO</option>
+          <option value="PUERTA BLANCA">PUERTA BLANCA</option>
+          <option value="PUERTO BAHIA I">PUERTO BAHIA I</option>
+          <option value="PUERTO BAHIA II">PUERTO BAHIA II</option>
+          <option value="PUERTO DOMINGO">PUERTO DOMINGO</option>
+          <option value="PUERTO MEDITERRANEO">PUERTO MEDITERRANEO</option>
+          <option value="QUINTAS DE SAN ESTEBAN">QUINTAS DE SAN ESTEBAN</option>
+          <option value="QUINTAS DE SAN FRANCISCO">QUINTAS DE SAN FRANCISCO</option>
+          <option value="QUINTAS DEL DIVINO NIÑO">QUINTAS DEL DIVINO NIÑO</option>
+          <option value="QUINTAS FERROVIARIAS">QUINTAS FERROVIARIAS</option>
+          <option value="RIVERAS DEL MAGDALENA">RIVERAS DEL MAGDALENA</option>
+          <option value="SAN ANDRES">SAN ANDRES</option>
+          <option value="SAN FELIPE DE BARAJAS">SAN FELIPE DE BARAJAS</option>
+          <option value="SAN FRANCISCO">SAN FRANCISCO</option>
+          <option value="SAN LUIS">SAN LUIS</option>
+          <option value="SANTA ANA">SANTA ANA</option>
+          <option value="SANTA MARTHA">SANTA MARTHA</option>
+          <option value="SANTA MONICA I">SANTA MONICA I</option>
+          <option value="SANTA MONICA II">SANTA MONICA II</option>
+          <option value="SINAI">SINAI</option>
+          <option value="SOL Y BRISA">SOL Y BRISA</option>
+          <option value="TARQUI">TARQUI</option>
+          <option value="TAYRONA">TAYRONA</option>
+          <option value="TERRAZAS DE ALEJANDRIA">TERRAZAS DE ALEJANDRIA</option>
+          <option value="TOPACIO">TOPACIO</option>
+          <option value="TRIANA">TRIANA</option>
+          <option value="URBANIZACION ARRAYANES">URBANIZACION ARRAYANES</option>
+          <option value="URBANIZACION EL PALMAR">URBANIZACION EL PALMAR</option>
+          <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
+          <option value="URBANIZACION EL RUBY">URBANIZACION EL RUBY</option>
+          <option value="URBANIZACION LOS ALMENDROS">URBANIZACION LOS ALMENDROS</option>
+          <option value="URBANIZACION VILLA LUCIA">URBANIZACION VILLA LUCIA</option>
+          <option value="URBANIZACION VILLA MAGDALENA I">URBANIZACION VILLA MAGDALENA I</option>
+          <option value="URBANIZACION VILLA MAGDALENA II">URBANIZACION VILLA MAGDALENA II</option>
+          <option value="URBANIZACION VILLA MAGDALENA III">URBANIZACION VILLA MAGDALENA III</option>
+          <option value="URBANIZACIÓN VILLA MARIANA">URBANIZACIÓN VILLA MARIANA</option>
+          <option value="VALLESUE">VALLESUE</option>
+          <option value="VENECIA I">VENECIA I</option>
+          <option value="VENECIA II">VENECIA II</option>
+          <option value="VENECIA III">VENECIA III</option>
+          <option value="VENECIA IV">VENECIA IV</option>
+          <option value="VILLA DE LAS PALMAS">VILLA DE LAS PALMAS</option>
+          <option value="VILLA DEL RIO I">VILLA DEL RIO I</option>
+          <option value="VILLA DEL RIO II">VILLA DEL RIO II</option>
+          <option value="VILLA DEL SOL">VILLA DEL SOL</option>
+          <option value="VILLA ESPERANZA">VILLA ESPERANZA</option>
+          <option value="VILLA LAS PALMAS">VILLA LAS PALMAS</option>
+          <option value="VILLA MEDINA">VILLA MEDINA</option>
+          <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
+        </select>
+
+        <label>Teléfono</label>
+        <input id="celular" type="tel" inputmode="numeric" placeholder="sin puntos ni espacios" />
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="add-guardar" class="btn-primary">Guardar</button>
+          <button id="add-back" class="danger">Regresar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ================== CONFIGURACIÓN ================== */
+// TODO: pega aquí la URL /exec de tu Apps Script desplegado
+const API_BASE = 'https://script.google.com/macros/s/AKfycby_TJ_vPiqPJdJdqBMuhya_Prwb7UMoFEUMISeHv_nAqT0jepMDfu5kNBn5ayTKiuJB_A/exec';
+
+/* ================== SONIDOS (mismos tags/estilo indexref) ================== */
+const SOUNDS = {
+  question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
+  info: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Default_notification_pkp4wr.mp3',
+  success: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_success_t5aawh.mp3',
+  error: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
+  warning: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
+  login: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_star_g1owy4.mp3',
+  logout: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_End_kelv02.mp3',
+  back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
+  menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3'
+};
+function playSoundOnce(url){
+  try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
+}
+if (window.Swal && typeof Swal.fire === 'function'){
+  const __fire = Swal.fire.bind(Swal);
+  Swal.fire = function(options = {}, ...rest){
+    try{
+      const icon = options.icon || options.type;
+      if (icon && SOUNDS[icon]) playSoundOnce(SOUNDS[icon]);
+    }catch(_){}
+    return __fire(options, ...rest);
+  };
+}
+
+/* ================== LOADER ================== */
+const loader = document.getElementById('loader');
+let loadingCount = 0, loaderTimer = null;
+function startLoading(){
+  loadingCount++;
+  if (loadingCount === 1){
+    loaderTimer = setTimeout(()=>{ loader.classList.remove('hidden'); loaderTimer = null; }, 120);
+  }
+}
+function stopLoading(){
+  if (loadingCount === 0) return;
+  loadingCount--;
+  if (loadingCount === 0){
+    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+    loader.classList.add('hidden');
+  }
+}
+
+/* ================== API ================== */
+async function apiGet(action, params = {}){
+  startLoading();
+  try{
+    const url = new URL(API_BASE);
+    url.search = new URLSearchParams({ action, ...params }).toString();
+    const r = await fetch(url.toString(), { method: 'GET' });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'Error');
+    return j.data;
+  } finally { stopLoading(); }
+}
+async function apiPost(action, body = {}){
+  startLoading();
+  try{
+    const url = API_BASE + '?action=' + encodeURIComponent(action);
+    const r = await fetch(url, {
+      method:'POST',
+      headers: { 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error || 'Error');
+    return j.data;
+  } finally { stopLoading(); }
+}
+
+/* ================== PWA AVANZADO ================== */
+let deferredPrompt = null;
+let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
+let __installSuccessShown = false;  // bandera: ya mostramos "Instalación exitosa"
+
+function isStandalone(){
+  const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const dmInstalled  = window.matchMedia('(display-mode: installed)').matches;
+  const iosStandalone = (window.navigator.standalone === true);
+  return dmStandalone || dmInstalled || iosStandalone;
+}
+function isIOS(){
+  return /(iphone|ipad|ipod)/i.test(navigator.userAgent || '');
+}
+function isMarkedInstalled(){
+  try{ return localStorage.getItem('pwaInstalledFlag') === '1'; }catch(_){ return false; }
+}
+function markInstalled(){
+  try{ localStorage.setItem('pwaInstalledFlag', '1'); }catch(_){}
+}
+function clearInstalledMark(){
+  try{ localStorage.removeItem('pwaInstalledFlag'); }catch(_){}
+}
+async function detectInstalled(){
+  if (isStandalone()) return true;
+  if (typeof navigator.getInstalledRelatedApps === 'function'){
+    try{
+      const apps = await navigator.getInstalledRelatedApps();
+      const found = apps.some(a =>
+        a.platform === 'webapp' &&
+        typeof a.url === 'string' &&
+        /manifest\.webmanifest$/.test(a.url)
+      );
+      if (found){
+        markInstalled();
+        return true;
+      } else {
+        clearInstalledMark();
+      }
+    }catch(_){}
+  }
+  return isMarkedInstalled();
+}
+function updateInstallButtonsVisibility(){
+  const btn1 = document.getElementById('btn-instalar');
+  const canPrompt = !!deferredPrompt;
+  const installed = isMarkedInstalled() || isStandalone();
+  const shouldShow = !installed && (canPrompt || isIOS());
+  if(btn1) btn1.style.display = shouldShow ? '' : 'none';
+}
+
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  updateInstallButtonsVisibility();
+});
+
+window.addEventListener('appinstalled', ()=>{
+  markInstalled();
+  deferredPrompt = null;
+  updateInstallButtonsVisibility();
+});
+
+document.getElementById('btn-instalar').addEventListener('click', async ()=>{
+  // Flujo iOS: se respeta exactamente tu alerta e instrucciones
+  if(isIOS()){
+    Swal.fire({
+      icon:'info',
+      title: '¡Para Instalar en tu Iphone!',
+  html: `
+    <div style="text-align:center; margin-top:8px;">
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1765745210/instalacion_ios_ysbhnd.gif"
+        alt="Instalación de IOS"
+        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+      >
+      <div style="margin-top:10px;">
+        <b>1.</b> Toca Compartir.<br><b>2.</b> Elige "Agregar a pantalla de inicio".<br><b>3.</b> Confirma "Agregar".
+      </div>
+    </div>
+  `,
+    });
+    return;
+  }
+  // Android: requiere beforeinstallprompt (deferredPrompt)
+  if(!deferredPrompt){
+    Swal.fire({icon:'info',title:'Instalación no disponible todavía'});
+    return;
+  }
+
+  const dp = deferredPrompt;
+  dp.prompt();                           // muestra diálogo nativo de instalación
+  const choice = await dp.userChoice;    // espera la elección del usuario
+  deferredPrompt = null;                 // limpia el prompt (solo se usa una vez)
+
+  if (choice.outcome === 'accepted'){
+    // Primera alerta (Android): confirma inicio de instalación por 6 segundos
+    markInstalled();
+    __installStartShown = true;
+    Swal.fire({
+  icon: 'success',
+  title: '¡App instalándose!',
+  html: `
+    <div style="text-align:center; margin-top:8px;">
+      <img
+        src="https://res.cloudinary.com/dqqeavica/image/upload/v1765740540/instalacion_lydtcl.gif"
+        alt="Instalando app"
+        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+      >
+      <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
+      <div style="margin-top:10px;">
+        <b>Al desaparecer este aviso, puedes salir de esta vista. La App aparecerá en la pantalla principal de este dispositivo.</b>
+      </div>
+    </div>
+  `,
+  timer: 12000,
+  showConfirmButton: false
+});
+  } else {
+    Swal.fire({icon:'info',title:'Instalación cancelada'});
+  }
+
+  updateInstallButtonsVisibility();
+});
+
+async function initPWAVista(){
+  const installed = await detectInstalled();
+  if (installed){
+    showView('view-login');
+  } else {
+    showView('view-instalar');
+    updateInstallButtonsVisibility();
+  }
+}
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+window.addEventListener('load', initPWAVista);
+
+/* ================== VISTAS ================== */
+function showView(id){
+  for(const el of document.querySelectorAll('.view')) el.classList.remove('active');
+  document.getElementById(id)?.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ================== VALIDACIONES ================== */
+function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+function bindNumericSanitizer(id, maxLen){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', ()=>{
+    const raw = onlyDigits(el.value);
+    el.value = maxLen ? raw.slice(0, maxLen) : raw;
+  });
+}
+bindNumericSanitizer('login-doc', 10);
+bindNumericSanitizer('identidad', 10);
+bindNumericSanitizer('celular', 10);
+
+document.getElementById('toggle-doc')?.addEventListener('click', ()=>{
+  const el = document.getElementById('login-doc');
+  const oculto = el.type === 'password';
+  el.type = oculto ? 'text' : 'password';
+  const src = oculto
+    ? 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Ocultar_lgdxpd.png'
+    : 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png';
+  document.getElementById('toggle-doc-img').src = src;
+});
+
+document.getElementById('identidad')?.addEventListener('focus', ()=>{
+  // opcional: podrías replicar toggle, pero no lo pediste.
+});
+
+/* ================== ESTADO ================== */
+let currentUser = null; // { documento, nombre, isSuper }
+let currentListMode = 'PENDIENTE'; // PENDIENTE | ATENDIDA CHAT | ATENDIDA PRESENCIAL
+let currentCardSelected = null; // card object
+let choicesResidencia = null;
+
+/* ================== LOGIN ================== */
+document.getElementById('btn-login')?.addEventListener('click', async ()=>{
+  const doc = (document.getElementById('login-doc').value || '').trim();
+
+  if(doc === ''){
+    await Swal.fire({ icon:'question', title:'¿Deseas comenzar?', text:'Ingresa un Documento para validar.', timer:3000, showConfirmButton:false });
+    return;
+  }
+  if(!/^\d{6,10}$/.test(doc)){
+    await Swal.fire({
+      icon:'error',
+      title:'CONTRASEÑA INCORRECTA',
+      text:'La contraseña contiene entre 6 y 10 dígitos numéricos.',
+      timer:3000,
+      showConfirmButton:false
+    });
+    return;
+  }
+
+  try{
+    const res = await apiGet('login', { documento: doc });
+
+    if(!res?.encontrado){
+      await Swal.fire({
+        icon:'info',
+        title:'NO TIENES ACCESO AÚN',
+        text:'Solicitar acceso a Secretaría de Hacienda.',
+        timer:6000,
+        showConfirmButton:false
+      });
+      return;
+    }
+
+    currentUser = {
+      documento: String(res.documento || doc),
+      nombre: String(res.nombre || ''),
+      isSuper: !!res.isSuper
+    };
+
+    document.getElementById('inicio-nombre').textContent = (currentUser.nombre || '').toUpperCase();
+    document.getElementById('inicio-sub').textContent = currentUser.isSuper ? 'SUPER USUARIO' : 'USUARIO';
+
+    playSoundOnce(SOUNDS.login);
+    showView('view-inicio');
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: e.message || String(e) });
+  }
+});
+
+/* ================== LOGOUT ================== */
+document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.logout);
+  currentUser = null;
+  currentCardSelected = null;
+  document.getElementById('login-doc').value = '';
+  showView('view-login');
+});
+
+/* ================== INICIO: botones ================== */
+document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  currentListMode = 'PENDIENTE';
+  await openListView_('PENDIENTES PREDIAL', 'PENDIENTE');
+});
+
+document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  currentListMode = 'ATENDIDA CHAT';
+  await openListView_('ATENDIDAS CHAT', 'ATENDIDA CHAT');
+});
+
+document.getElementById('btn-atendidas-pres')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  currentListMode = 'ATENDIDA PRESENCIAL';
+  await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
+});
+
+document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  initResidenciaChoices_();
+  showView('view-agregar');
+});
+
+/* ================== LISTA: render + filtro ================== */
+let __listCache = [];
+
+function normalizeText_(s){
+  return String(s||'')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase();
+}
+
+async function openListView_(title, estado){
+  if(!currentUser) { Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
+  document.getElementById('lista-title').textContent = title;
+  document.getElementById('lista-filter').value = '';
+  __listCache = [];
+  document.getElementById('lista-wrap').innerHTML = '';
+  document.getElementById('lista-count').textContent = '0';
+  showView('view-lista');
+  await loadAndRenderList_(estado);
+}
+
+async function loadAndRenderList_(estado){
+  const data = await apiGet('listSolicitudes', { estado });
+  __listCache = Array.isArray(data) ? data : [];
+  renderList_(__listCache);
+}
+
+function renderList_(items){
+  const wrap = document.getElementById('lista-wrap');
+  wrap.innerHTML = '';
+
+  document.getElementById('lista-count').textContent = String(items.length);
+
+  if(!items.length){
+    const p = document.createElement('p');
+    p.className = 'muted center';
+    p.textContent = 'No hay registros.';
+    wrap.appendChild(p);
+    return;
+  }
+
+  for(const it of items){
+    const card = document.createElement('div');
+    card.className = 'sol-card';
+
+    const head = document.createElement('div');
+    head.className = 'sol-head';
+
+    const title = document.createElement('p');
+    title.className = 'sol-title';
+    title.innerHTML = `Usuario: <b>${escapeHtml_(it.nombre || '')}</b>`;
+
+    head.appendChild(title);
+
+    const meta = document.createElement('div');
+    meta.className = 'sol-meta';
+    meta.innerHTML = `
+      <p>Documento / NIT: ${escapeHtml_(it.documento || '')}</p>
+      <p>Residencia: ${escapeHtml_(it.barrio || '')}</p>
+      <p>Código Catastral: ${escapeHtml_(it.codigo || '')}</p>
+      <p>Solicitud: ${escapeHtml_(it.solicitud || '')}</p>
+      <p>Fecha: ${escapeHtml_(it.fecha || '')}</p>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'sol-actions';
+
+    const btnResp = document.createElement('button');
+    btnResp.className = 'btn-respond';
+    btnResp.type = 'button';
+    btnResp.textContent = 'RESPONDER - ADJUNTAR';
+    btnResp.addEventListener('click', ()=>{
+      currentCardSelected = it;
+      openRespuestaView_();
+    });
+
+    const icons = document.createElement('div');
+    icons.className = 'right-icons';
+
+    // Icono AL DÍA
+    const alDiaBtn = document.createElement('button');
+    alDiaBtn.className = 'icon-btn';
+    alDiaBtn.type = 'button';
+    alDiaBtn.title = 'AL DÍA';
+    alDiaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1773342298/al_dia_o70awr.webp" alt="AL DÍA">`;
+    alDiaBtn.addEventListener('click', async ()=>{
+      const ok = await Swal.fire({
+        icon:'question',
+        title:'Marcar como AL DÍA',
+        text:'Esta acción marcará la solicitud como atendida y enviará mensaje al usuario.',
+        showCancelButton:true,
+        confirmButtonText:'Sí, continuar',
+        cancelButtonText:'Cancelar'
+      });
+      if(!ok.isConfirmed) return;
+      await apiPost('marcarAlDia', { id_predial: it.id_predial });
+      await loadAndRenderList_(currentListMode);
+      Swal.fire({ icon:'success', title:'Listo', timer:1400, showConfirmButton:false });
+    });
+
+    // Icono NO ENCONTRADO
+    const noBtn = document.createElement('button');
+    noBtn.className = 'icon-btn';
+    noBtn.type = 'button';
+    noBtn.title = 'NO ENCONTRADO';
+    noBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1773342299/no_found_czsnkj.webp" alt="NO ENCONTRADO">`;
+    noBtn.addEventListener('click', async ()=>{
+      const ok = await Swal.fire({
+        icon:'question',
+        title:'Marcar como NO ENCONTRADO',
+        text:'Esta acción marcará la solicitud como atendida y enviará mensaje al usuario.',
+        showCancelButton:true,
+        confirmButtonText:'Sí, continuar',
+        cancelButtonText:'Cancelar'
+      });
+      if(!ok.isConfirmed) return;
+      await apiPost('marcarNoEncontrado', { id_predial: it.id_predial });
+      await loadAndRenderList_(currentListMode);
+      Swal.fire({ icon:'success', title:'Listo', timer:1400, showConfirmButton:false });
+    });
+
+    icons.appendChild(alDiaBtn);
+    icons.appendChild(noBtn);
+
+    actions.appendChild(btnResp);
+    actions.appendChild(icons);
+
+    card.appendChild(head);
+    card.appendChild(meta);
+    card.appendChild(actions);
+
+    wrap.appendChild(card);
+  }
+}
+
+function escapeHtml_(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+document.getElementById('lista-filter')?.addEventListener('input', ()=>{
+  const q = normalizeText_(document.getElementById('lista-filter').value || '');
+  if(!q){
+    renderList_(__listCache);
+    return;
+  }
+  const filtered = __listCache.filter(it=>{
+    const blob = normalizeText_([
+      it.id_predial, it.nombre, it.documento, it.barrio, it.whatsapp,
+      it.codigo, it.solicitud, it.fecha, it.estado, it.observacion
+    ].join(' '));
+    return blob.includes(q);
+  });
+  renderList_(filtered);
+});
+
+document.getElementById('lista-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('lista-refresh')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  await loadAndRenderList_(currentListMode);
+});
+
+/* ================== RESPUESTA SOLICITUD ================== */
+const MAX_PDF_MB = 2;
+function isPdfFile_(file){
+  if(!file) return false;
+  const nameOk = /\.pdf$/i.test(String(file.name||''));
+  const typeOk = String(file.type||'').toLowerCase() === 'application/pdf';
+  return nameOk || typeOk;
+}
+function setPdfStatus_(id, file){
+  const el = document.getElementById(id + '-status');
+  if(!el) return;
+  if(!file){ el.textContent = ''; return; }
+  el.textContent = `CARGADO: ${file.name}`;
+}
+
+['recibo1','recibo2','recibo3','recibo4','recibo5'].forEach(id=>{
+  const inp = document.getElementById(id);
+  if(!inp) return;
+  inp.addEventListener('change', async ()=>{
+    const file = inp.files && inp.files[0] ? inp.files[0] : null;
+    setPdfStatus_(id, null);
+    if(!file) return;
+
+    if(!isPdfFile_(file)){
+      inp.value = '';
+      await Swal.fire({ icon:'warning', title:'Archivo inválido', text:'Solo se permiten archivos PDF.' });
+      return;
+    }
+    const sizeMB = file.size/(1024*1024);
+    if(sizeMB > MAX_PDF_MB){
+      inp.value = '';
+      await Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:`El PDF supera ${MAX_PDF_MB} MB.` });
+      return;
+    }
+    setPdfStatus_(id, file);
+  });
+});
+
+function openRespuestaView_(){
+  if(!currentCardSelected){
+    Swal.fire({ icon:'warning', title:'Selecciona una solicitud' });
+    return;
+  }
+  const it = currentCardSelected;
+
+  document.getElementById('respuesta').value = '';
+  ['recibo1','recibo2','recibo3','recibo4','recibo5'].forEach(id=>{
+    const inp = document.getElementById(id);
+    if(inp) inp.value = '';
+    setPdfStatus_(id, null);
+  });
+
+  const head = document.getElementById('resp-head');
+  head.innerHTML = `
+    <div style="font-weight:1000; color:#111; margin-bottom:8px;">Recibo de impuesto de <b>${escapeHtml_(it.nombre||'')}</b></div>
+    <div style="display:grid; gap:4px; font-weight:800;">
+      <div>Documento / NIT: ${escapeHtml_(it.documento||'')}</div>
+      <div>Residencia: ${escapeHtml_(it.barrio||'')}</div>
+      <div>Código Catastral: ${escapeHtml_(it.codigo||'')}</div>
+      <div>Solicitud: ${escapeHtml_(it.solicitud||'')}</div>
+      <div>Fecha: ${escapeHtml_(it.fecha||'')}</div>
+    </div>
+  `;
+  showView('view-respuesta');
+}
+
+async function fileToBase64_(file){
+  const dataUrl = await new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(String(r.result||''));
+    r.onerror = ()=> reject(new Error('No se pudo leer el archivo'));
+    r.readAsDataURL(file);
+  });
+  return (dataUrl.split(',')[1] || '');
+}
+
+document.getElementById('resp-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // Regresa a la lista actual
+  showView('view-lista');
+});
+
+document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
+  if(!currentCardSelected){
+    Swal.fire({ icon:'warning', title:'Solicitud inválida' });
+    return;
+  }
+
+  const respuesta = String(document.getElementById('respuesta').value || '').trim();
+  const files = ['recibo1','recibo2','recibo3','recibo4','recibo5']
+    .map(id => document.getElementById(id)?.files?.[0] || null)
+    .filter(Boolean);
+
+  if(files.length < 1){
+    await Swal.fire({ icon:'warning', title:'Adjunta al menos 1 PDF', text:'Debes adjuntar mínimo un recibo.' });
+    return;
+  }
+
+  // confirm
+  const ok = await Swal.fire({
+    icon:'question',
+    title:'Guardar respuesta',
+    text:`Se guardarán ${files.length} PDF(s) y se enviará mensaje al usuario.`,
+    showCancelButton:true,
+    confirmButtonText:'Guardar',
+    cancelButtonText:'Cancelar'
+  });
+  if(!ok.isConfirmed) return;
+
+  const pdfs = [];
+  for(let i=0;i<files.length;i++){
+    pdfs.push({ filename: files[i].name, base64: await fileToBase64_(files[i]) });
+  }
+
+  await apiPost('guardarRespuesta', {
+    id_predial: currentCardSelected.id_predial,
+    respuesta: respuesta,
+    pdfs: pdfs
+  });
+
+  await Swal.fire({ icon:'success', title:'Enviado', timer:1500, showConfirmButton:false });
+
+  // volver a lista y refrescar
+  showView('view-lista');
+  await loadAndRenderList_(currentListMode);
+});
+
+/* ================== AGREGAR SOLICITUD (presencial) ================== */
+function initResidenciaChoices_(){
+  if(choicesResidencia) return;
+  const el = document.getElementById('upd-residencia');
+  if(!el) return;
+  choicesResidencia = new Choices(el, {
+    searchEnabled: true,
+    itemSelectText: '',
+    shouldSort: false
+  });
+}
+
+function validateTwoWords_(s){
+  const parts = String(s||'').trim().split(/\s+/).filter(Boolean);
+  return parts.length >= 2;
+}
+
+document.getElementById('add-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // Regresa a inicio (o podrías regresarlo a una lista; no hay contexto aquí)
+  showView('view-inicio');
+});
+
+document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
+  const propietario = String(document.getElementById('Propietario').value||'').trim();
+  const identidad = onlyDigits(document.getElementById('identidad').value||'');
+  const residencia = String(document.getElementById('upd-residencia').value||'').trim();
+  const celular = onlyDigits(document.getElementById('celular').value||'');
+
+  if(!validateTwoWords_(propietario)){
+    Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener al menos 2 palabras.' });
+    return;
+  }
+  if(!/^\d{6,10}$/.test(identidad)){
+    Swal.fire({ icon:'warning', title:'Documento/NIT inválido', text:'Debe tener entre 6 y 10 dígitos.' });
+    return;
+  }
+  if(!residencia){
+    Swal.fire({ icon:'warning', title:'Residencia requerida' });
+    return;
+  }
+  if(!/^\d{10}$/.test(celular)){
+    Swal.fire({ icon:'warning', title:'Teléfono inválido', text:'Debe tener 10 dígitos.' });
+    return;
+  }
+
+  const ok = await Swal.fire({
+    icon:'question',
+    title:'Guardar solicitud presencial',
+    text:'Se registrará como ATENDIDA PRESENCIAL.',
+    showCancelButton:true,
+    confirmButtonText:'Guardar',
+    cancelButtonText:'Cancelar'
+  });
+  if(!ok.isConfirmed) return;
+
+  await apiPost('agregarSolicitudPresencial', {
+    propietario,
+    identidad,
+    residencia,
+    celular
+  });
+
+  await Swal.fire({ icon:'success', title:'Guardado', timer:1400, showConfirmButton:false });
+
+  // Limpiar campos
+  document.getElementById('Propietario').value = '';
+  document.getElementById('identidad').value = '';
+  document.getElementById('celular').value = '';
+  try{ document.getElementById('upd-residencia').value = ''; choicesResidencia?.setChoiceByValue(''); }catch(_){}
+
+  // Ir a lista atendidas presencial
+  currentListMode = 'ATENDIDA PRESENCIAL';
+  await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
+});
+
+/* ================== Vista instalar (si quieres forzar visible en iOS por botón) ================== */
+/* Por defecto dejamos login como entrada. Si quieres, puedes usar una ruta manual. */
+</script>
+</body>
+</html>
