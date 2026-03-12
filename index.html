@@ -126,7 +126,9 @@
 
     .sol-list{ display:flex; flex-direction:column; gap:12px; margin-top:10px; }
     .sol-card{
-      background: rgba(255,255,255,.92);
+      /* antes: blanco casi sólido; ahora: menos transparente que el contenedor */
+      background: rgba(255,255,255,.18);
+      backdrop-filter: blur(3px);
       border:2px solid #ddd;
       border-radius:16px;
       padding:12px;
@@ -324,7 +326,8 @@
         <input id="Propietario" type="text" placeholder="Nombre del propietario" />
 
         <label>Documento o NIT</label>
-        <input id="identidad" type="password" inputmode="numeric" placeholder="sin puntos, espacios ni guiones" />
+        <!-- (Cambio #2) visible: type="text" -->
+        <input id="identidad" type="text" inputmode="numeric" placeholder="sin puntos, espacios ni guiones" />
 
         <label>Residencia</label>
         <select id="upd-residencia">
@@ -1103,7 +1106,8 @@ document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
   await apiPost('guardarRespuesta', {
     id_predial: currentCardSelected.id_predial,
     respuesta: respuesta,
-    pdfs: pdfs
+    pdfs: pdfs,
+    usuario: currentUser ? (currentUser.nombre || '') : '' // (Cambio #3) registra usuario backend
   });
 
   await Swal.fire({ icon:'success', title:'Enviado', timer:1500, showConfirmButton:false });
@@ -1177,7 +1181,8 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
     propietario,
     identidad,
     residencia,
-    celular
+    celular,
+    usuario: currentUser ? (currentUser.nombre || '') : '' // (Cambio #3) registra usuario backend
   });
 
   await Swal.fire({ icon:'success', title:'Guardado', timer:1400, showConfirmButton:false });
