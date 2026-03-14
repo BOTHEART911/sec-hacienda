@@ -728,6 +728,31 @@ function showView(id){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+  /* ================== RESET FORMULARIO DE SOLICITUD PREDIAL ================== */
+  function resetAgregarSolicitudForm_(){
+  // Limpia inputs
+  const p = document.getElementById('Propietario');
+  const id = document.getElementById('identidad');
+  const cel = document.getElementById('celular');
+  if(p) p.value = '';
+  if(id) id.value = '';
+  if(cel) cel.value = '';
+
+  // Limpia select (Choices si existe, si no, normal)
+  const sel = document.getElementById('upd-residencia');
+  try{
+    if(choicesResidencia){
+      choicesResidencia.removeActiveItems();
+      // intenta dejarlo en vacío (sin seleccionar nada)
+      choicesResidencia.setChoiceByValue('');
+    } else if(sel){
+      sel.value = '';
+    }
+  }catch(_){
+    try{ if(sel) sel.value = ''; }catch(__){}
+  }
+}
+
 /* ================== VALIDACIONES ================== */
 function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
 function bindNumericSanitizer(id, maxLen){
@@ -852,6 +877,7 @@ document.getElementById('btn-atendidas-pres')?.addEventListener('click', async (
 document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
   initResidenciaChoices_();
+  resetAgregarSolicitudForm_(); // <-- NUEVO: resetea al iniciar la vista
   showView('view-agregar');
 });
 
