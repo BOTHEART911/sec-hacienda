@@ -126,7 +126,6 @@
 
     .sol-list{ display:flex; flex-direction:column; gap:12px; margin-top:10px; }
     .sol-card{
-      /* antes: blanco casi sólido; ahora: menos transparente que el contenedor */
       background: rgba(255,255,255,.18);
       backdrop-filter: blur(3px);
       border:2px solid #ddd;
@@ -182,6 +181,27 @@
 
     /* PDF inputs status */
     .pdf-status{ margin-top:6px; font-size:.9rem; font-weight:800; color:#16a34a; }
+
+    /* Buscar contacto (icono dentro del input) */
+    .input-icon-wrap{ position:relative; }
+    .icon-in-input{
+      position:absolute;
+      top:50%;
+      right:10px;
+      transform:translateY(-50%);
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      border:2px solid #ddd;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      box-shadow:0 4px 10px rgba(0,0,0,.10);
+      padding:0;
+    }
+    .icon-in-input img{ width:20px; height:20px; object-fit:contain; }
   </style>
 </head>
 <body>
@@ -256,7 +276,7 @@
       </div>
     </section>
 
-    <!-- VISTA PENDIENTES -->
+    <!-- VISTA PENDIENTES / LISTAS -->
     <section id="view-lista" class="view">
       <div class="card">
         <h2 id="lista-title" style="color:var(--primary); margin-bottom:8px;">PENDIENTES PREDIAL</h2>
@@ -264,14 +284,14 @@
         <div class="count-row">
           <span class="count-pill">TOTAL: <span id="lista-count">0</span></span>
           <input id="lista-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
-          <button id="lista-refresh" class="chip">Refrescar</button>
+        </div>
+
+        <!-- (Cambio #2) botón regresar ANTES de las tarjetas -->
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="lista-back" class="danger">Regresar</button>
         </div>
 
         <div id="lista-wrap" class="sol-list"></div>
-
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="lista-back" class="danger">Regresar</button>
-        </div>
       </div>
     </section>
 
@@ -280,7 +300,8 @@
       <div class="card narrow">
         <h2 style="color:var(--primary); margin-bottom:8px;">RESPUESTA SOLICITUD</h2>
 
-        <div id="resp-head" class="narrow" style="background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px;"></div>
+        <!-- (Cambio solicitado) quitamos el "resumen" (el bloque head) -->
+        <!-- <div id="resp-head" class="narrow" style="background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px;"></div> -->
 
         <label>Respuesta (opcional)</label>
         <textarea id="respuesta" rows="4" placeholder="Escribe si tienes algo anexo que referir, de lo contrario, solo adjunta los recibos."></textarea>
@@ -310,9 +331,12 @@
           <div id="recibo5-status" class="pdf-status"></div>
         </div>
 
+        <!-- (Cambio #2) botón regresar ANTES (en esta vista: arriba de Guardar/Regresar no aplica, pero lo movemos a arriba del footer) -->
         <div class="btn-row" style="margin-top:14px;">
-          <button id="resp-guardar" class="btn-primary">Guardar</button>
           <button id="resp-back" class="danger">Regresar</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="resp-guardar" class="btn-primary">Guardar</button>
         </div>
       </div>
     </section>
@@ -326,8 +350,13 @@
         <input id="Propietario" type="text" placeholder="Nombre del propietario" />
 
         <label>Documento o NIT</label>
-        <!-- (Cambio #2) visible: type="text" -->
-        <input id="identidad" type="text" inputmode="numeric" placeholder="sin puntos, espacios ni guiones" />
+        <!-- input con icono buscar (clic) -->
+        <div class="input-icon-wrap">
+          <input id="identidad" type="text" inputmode="numeric" placeholder="sin puntos, espacios ni guiones" />
+          <button type="button" id="btn-buscar-contacto" class="icon-in-input" aria-label="Buscar contacto" title="Buscar contacto">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1769204556/buscar_vaaua0.webp" alt="Buscar">
+          </button>
+        </div>
 
         <label>Residencia</label>
         <select id="upd-residencia">
@@ -489,7 +518,7 @@ const SOUNDS = {
   info: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Default_notification_pkp4wr.mp3',
   success: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_success_t5aawh.mp3',
   error: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
-  warning: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
+  warning: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5quaa1.mp3',
   login: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_star_g1owy4.mp3',
   logout: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_End_kelv02.mp3',
   back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
@@ -556,8 +585,8 @@ async function apiPost(action, body = {}){
 
 /* ================== PWA AVANZADO ================== */
 let deferredPrompt = null;
-let __installStartShown = false;    // bandera: ya mostramos "App instalándose"
-let __installSuccessShown = false;  // bandera: ya mostramos "Instalación exitosa"
+let __installStartShown = false;
+let __installSuccessShown = false;
 
 function isStandalone(){
   const dmStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -618,60 +647,57 @@ window.addEventListener('appinstalled', ()=>{
 });
 
 document.getElementById('btn-instalar').addEventListener('click', async ()=>{
-  // Flujo iOS: se respeta exactamente tu alerta e instrucciones
   if(isIOS()){
     Swal.fire({
       icon:'info',
       title: '¡Para Instalar en tu Iphone!',
-  html: `
-    <div style="text-align:center; margin-top:8px;">
-      <img
-        src="https://res.cloudinary.com/dqqeavica/image/upload/v1765745210/instalacion_ios_ysbhnd.gif"
-        alt="Instalación de IOS"
-        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
-      >
-      <div style="margin-top:10px;">
-        <b>1.</b> Toca Compartir.<br><b>2.</b> Elige "Agregar a pantalla de inicio".<br><b>3.</b> Confirma "Agregar".
-      </div>
-    </div>
-  `,
+      html: `
+        <div style="text-align:center; margin-top:8px;">
+          <img
+            src="https://res.cloudinary.com/dqqeavica/image/upload/v1765745210/instalacion_ios_ysbhnd.gif"
+            alt="Instalación de IOS"
+            style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+          >
+          <div style="margin-top:10px;">
+            <b>1.</b> Toca Compartir.<br><b>2.</b> Elige "Agregar a pantalla de inicio".<br><b>3.</b> Confirma "Agregar".
+          </div>
+        </div>
+      `,
     });
     return;
   }
-  // Android: requiere beforeinstallprompt (deferredPrompt)
   if(!deferredPrompt){
     Swal.fire({icon:'info',title:'Instalación no disponible todavía'});
     return;
   }
 
   const dp = deferredPrompt;
-  dp.prompt();                           // muestra diálogo nativo de instalación
-  const choice = await dp.userChoice;    // espera la elección del usuario
-  deferredPrompt = null;                 // limpia el prompt (solo se usa una vez)
+  dp.prompt();
+  const choice = await dp.userChoice;
+  deferredPrompt = null;
 
   if (choice.outcome === 'accepted'){
-    // Primera alerta (Android): confirma inicio de instalación por 6 segundos
     markInstalled();
     __installStartShown = true;
     Swal.fire({
-  icon: 'success',
-  title: '¡App instalándose!',
-  html: `
-    <div style="text-align:center; margin-top:8px;">
-      <img
-        src="https://res.cloudinary.com/dqqeavica/image/upload/v1765740540/instalacion_lydtcl.gif"
-        alt="Instalando app"
-        style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
-      >
-      <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
-      <div style="margin-top:10px;">
-        <b>Al desaparecer este aviso, puedes salir de esta vista. La App aparecerá en la pantalla principal de este dispositivo.</b>
-      </div>
-    </div>
-  `,
-  timer: 12000,
-  showConfirmButton: false
-});
+      icon: 'success',
+      title: '¡App instalándose!',
+      html: `
+        <div style="text-align:center; margin-top:8px;">
+          <img
+            src="https://res.cloudinary.com/dqqeavica/image/upload/v1765740540/instalacion_lydtcl.gif"
+            alt="Instalando app"
+            style="width:180px; max-width:70vw; height:auto; display:block; margin:0 auto 12px;"
+          >
+          <div>Debes esperar unos segundos mientras el sistema instala la App.</div>
+          <div style="margin-top:10px;">
+            <b>Al desaparecer este aviso, puedes salir de esta vista. La App aparecerá en la pantalla principal de este dispositivo.</b>
+          </div>
+        </div>
+      `,
+      timer: 12000,
+      showConfirmButton: false
+    });
   } else {
     Swal.fire({icon:'info',title:'Instalación cancelada'});
   }
@@ -714,7 +740,21 @@ function bindNumericSanitizer(id, maxLen){
 }
 bindNumericSanitizer('login-doc', 10);
 bindNumericSanitizer('identidad', 10);
-bindNumericSanitizer('celular', 10);
+/* (Cambio #1) Teléfono permite hasta 12 dígitos */
+bindNumericSanitizer('celular', 12);
+
+function validatePhone_(digits){
+  const s = onlyDigits(digits);
+  if(s.length === 10) return true;
+  if(s.length === 12 && s.startsWith('57')) return true;
+  return false;
+}
+function normalizePhoneForSave_(digits){
+  const s = onlyDigits(digits);
+  if(s.length === 12 && s.startsWith('57')) return s;
+  if(s.length === 10) return '57' + s;
+  throw new Error('Teléfono inválido');
+}
 
 document.getElementById('toggle-doc')?.addEventListener('click', ()=>{
   const el = document.getElementById('login-doc');
@@ -724,10 +764,6 @@ document.getElementById('toggle-doc')?.addEventListener('click', ()=>{
     ? 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Ocultar_lgdxpd.png'
     : 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png';
   document.getElementById('toggle-doc-img').src = src;
-});
-
-document.getElementById('identidad')?.addEventListener('focus', ()=>{
-  // opcional: podrías replicar toggle, pero no lo pediste.
 });
 
 /* ================== ESTADO ================== */
@@ -821,7 +857,6 @@ document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
 
 /* ================== LISTA: render + filtro ================== */
 let __listCache = [];
-
 function normalizeText_(s){
   return String(s||'')
     .normalize('NFKD')
@@ -875,12 +910,18 @@ function renderList_(items){
 
     const meta = document.createElement('div');
     meta.className = 'sol-meta';
+
+    const respondedExtra = (currentListMode === 'ATENDIDA CHAT' && it.respondida && String(it.respondida).trim())
+      ? `<p>RESPONDIDA: ${escapeHtml_(it.respondida)}</p>`
+      : '';
+
     meta.innerHTML = `
       <p>Documento / NIT: ${escapeHtml_(it.documento || '')}</p>
       <p>Residencia: ${escapeHtml_(it.barrio || '')}</p>
       <p>Código Catastral: ${escapeHtml_(it.codigo || '')}</p>
       <p>Solicitud: ${escapeHtml_(it.solicitud || '')}</p>
       <p>Fecha: ${escapeHtml_(it.fecha || '')}</p>
+      ${respondedExtra}
     `;
 
     const actions = document.createElement('div');
@@ -890,9 +931,9 @@ function renderList_(items){
     btnResp.className = 'btn-respond';
     btnResp.type = 'button';
     btnResp.textContent = 'RESPONDER - ADJUNTAR';
-    btnResp.addEventListener('click', ()=>{
+    btnResp.addEventListener('click', async ()=>{
       currentCardSelected = it;
-      openRespuestaView_();
+      await openRespuestaViewWithCheck_();
     });
 
     const icons = document.createElement('div');
@@ -914,7 +955,7 @@ function renderList_(items){
         cancelButtonText:'Cancelar'
       });
       if(!ok.isConfirmed) return;
-      await apiPost('marcarAlDia', { id_predial: it.id_predial });
+      await apiPost('marcarAlDia', { id_predial: it.id_predial, usuario: currentUser ? (currentUser.nombre || '') : '' });
       await loadAndRenderList_(currentListMode);
       Swal.fire({ icon:'success', title:'Listo', timer:1400, showConfirmButton:false });
     });
@@ -935,7 +976,7 @@ function renderList_(items){
         cancelButtonText:'Cancelar'
       });
       if(!ok.isConfirmed) return;
-      await apiPost('marcarNoEncontrado', { id_predial: it.id_predial });
+      await apiPost('marcarNoEncontrado', { id_predial: it.id_predial, usuario: currentUser ? (currentUser.nombre || '') : '' });
       await loadAndRenderList_(currentListMode);
       Swal.fire({ icon:'success', title:'Listo', timer:1400, showConfirmButton:false });
     });
@@ -972,7 +1013,7 @@ document.getElementById('lista-filter')?.addEventListener('input', ()=>{
   const filtered = __listCache.filter(it=>{
     const blob = normalizeText_([
       it.id_predial, it.nombre, it.documento, it.barrio, it.whatsapp,
-      it.codigo, it.solicitud, it.fecha, it.estado, it.observacion
+      it.codigo, it.solicitud, it.fecha, it.estado, it.observacion, it.respondida
     ].join(' '));
     return blob.includes(q);
   });
@@ -982,11 +1023,6 @@ document.getElementById('lista-filter')?.addEventListener('input', ()=>{
 document.getElementById('lista-back')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
   showView('view-inicio');
-});
-
-document.getElementById('lista-refresh')?.addEventListener('click', async ()=>{
-  playSoundOnce(SOUNDS.back);
-  await loadAndRenderList_(currentListMode);
 });
 
 /* ================== RESPUESTA SOLICITUD ================== */
@@ -1027,12 +1063,38 @@ function setPdfStatus_(id, file){
   });
 });
 
+/* (Cambio #3) Al entrar a RESPONDER - ADJUNTAR: validación por estado solo en PENDIENTES */
+async function openRespuestaViewWithCheck_(){
+  if(!currentCardSelected){
+    Swal.fire({ icon:'warning', title:'Selecciona una solicitud' });
+    return;
+  }
+
+  // Solo la vista PENDIENTE hace verificación fuerte
+  if(currentListMode === 'PENDIENTE'){
+    try{
+      const still = await apiGet('getSolicitudById', { id_predial: currentCardSelected.id_predial });
+      const estadoNow = String(still?.estado || '').toUpperCase().trim();
+
+      if(estadoNow !== 'PENDIENTE'){
+        await Swal.fire({ icon:'info', title:'YA FUE RESPONDIDA', timer:2000, showConfirmButton:false });
+        // refresca lista de pendientes para que desaparezca
+        await loadAndRenderList_('PENDIENTE');
+        return;
+      }
+    }catch(_){
+      // si falla la consulta, por seguridad dejamos pasar a responder
+    }
+  }
+
+  openRespuestaView_();
+}
+
 function openRespuestaView_(){
   if(!currentCardSelected){
     Swal.fire({ icon:'warning', title:'Selecciona una solicitud' });
     return;
   }
-  const it = currentCardSelected;
 
   document.getElementById('respuesta').value = '';
   ['recibo1','recibo2','recibo3','recibo4','recibo5'].forEach(id=>{
@@ -1041,17 +1103,6 @@ function openRespuestaView_(){
     setPdfStatus_(id, null);
   });
 
-  const head = document.getElementById('resp-head');
-  head.innerHTML = `
-    <div style="font-weight:1000; color:#111; margin-bottom:8px;">Recibo de impuesto de <b>${escapeHtml_(it.nombre||'')}</b></div>
-    <div style="display:grid; gap:4px; font-weight:800;">
-      <div>Documento / NIT: ${escapeHtml_(it.documento||'')}</div>
-      <div>Residencia: ${escapeHtml_(it.barrio||'')}</div>
-      <div>Código Catastral: ${escapeHtml_(it.codigo||'')}</div>
-      <div>Solicitud: ${escapeHtml_(it.solicitud||'')}</div>
-      <div>Fecha: ${escapeHtml_(it.fecha||'')}</div>
-    </div>
-  `;
   showView('view-respuesta');
 }
 
@@ -1067,7 +1118,6 @@ async function fileToBase64_(file){
 
 document.getElementById('resp-back')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  // Regresa a la lista actual
   showView('view-lista');
 });
 
@@ -1087,7 +1137,6 @@ document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
     return;
   }
 
-  // confirm
   const ok = await Swal.fire({
     icon:'question',
     title:'Guardar respuesta',
@@ -1107,12 +1156,11 @@ document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
     id_predial: currentCardSelected.id_predial,
     respuesta: respuesta,
     pdfs: pdfs,
-    usuario: currentUser ? (currentUser.nombre || '') : '' // (Cambio #3) registra usuario backend
+    usuario: currentUser ? (currentUser.nombre || '') : ''
   });
 
   await Swal.fire({ icon:'success', title:'Enviado', timer:1500, showConfirmButton:false });
 
-  // volver a lista y refrescar
   showView('view-lista');
   await loadAndRenderList_(currentListMode);
 });
@@ -1134,9 +1182,46 @@ function validateTwoWords_(s){
   return parts.length >= 2;
 }
 
+/* (Cambio #1) buscar contacto por documento y autocompletar A/B/C/D */
+document.getElementById('btn-buscar-contacto')?.addEventListener('click', async ()=>{
+  try{
+    if(!currentUser){
+      Swal.fire({ icon:'warning', title:'Sesión inválida' });
+      return;
+    }
+    const doc = onlyDigits(document.getElementById('identidad').value || '');
+    if(!/^\d{6,10}$/.test(doc)){
+      // no alertas si no está / inválido: solo no hacer nada (como pediste, sin enredos)
+      return;
+    }
+
+    const found = await apiGet('buscarContacto', { documento: doc });
+    if(!found?.encontrado) return;
+
+    // autocompletar
+    if(found.nombre) document.getElementById('Propietario').value = String(found.nombre);
+    if(found.whatsapp) document.getElementById('celular').value = onlyDigits(found.whatsapp);
+
+    // residencia: solo si existe exactamente en el select
+    if(found.barrio){
+      const val = String(found.barrio).toUpperCase().trim();
+      const sel = document.getElementById('upd-residencia');
+      const exists = Array.from(sel.options).some(o => String(o.value).toUpperCase().trim() === val);
+      if(exists){
+        try{
+          choicesResidencia?.setChoiceByValue(val);
+        }catch(_){
+          sel.value = val;
+        }
+      }
+    }
+  }catch(_){
+    // sin alertas
+  }
+});
+
 document.getElementById('add-back')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  // Regresa a inicio (o podrías regresarlo a una lista; no hay contexto aquí)
   showView('view-inicio');
 });
 
@@ -1148,7 +1233,7 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
   const propietario = String(document.getElementById('Propietario').value||'').trim();
   const identidad = onlyDigits(document.getElementById('identidad').value||'');
   const residencia = String(document.getElementById('upd-residencia').value||'').trim();
-  const celular = onlyDigits(document.getElementById('celular').value||'');
+  const celularRaw = onlyDigits(document.getElementById('celular').value||'');
 
   if(!validateTwoWords_(propietario)){
     Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener al menos 2 palabras.' });
@@ -1162,27 +1247,19 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
     Swal.fire({ icon:'warning', title:'Residencia requerida' });
     return;
   }
-  if(!/^\d{10}$/.test(celular)){
-    Swal.fire({ icon:'warning', title:'Teléfono inválido', text:'Debe tener 10 dígitos.' });
+  if(!validatePhone_(celularRaw)){
+    Swal.fire({ icon:'warning', title:'Teléfono inválido', text:'Debe tener 10 dígitos, o 12 si empieza con 57.' });
     return;
   }
 
-  const ok = await Swal.fire({
-    icon:'question',
-    title:'Guardar solicitud presencial',
-    text:'Se registrará como ATENDIDA PRESENCIAL.',
-    showCancelButton:true,
-    confirmButtonText:'Guardar',
-    cancelButtonText:'Cancelar'
-  });
-  if(!ok.isConfirmed) return;
-
+  // (Cambio solicitado) quitamos el resumen/confirm modal de guardar
+  // Guardar directo
   await apiPost('agregarSolicitudPresencial', {
     propietario,
     identidad,
     residencia,
-    celular,
-    usuario: currentUser ? (currentUser.nombre || '') : '' // (Cambio #3) registra usuario backend
+    celular: normalizePhoneForSave_(celularRaw), // ya normalizado (con 57 si aplica)
+    usuario: currentUser ? (currentUser.nombre || '') : ''
   });
 
   await Swal.fire({ icon:'success', title:'Guardado', timer:1400, showConfirmButton:false });
@@ -1197,9 +1274,6 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
   currentListMode = 'ATENDIDA PRESENCIAL';
   await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
 });
-
-/* ================== Vista instalar (si quieres forzar visible en iOS por botón) ================== */
-/* Por defecto dejamos login como entrada. Si quieres, puedes usar una ruta manual. */
 </script>
 </body>
 </html>
