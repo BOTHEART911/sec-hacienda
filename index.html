@@ -1111,7 +1111,7 @@ async function openDriveAnexosView_(){
     // no mostrar nada (según requisito)
     return;
   }
-  document.getElementById('drive-filter').value = '';
+ document.getElementById('drive-filter')?.value = '';
   DRIVE_DATA = [];
   renderDriveGrid_([]);
   showView('view-drive-anexos');
