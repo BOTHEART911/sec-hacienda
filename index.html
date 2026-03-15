@@ -998,11 +998,6 @@ function isValidGmail_(email){
   return /^[a-z0-9._%+-]+@gmail\.com$/.test(e);
 }
 
-function setDriveCount_(n){
-  const el = document.getElementById('drive-count');
-  if(el) el.textContent = String(n || 0);
-}
-
 function openDriveEdit_(row){
   DRIVE_EDIT_TARGET = row;
   document.getElementById('drive-edit-nombre').textContent = String(row.nombre || '').trim();
@@ -1014,14 +1009,6 @@ function openDriveEdit_(row){
 function renderDriveGrid_(list){
   const grid = document.getElementById('drive-grid');
   grid.innerHTML = '';
-
-  if(!list.length){
-    grid.innerHTML = '<p class="muted center" style="grid-column:1/-1;">No hay registros.</p>';
-    setDriveCount_(0);
-    return;
-  }
-
-  setDriveCount_(list.length);
 
   list.forEach(row=>{
     const correo = String(row.correo || '').trim();
@@ -1080,11 +1067,7 @@ function renderDriveGrid_(list){
 }
 
 function applyDriveFilter_(){
-  const q = (document.getElementById('drive-filter').value || '').trim().toLowerCase();
-  const filtered = DRIVE_DATA.filter(r=>{
-    return [r.nombre, r.correo].some(v => String(v || '').toLowerCase().includes(q));
-  });
-  renderDriveGrid_(filtered);
+  renderDriveGrid_(DRIVE_DATA);
 }
 
 /**
