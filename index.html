@@ -202,6 +202,123 @@
       padding:0;
     }
     .icon-in-input img{ width:20px; height:20px; object-fit:contain; }
+
+    /* ===== DRIVE ANEXOS (estilos) ===== */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:14px;
+  margin-top: 14px;
+}
+@media (max-width: 700px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+.drive-card{
+  border-radius:18px;
+  padding:14px 14px 12px;
+  box-shadow:0 10px 22px rgba(0,0,0,.14);
+  border: 2px solid transparent;
+  transform: translateY(0);
+  transition: transform .15s ease, box-shadow .15s ease;
+  position:relative;
+  overflow:hidden;
+}
+.drive-card:hover{
+  transform: translateY(-2px);
+  box-shadow:0 14px 26px rgba(0,0,0,.18);
+}
+.drive-card.green{
+  background: #d9f2d0;
+  border-color: #2e7d32;
+}
+.drive-card.red{
+  background: #fbe3dd;
+  border-color: #dc2626;
+}
+
+.drive-name{
+  font-weight:1000;
+  text-transform: uppercase;
+  text-align:center;
+  letter-spacing:.3px;
+  margin: 2px 0 4px;
+  font-size: .98rem;
+}
+.drive-mail{
+  text-align:center;
+  font-weight:700;
+  color:#1f2937;
+  margin: 0 0 10px;
+  font-size:.92rem;
+  min-height: 1.1em;
+}
+
+.icon-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  margin-top: 6px;
+}
+
+.btn-icon{
+  width:58px;
+  height:58px;
+  border:0 !important;
+  background: transparent !important;
+  padding:0 !important;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  box-shadow:none !important;
+  transition: transform .12s ease;
+}
+.btn-icon:hover{ transform: scale(1.08); }
+.btn-icon:active{ transform: scale(.94); }
+.btn-icon:focus-visible{
+  outline:none;
+  box-shadow: 0 0 0 3px rgba(4,40,28,.28) !important;
+}
+.btn-icon img{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+  display:block;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.22));
+  pointer-events:none;
+}
+
+.count-wrap{ margin-top: 6px; }
+.count-text{ font-weight:900; color:#111; }
+
+.btn-big{
+  width:100%;
+  padding:16px 14px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 1000;
+}
+
+.edit-head{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:6px;
+}
+.edit-badge{
+  padding:8px 12px;
+  border-radius:999px;
+  border:2px solid var(--primary);
+  background:#fff;
+  font-weight:1000;
+  max-width:100%;
+  text-align:center;
+}
   </style>
 </head>
 <body>
@@ -269,6 +386,10 @@
         <div class="btn-row" style="margin-top:10px;">
           <button id="btn-atendidas-chat" class="btn-primary">ATENDIDAS CHAT</button>
           <button id="btn-atendidas-pres" class="btn-primary">ATENDIDAS PRESENCIAL</button>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="btn-drive-anexos" class="btn-primary">DRIVE ANEXOS</button>
         </div>
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
@@ -510,6 +631,59 @@
         </div>
       </div>
     </section>
+
+ <!-- VISTA DRIVE ANEXOS -->
+<section id="view-drive-anexos" class="view">
+  <div class="card">
+    <h2 style="color:var(--primary)">DRIVE ANEXOS</h2>
+    <p class="helper"><b>Uso exclusivo del Equipo para anexar informes</b></p>
+
+    <div class="center count-wrap">
+      <div class="muted">N° de Registros</div>
+      <div id="drive-count" class="count-text" style="margin-top:2px;">0</div>
+    </div>
+
+    <div class="spaced">
+      <input id="drive-filter" type="text" placeholder="Filtrar por nombre o correo" aria-label="Filtrar por nombre o correo">
+    </div>
+
+    <div id="drive-grid" class="grid"></div>
+
+    <div class="spaced">
+      <button id="btn-drive-recargar" class="btn-primary btn-big">Recargar</button>
+    </div>
+
+    <!-- Botón Regresar (requisito) -->
+    <div class="spaced">
+      <button id="btn-drive-regresar" class="danger btn-big">Regresar</button>
+    </div>
+  </div>
+</section>
+
+<!-- VISTA EDITAR DRIVE -->
+<section id="view-drive-editar" class="view">
+  <div class="card" style="max-width:640px;">
+    <div class="edit-head">
+      <div id="drive-edit-nombre" class="edit-badge"></div>
+    </div>
+    <h2 style="color:var(--primary); margin-top:6px;">EDITAR</h2>
+
+    <label for="drive-edit-correo">Correo de Edición (Gmail)</label>
+    <input id="drive-edit-correo" type="email" inputmode="email" autocomplete="off" placeholder="usuario@gmail.com">
+
+    <div class="spaced">
+      <button id="btn-drive-guardar" class="btn-primary btn-big">Guardar</button>
+    </div>
+    <div class="spaced">
+      <button id="btn-drive-back-edit" class="danger btn-big">Regresar</button>
+    </div>
+
+    <p class="muted center" style="margin-top:10px;">
+      Se concede permiso de edición a la carpeta del registro. Si existía un correo anterior, se retira el permiso.
+    </p>
+  </div>
+</section>
+    
   </div>
 
 <script>
@@ -802,6 +976,160 @@ let currentListMode = 'PENDIENTE'; // PENDIENTE | ATENDIDA CHAT | ATENDIDA PRESE
 let currentCardSelected = null; // card object
 let choicesResidencia = null;
 
+  /* ================== DRIVE ANEXOS (NUEVO) ================== */
+const DRIVE_HIDE_FOR = [
+  'DIANA MARCELA OTALORA',
+  'DIEGO FERNANDO GARCIA'
+].map(s => normalizeText_(s));
+
+const DRIVE_ICON_EDIT = 'https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp';
+const DRIVE_ICON_DRIVE = 'https://res.cloudinary.com/dqqeavica/image/upload/v1763997280/DRIVE_bycgsc.webp';
+
+let DRIVE_DATA = [];
+let DRIVE_EDIT_TARGET = null;
+
+function canSeeDriveAnexos_(){
+  if(!currentUser || !currentUser.nombre) return false;
+  const n = normalizeText_(currentUser.nombre);
+  return DRIVE_HIDE_FOR.indexOf(n) === -1;
+}
+
+function normalizeDriveFolderId_(link){
+  const s = String(link || '').trim();
+  if(!s) return '';
+  const m1 = s.match(/\/folders\/([A-Za-z0-9_-]{10,})/);
+  if(m1) return m1[1];
+  const m2 = s.match(/[?&]id=([A-Za-z0-9_-]{10,})/);
+  if(m2) return m2[1];
+  return '';
+}
+
+function isValidGmail_(email){
+  const e = String(email || '').trim().toLowerCase();
+  if(!e) return false;
+  return /^[a-z0-9._%+-]+@gmail\.com$/.test(e);
+}
+
+function setDriveCount_(n){
+  const el = document.getElementById('drive-count');
+  if(el) el.textContent = String(n || 0);
+}
+
+function openDriveEdit_(row){
+  DRIVE_EDIT_TARGET = row;
+  document.getElementById('drive-edit-nombre').textContent = String(row.nombre || '').trim();
+  document.getElementById('drive-edit-correo').value = String(row.correo || '').trim();
+  showView('view-drive-editar');
+  setTimeout(()=> document.getElementById('drive-edit-correo')?.focus(), 50);
+}
+
+function renderDriveGrid_(list){
+  const grid = document.getElementById('drive-grid');
+  grid.innerHTML = '';
+
+  if(!list.length){
+    grid.innerHTML = '<p class="muted center" style="grid-column:1/-1;">No hay registros.</p>';
+    setDriveCount_(0);
+    return;
+  }
+
+  setDriveCount_(list.length);
+
+  list.forEach(row=>{
+    const correo = String(row.correo || '').trim();
+    const isRed = !correo;
+
+    const card = document.createElement('div');
+    card.className = 'drive-card ' + (isRed ? 'red' : 'green');
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'drive-name';
+    nameEl.textContent = String(row.nombre || '').trim();
+
+    const mailEl = document.createElement('div');
+    mailEl.className = 'drive-mail';
+    mailEl.textContent = correo || '';
+
+    const iconRow = document.createElement('div');
+    iconRow.className = 'icon-row';
+
+    const btnEdit = document.createElement('button');
+    btnEdit.type = 'button';
+    btnEdit.className = 'btn-icon';
+    btnEdit.setAttribute('aria-label','Editar correo');
+    btnEdit.title = 'Editar correo';
+    btnEdit.innerHTML = '<img src="' + DRIVE_ICON_EDIT + '" alt="Editar">';
+    btnEdit.addEventListener('click', ()=>{
+      playSoundOnce(SOUNDS.menu);
+      openDriveEdit_(row);
+    });
+
+    const btnDrive = document.createElement('button');
+    btnDrive.type = 'button';
+    btnDrive.className = 'btn-icon';
+    btnDrive.setAttribute('aria-label','Abrir carpeta Drive');
+    btnDrive.title = 'Abrir carpeta Drive';
+    btnDrive.innerHTML = '<img src="' + DRIVE_ICON_DRIVE + '" alt="Drive">';
+    btnDrive.addEventListener('click', ()=>{
+      playSoundOnce(SOUNDS.info);
+      const link = String(row.enlace || '').trim();
+      if(!link){
+        Swal.fire({ icon:'info', title:'Sin carpeta', text:'Este registro no tiene enlace de carpeta.' });
+        return;
+      }
+      window.open(link, '_blank', 'noopener');
+    });
+
+    iconRow.appendChild(btnEdit);
+    iconRow.appendChild(btnDrive);
+
+    card.appendChild(nameEl);
+    card.appendChild(mailEl);
+    card.appendChild(iconRow);
+
+    grid.appendChild(card);
+  });
+}
+
+function applyDriveFilter_(){
+  const q = (document.getElementById('drive-filter').value || '').trim().toLowerCase();
+  const filtered = DRIVE_DATA.filter(r=>{
+    return [r.nombre, r.correo].some(v => String(v || '').toLowerCase().includes(q));
+  });
+  renderDriveGrid_(filtered);
+}
+
+/**
+ * Regla pedida: al entrar a DRIVE ANEXOS, el usuario ve inicialmente SOLO su tarjeta (la que coincida con su nombre).
+ * Igual dejamos el filtro disponible.
+ */
+async function loadDriveData_(){
+  const list = await apiGet('listDriveRows'); // NUEVO endpoint en gs1
+  const all = Array.isArray(list) ? list : [];
+
+  const userName = normalizeText_(currentUser?.nombre || '');
+  const mine = all.filter(r => normalizeText_(r.nombre || '') === userName);
+
+  DRIVE_DATA = mine;      // inicialmente SOLO la tarjeta del usuario
+  applyDriveFilter_();    // aplica filtro sobre esa lista
+}
+
+async function openDriveAnexosView_(){
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
+  if(!canSeeDriveAnexos_()){
+    // no mostrar nada (según requisito)
+    return;
+  }
+  document.getElementById('drive-filter').value = '';
+  DRIVE_DATA = [];
+  renderDriveGrid_([]);
+  showView('view-drive-anexos');
+  await loadDriveData_();
+}
+
 /* ================== LOGIN ================== */
 document.getElementById('btn-login')?.addEventListener('click', async ()=>{
   const doc = (document.getElementById('login-doc').value || '').trim();
@@ -841,6 +1169,12 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
       isSuper: !!res.isSuper
     };
 
+    // Mostrar/ocultar botón DRIVE ANEXOS según usuario
+    try{
+      const b = document.getElementById('btn-drive-anexos');
+      if(b) b.style.display = canSeeDriveAnexos_() ? '' : 'none';
+    }catch(_){}
+
     document.getElementById('inicio-nombre').textContent = (currentUser.nombre || '').toUpperCase();
     document.getElementById('inicio-sub').textContent = currentUser.isSuper ? 'SUPER USUARIO' : 'USUARIO';
 
@@ -859,6 +1193,11 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   document.getElementById('login-doc').value = '';
   showView('view-login');
 });
+
+  try{
+  const b = document.getElementById('btn-drive-anexos');
+  if(b) b.style.display = 'none';
+}catch(_){}
 
 /* ================== INICIO: botones ================== */
 document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
@@ -1327,6 +1666,79 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
   currentListMode = 'ATENDIDA PRESENCIAL';
   await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
 });
+
+  /* ===== DRIVE ANEXOS: botones ===== */
+document.getElementById('btn-drive-anexos')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  try{
+    await openDriveAnexosView_();
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+});
+
+document.getElementById('btn-drive-recargar')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.info);
+  try{
+    await loadDriveData_();
+    Swal.fire({ icon:'success', title:'Actualizado', timer:1400, showConfirmButton:false });
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+});
+
+document.getElementById('btn-drive-regresar')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('drive-filter')?.addEventListener('input', applyDriveFilter_);
+
+document.getElementById('btn-drive-back-edit')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  DRIVE_EDIT_TARGET = null;
+  showView('view-drive-anexos');
+});
+
+document.getElementById('btn-drive-guardar')?.addEventListener('click', async ()=>{
+  if(!DRIVE_EDIT_TARGET){
+    Swal.fire({ icon:'warning', title:'Registro inválido' });
+    return;
+  }
+
+  const newEmail = String(document.getElementById('drive-edit-correo').value || '').trim().toLowerCase();
+  if(!isValidGmail_(newEmail)){
+    Swal.fire({ icon:'warning', title:'Correo inválido', text:'Debes ingresar un correo @gmail.com válido.' });
+    return;
+  }
+
+  const oldEmail = String(DRIVE_EDIT_TARGET.correo || '').trim().toLowerCase();
+  const link = String(DRIVE_EDIT_TARGET.enlace || '').trim();
+  const folderId = normalizeDriveFolderId_(link);
+
+  if(!folderId){
+    Swal.fire({ icon:'error', title:'Carpeta inválida', text:'No se pudo extraer el ID de la carpeta en Drive.' });
+    return;
+  }
+
+  try{
+    await apiPost('updateDriveCorreo', {
+      rowIndex: DRIVE_EDIT_TARGET.rowIndex,
+      newEmail,
+      oldEmail,
+      folderId
+    });
+
+    Swal.fire({ icon:'success', title:'Guardado', timer:1600, showConfirmButton:false });
+
+    await loadDriveData_();
+    DRIVE_EDIT_TARGET = null;
+    showView('view-drive-anexos');
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+});
+  
 </script>
 </body>
 </html>
