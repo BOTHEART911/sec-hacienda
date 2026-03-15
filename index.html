@@ -286,6 +286,11 @@
           <input id="lista-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
         </div>
 
+        <!-- Botón AGREGAR SOLICITUD (solo para ATENDIDAS PRESENCIAL) -->
+        <div class="btn-row" id="lista-add-row" style="margin-top:10px; display:none;">
+          <button id="btn-agregar-desde-lista" class="btn-primary">AGREGAR SOLICITUD</button>
+        </div>
+
         <!-- (Cambio #2) botón regresar ANTES de las tarjetas -->
         <div class="btn-row" style="margin-top:10px;">
           <button id="lista-back" class="danger">Regresar</button>
@@ -872,6 +877,28 @@ document.getElementById('btn-atendidas-pres')?.addEventListener('click', async (
   playSoundOnce(SOUNDS.back);
   currentListMode = 'ATENDIDA PRESENCIAL';
   await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
+});
+
+  // Mostrar/ocultar el botón extra según el modo de lista (solo ATENDIDA PRESENCIAL)
+function updateListaAddButtonVisibility_(){
+  const row = document.getElementById('lista-add-row');
+  if(!row) return;
+  row.style.display = (currentListMode === 'ATENDIDA PRESENCIAL') ? '' : 'none';
+}
+
+// Hook: cada vez que se abre la vista lista, ajustar visibilidad
+const __openListView_Original = openListView_;
+openListView_ = async function(title, estado){
+  await __openListView_Original(title, estado);
+  updateListaAddButtonVisibility_();
+};
+
+// Botón duplicado con la MISMA función que el de inicio
+document.getElementById('btn-agregar-desde-lista')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  initResidenciaChoices_();
+  resetAgregarSolicitudForm_();
+  showView('view-agregar');
 });
 
 document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
