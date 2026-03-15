@@ -1079,6 +1079,14 @@ function renderDriveGrid_(list){
   });
 }
 
+function applyDriveFilter_(){
+  const q = (document.getElementById('drive-filter').value || '').trim().toLowerCase();
+  const filtered = DRIVE_DATA.filter(r=>{
+    return [r.nombre, r.correo].some(v => String(v || '').toLowerCase().includes(q));
+  });
+  renderDriveGrid_(filtered);
+}
+
 /**
  * Regla pedida: al entrar a DRIVE ANEXOS, el usuario ve inicialmente SOLO su tarjeta (la que coincida con su nombre).
  * Igual dejamos el filtro disponible.
@@ -1103,6 +1111,7 @@ async function openDriveAnexosView_(){
     // no mostrar nada (según requisito)
     return;
   }
+  document.getElementById('drive-filter').value = '';
   DRIVE_DATA = [];
   renderDriveGrid_([]);
   showView('view-drive-anexos');
