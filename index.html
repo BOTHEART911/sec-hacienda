@@ -433,6 +433,13 @@
         <label>Respuesta (opcional)</label>
         <textarea id="respuesta" rows="4" placeholder="Escribe si tienes algo anexo que referir, de lo contrario, solo adjunta los recibos."></textarea>
 
+                <label>Vigencia</label>
+        <select id="vigencia" required>
+          <option value="" disabled selected>Selecciona una opción</option>
+          <option value="VIGENCIA ACTUAL">VIGENCIA ACTUAL</option>
+          <option value="VIGENCIAS ANTERIORES">VIGENCIAS ANTERIORES</option>
+        </select>
+
         <div style="margin-top:10px;">
           <h3 style="text-align:left; margin:10px 0 6px; color:#333;">Adjuntar Recibos (PDF)</h3>
           <div class="muted" style="margin:0 0 10px;"><b>Máximo 2 MB por archivo.</b> Debes adjuntar al menos 1 PDF.</div>
@@ -1465,6 +1472,9 @@ function openRespuestaView_(){
     setPdfStatus_(id, null);
   });
 
+    const v = document.getElementById('vigencia');
+  if(v) v.value = '';
+
   showView('view-respuesta');
 }
 
@@ -1499,6 +1509,12 @@ document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
     return;
   }
 
+    const vigencia = String(document.getElementById('vigencia').value || '').trim();
+  if(!vigencia){
+    await Swal.fire({ icon:'warning', title:'Vigencia requerida', text:'Selecciona una vigencia.' });
+    return;
+  }
+
   const ok = await Swal.fire({
     icon:'question',
     title:'Guardar respuesta',
@@ -1514,9 +1530,10 @@ document.getElementById('resp-guardar')?.addEventListener('click', async ()=>{
     pdfs.push({ filename: files[i].name, base64: await fileToBase64_(files[i]) });
   }
 
-  await apiPost('guardarRespuesta', {
+    await apiPost('guardarRespuesta', {
     id_predial: currentCardSelected.id_predial,
     respuesta: respuesta,
+    vigencia: vigencia,
     pdfs: pdfs,
     usuario: currentUser ? (currentUser.nombre || '') : ''
   });
