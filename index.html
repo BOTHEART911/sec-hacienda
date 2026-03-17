@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
   <style>
     :root{
@@ -392,7 +394,11 @@
         <div class="btn-row" style="margin-top:10px;">
           <button id="btn-drive-anexos" class="btn-primary">DRIVE ANEXOS</button>
         </div>
-
+        
+          <div class="btn-row" style="margin-top:10px;">
+        <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS</button>
+               </div>
+        
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
@@ -675,6 +681,47 @@
 
     <p class="muted center" style="margin-top:10px;">
       Se concede permiso de edición a la carpeta del registro. Si existía un correo anterior, se retira el permiso.
+    </p>
+  </div>
+</section>
+
+    <!-- VISTA ESTADISTICAS -->
+    <section id="view-estadisticas" class="view">
+  <div class="card" style="max-width: 1040px;">
+    <h2 id="estadisticas-title" style="color:var(--primary); margin-bottom:6px;">ESTADÍSTICAS</h2>
+    <p class="helper" style="margin-top:0;"><b>Solo SUPER USUARIO</b></p>
+
+    <div class="btn-row" style="margin-top:12px;">
+      <button id="btn-estad-zonas" class="btn-primary">ZONAS</button>
+      <button id="btn-estad-tiempo" class="btn-primary" style="display:none;">TIEMPO</button>
+      <button id="btn-estad-back" class="danger">Regresar</button>
+    </div>
+
+    <!-- Contenedor gráfico: más amplio en pantallas grandes, responsivo en móviles -->
+    <div id="estad-chart-wrap" style="
+      margin: 16px auto 6px;
+      width: min(980px, 100%);
+      background: rgba(255,255,255,.92);
+      border: 2px solid #ddd;
+      border-radius: 18px;
+      padding: 12px 12px 10px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.14);
+    ">
+      <canvas id="estadChart" style="width:100%; height:420px;"></canvas>
+      <div id="estadTotals" class="center" style="margin-top:10px; font-weight:1000;">
+        <span style="display:inline-block; margin:0 10px;">
+          <span style="display:inline-block; width:10px; height:10px; background:#f19986; border-radius:3px; margin-right:6px;"></span>
+          CHAT: <span id="totChat">0</span>
+        </span>
+        <span style="display:inline-block; margin:0 10px;">
+          <span style="display:inline-block; width:10px; height:10px; background:#b24c1f; border-radius:3px; margin-right:6px;"></span>
+          PRESENCIAL: <span id="totPres">0</span>
+        </span>
+      </div>
+    </div>
+
+    <p class="muted center" style="margin:10px 0 0;">
+      Se excluyen solicitudes <b>PENDIENTE</b>. Se muestran únicamente categorías/series existentes.
     </p>
   </div>
 </section>
@@ -970,6 +1017,350 @@ let currentUser = null; // { documento, nombre, isSuper }
 let currentListMode = 'PENDIENTE'; // PENDIENTE | ATENDIDA CHAT | ATENDIDA PRESENCIAL
 let currentCardSelected = null; // card object
 let choicesResidencia = null;
+
+/* ================== ESTADISTICAS ================== */
+  let __estadCache = [];            // rows no-pendientes
+let __estadMode = 'TIEMPO';       // TIEMPO | ZONAS
+let __estadChart = null;
+
+const MONTHS_ES = [
+  'ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
+  'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'
+];
+
+function parseDDMMYYYY_(s){
+  const m = String(s||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return null;
+  const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yyyy = parseInt(m[3],10);
+  if(!yyyy || mm<1 || mm>12 || dd<1 || dd>31) return null;
+  return { dd, mm, yyyy };
+}
+
+function wrapLabelLines_(label, maxLineLen){
+  const s = String(label || '').trim();
+  if(!s) return '';
+  const words = s.split(/\s+/).filter(Boolean);
+  if(!words.length) return s;
+
+  const out = [];
+  let line = '';
+  for(const w of words){
+    if(!line){
+      line = w;
+      continue;
+    }
+    if((line + ' ' + w).length <= maxLineLen){
+      line += ' ' + w;
+    }else{
+      out.push(line);
+      line = w;
+    }
+  }
+  if(line) out.push(line);
+  return out; // Chart.js admite arrays para labels multilínea
+}
+
+function estadFilterNotPendiente_(rows){
+  const out = [];
+  for(const r of (Array.isArray(rows) ? rows : [])){
+    const est = normalizeText_(r.estado || '');
+    if(!est || est === 'PENDIENTE') continue;
+    out.push(r);
+  }
+  return out;
+}
+
+// 3) API (nuevo endpoint) para traer SOLO no-pendientes
+async function loadEstadisticasData_(){
+  // Requiere backend: apiGet('listSolicitudesNoPendientes')
+  const rows = await apiGet('listSolicitudesNoPendientes');
+  __estadCache = estadFilterNotPendiente_(rows);
+}
+
+function buildDataTiempo2026_(rows){
+  // Categorías: meses existentes en 2026 según Col B (fecha dd/mm/yyyy)
+  // Series: CHAT (estado ATENDIDA CHAT), PRESENCIAL (ATENDIDA PRESENCIAL)
+  const byMonth = {}; // mm -> { chat, pres }
+  for(const r of rows){
+    const est = normalizeText_(r.estado || '');
+    const fecha = parseDDMMYYYY_(r.fecha || '');
+    if(!fecha) continue;
+    if(fecha.yyyy !== 2026) continue;
+
+    const key = String(fecha.mm).padStart(2,'0'); // "01".."12"
+    if(!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
+
+    if(est === 'ATENDIDA CHAT') byMonth[key].chat++;
+    if(est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
+  }
+
+  const monthsSorted = Object.keys(byMonth).sort(); // "01","02",...
+  const labels = monthsSorted.map(k => MONTHS_ES[parseInt(k,10)-1]);
+  const chat = monthsSorted.map(k => byMonth[k].chat);
+  const pres = monthsSorted.map(k => byMonth[k].pres);
+
+  // Solo series existentes
+  const datasets = [];
+  const hasChat = chat.some(n=>n>0);
+  const hasPres = pres.some(n=>n>0);
+
+  if(hasChat){
+    datasets.push({
+      label: 'CHAT',
+      data: chat,
+      backgroundColor: '#f19986',
+      borderColor: '#e97e67',
+      borderWidth: 1.5,
+      stack: 'stack1',
+      borderRadius: 10
+    });
+  }
+  if(hasPres){
+    datasets.push({
+      label: 'PRESENCIAL',
+      data: pres,
+      backgroundColor: '#b24c1f',
+      borderColor: '#8f3b18',
+      borderWidth: 1.5,
+      stack: 'stack1',
+      borderRadius: 10
+    });
+  }
+
+  const totals = {
+    chat: chat.reduce((a,b)=>a+b,0),
+    pres: pres.reduce((a,b)=>a+b,0)
+  };
+
+  return { labels, datasets, totals };
+}
+
+function buildDataZonas_(rows){
+  // Categorías: residencia (Col E) existentes
+  // Series: CHAT / PRESENCIAL por estado
+  const byZona = {}; // zona -> { chat, pres }
+  for(const r of rows){
+    const est = normalizeText_(r.estado || '');
+    const zona = String(r.barrio || '').trim().toUpperCase();
+    if(!zona) continue;
+
+    if(!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
+    if(est === 'ATENDIDA CHAT') byZona[zona].chat++;
+    if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
+  }
+
+  // Solo categorías existentes; orden por total desc
+  const zonas = Object.keys(byZona).sort((a,b)=>{
+    const ta = byZona[a].chat + byZona[a].pres;
+    const tb = byZona[b].chat + byZona[b].pres;
+    return tb - ta;
+  });
+
+  // (evitar “remontados”) -> multilínea con wrap
+  const labels = zonas.map(z => wrapLabelLines_(z, 14));
+
+  const chatArr = zonas.map(z => byZona[z].chat);
+  const presArr = zonas.map(z => byZona[z].pres);
+
+  const datasets = [];
+  const hasChat = chatArr.some(n=>n>0);
+  const hasPres = presArr.some(n=>n>0);
+
+  if(hasChat){
+    datasets.push({
+      label: 'CHAT',
+      data: chatArr,
+      backgroundColor: '#9bd18f',
+      borderColor: '#6bb85b',
+      borderWidth: 1.5,
+      stack: 'stack1',
+      borderRadius: 10
+    });
+  }
+  if(hasPres){
+    datasets.push({
+      label: 'PRESENCIAL',
+      data: presArr,
+      backgroundColor: '#2e7d32',
+      borderColor: '#1f5f24',
+      borderWidth: 1.5,
+      stack: 'stack1',
+      borderRadius: 10
+    });
+  }
+
+  const totals = {
+    chat: chatArr.reduce((a,b)=>a+b,0),
+    pres: presArr.reduce((a,b)=>a+b,0)
+  };
+
+  return { labels, datasets, totals };
+}
+
+function destroyEstadChart_(){
+  try{ __estadChart && __estadChart.destroy(); }catch(_){}
+  __estadChart = null;
+}
+
+function renderEstadChart_(titleText, chartData){
+  const canvas = document.getElementById('estadChart');
+  if(!canvas) return;
+
+  // Totales bajo el gráfico
+  document.getElementById('totChat').textContent = String(chartData.totals.chat || 0);
+  document.getElementById('totPres').textContent = String(chartData.totals.pres || 0);
+
+  destroyEstadChart_();
+
+  // Si no hay datos, muestra un “gráfico vacío” con mensaje
+  const hasAny = (chartData.datasets || []).some(ds => (ds.data || []).some(v=>v>0));
+  if(!hasAny){
+    const ctx0 = canvas.getContext('2d');
+    ctx0.clearRect(0,0,canvas.width,canvas.height);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  // plugin labels sobre barras (contadores)
+  const dl = window.ChartDataLabels;
+
+  __estadChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: chartData.datasets
+    },
+    plugins: [dl],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 10, left: 8, right: 8, bottom: 0 } },
+      plugins: {
+        title: {
+          display: true,
+          text: titleText,
+          color: '#0b3b22',
+          font: { size: 20, weight: '900' },
+          padding: { bottom: 14 }
+        },
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 12, boxHeight: 12, font: { weight:'800' } }
+        },
+        tooltip: { enabled: true },
+        datalabels: {
+          color: '#111',
+          anchor: 'center',
+          align: 'center',
+          clamp: true,
+          font: { weight: '1000', size: 18 },
+          formatter: (v)=> (v && v > 0) ? String(v) : ''
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            color: '#111',
+            font: { weight: '900', size: 11 },
+            maxRotation: 0,
+            minRotation: 0,
+            autoSkip: false
+          },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: { precision: 0, color:'#333', font: { weight:'800' } },
+          grid: { color: 'rgba(0,0,0,.08)' }
+        }
+      }
+    }
+  });
+}
+
+// 4) Abrir vista estadísticas
+async function openEstadisticas_(){
+  if(!currentUser || !currentUser.isSuper){
+    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
+    return;
+  }
+
+  __estadMode = 'TIEMPO';
+
+  // botones: por defecto TIEMPO visible (ZONAS cambia modo)
+  const bZ = document.getElementById('btn-estad-zonas');
+  const bT = document.getElementById('btn-estad-tiempo');
+  if(bZ) bZ.style.display = '';
+  if(bT) bT.style.display = 'none';
+
+  showView('view-estadisticas');
+
+  try{
+    await loadEstadisticasData_();
+    const data = buildDataTiempo2026_(__estadCache);
+    renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data);
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+}
+
+// 5) Eventos UI (solo super)
+document.getElementById('btn-estadisticas')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  await openEstadisticas_();
+});
+
+document.getElementById('btn-estad-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  destroyEstadChart_();
+  showView('view-inicio');
+});
+
+document.getElementById('btn-estad-zonas')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  __estadMode = 'ZONAS';
+
+  // toggle botones
+  const bZ = document.getElementById('btn-estad-zonas');
+  const bT = document.getElementById('btn-estad-tiempo');
+  if(bZ) bZ.style.display = 'none';
+  if(bT) bT.style.display = '';
+
+  const data = buildDataZonas_(__estadCache);
+  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL ZONAS', data);
+});
+
+document.getElementById('btn-estad-tiempo')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  __estadMode = 'TIEMPO';
+
+  // toggle botones
+  const bZ = document.getElementById('btn-estad-zonas');
+  const bT = document.getElementById('btn-estad-tiempo');
+  if(bZ) bZ.style.display = '';
+  if(bT) bT.style.display = 'none';
+
+  const data = buildDataTiempo2026_(__estadCache);
+  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data);
+});
+
+// 6) Ocultar/mostrar botón ESTADISTICAS al login según superuser
+// Pega esto dentro del éxito del login (después de set currentUser)
+try{
+  const bEst = document.getElementById('btn-estadisticas');
+  if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+}catch(_){}
+
+// También lo ocultamos al logout (por seguridad)
+document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+  try{
+    const bEst = document.getElementById('btn-estadisticas');
+    if(bEst) bEst.style.display = 'none';
+  }catch(_){}
+});
 
 /* ================== DRIVE ANEXOS (NUEVO) ================== */
 const DRIVE_HIDE_FOR = [
