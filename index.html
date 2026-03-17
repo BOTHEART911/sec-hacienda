@@ -327,11 +327,15 @@
 .card.estad-card{
   max-width: 1080px;
   padding: 12px;
-  /* ✅ clave: que la card NO sea eterna en móvil */
-  height: min(640px, calc(100vh - 32px));
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+
+  height: auto;                 /* puede crecer */
+  max-height: calc(100vh - 32px); /* pero no más que la pantalla */
+  /* ❌ NO usar overflow:hidden aquí, porque “corta” el contenido */
+  overflow: visible;
+
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
 .estad-head{ text-align:center; }
@@ -368,7 +372,13 @@
 
   display:flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+
+  overflow: auto;                 /* ✅ el scroll ocurre aquí */
+  overscroll-behavior: contain;   /* ✅ evita rebotes raros */
+  -webkit-overflow-scrolling: touch;
+
+  padding-bottom: 12px;           /* ✅ aire para que no choque con el borde */
 }
 
 /* ✅ canvas: que SIEMPRE tenga alto real y controlado */
@@ -412,13 +422,14 @@
 }
 
 .estad-chart-box{
-  height: 320px;          /* alto fijo por gráfico (ajusta si quieres) */
-  min-height: 280px;
+  height: 360px;     /* PC (si quieres barras más altas) */
+  min-height: 320px;
 }
 
-@media (max-width: 700px){
+@media (max-width:700px){
   .estad-chart-box{
-    height: 300px;
+    height: 300px;   /* ✅ móvil: suficiente para barras + labels */
+    min-height: 300px;
   }
 }
 .estad-chart-box canvas{
@@ -1344,6 +1355,12 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
     const box = document.createElement('div');
     box.className = 'estad-chart-box';
 
+    const count = (page.labels || []).length;
+if(window.matchMedia('(max-width: 700px)').matches && count <= 3){
+  box.style.height = '220px';
+  box.style.minHeight = '220px';
+}
+
     const canvas = document.createElement('canvas');
     box.appendChild(canvas);
     host.appendChild(box);
@@ -1359,15 +1376,21 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 8, left: 8, right: 8, bottom: 0 } },
-        plugins: {
-          title: {
-            display: true,
-            text: pageTitle,
-            color: '#0b3b22',
-            font: { size: 18, weight: '900' },
-            padding: { bottom: 10 }
-          },
+        layout: { padding: { top: 6, left: 6, right: 6, bottom: isSmall ? 0 : 0 } },
+
+scales: {
+  x: {
+    stacked: true,
+    ticks: {
+      color: '#111',
+      font: { weight: '900', size: isSmall ? 10 : 11 }, /* ✅ un poco más pequeño en móvil */
+      autoSkip: false,
+      minRotation: isZonas ? 90 : 0,
+      maxRotation: isZonas ? 90 : 0,
+      padding: isZonas ? (isSmall ? 6 : 10) : 0        /* ✅ menos padding en móvil */
+    },
+    grid: { display: false }
+  },
           legend: {
             position: 'bottom',
             labels: { boxWidth: 12, boxHeight: 12, font: { weight:'900' } }
@@ -1396,11 +1419,15 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
             grid: { display: false }
           },
           y: {
-            stacked: true,
-            beginAtZero: true,
-            ticks: { precision: 0, color:'#333', font: { weight:'800' } },
-            grid: { color: 'rgba(0,0,0,.08)' }
-          }
+  stacked: true,
+  beginAtZero: true,
+
+  /* ✅ Esto “acerca” el techo del eje Y cuando los valores son bajos */
+  suggestedMax: isZonas ? 4 : undefined,
+
+  ticks: { precision: 0, color:'#333', font: { weight:'800' } },
+  grid: { color: 'rgba(0,0,0,.08)' }
+}
         }
       }
     });
