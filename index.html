@@ -1347,13 +1347,6 @@ document.getElementById('btn-estad-tiempo')?.addEventListener('click', ()=>{
   renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data);
 });
 
-// 6) Ocultar/mostrar botón ESTADISTICAS al login según superuser
-// Pega esto dentro del éxito del login (después de set currentUser)
-try{
-  const bEst = document.getElementById('btn-estadisticas');
-  if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
-}catch(_){}
-
 // También lo ocultamos al logout (por seguridad)
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   try{
@@ -1536,6 +1529,12 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
       nombre: String(res.nombre || ''),
       isSuper: !!res.isSuper
     };
+
+    // ✅ MOSTRAR BOTÓN ESTADISTICAS SOLO SI ES SUPER USUARIO
+try{
+  const bEst = document.getElementById('btn-estadisticas');
+  if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+}catch(_){}
 
     // Mostrar/ocultar botón DRIVE ANEXOS según usuario
     try{
