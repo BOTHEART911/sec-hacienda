@@ -1125,6 +1125,31 @@ let currentListMode = 'PENDIENTE'; // PENDIENTE | ATENDIDA CHAT | ATENDIDA PRESE
 let currentCardSelected = null; // card object
 let choicesResidencia = null;
 
+  /* ================== PERMISOS DE VISTAS (NUEVO) ================== */
+const ALLOW_AGREGAR_SOLICITUD = [
+  'EDILBERTO RAMIREZ HERNANDEZ'
+].map(s => normalizeText_(s));
+
+const ALLOW_PENDIENTES = [
+  'EDWIN ALFONSO OSUNA MONROY',
+  'DIANA MARCELA OTALORA',
+  'HECTOR ANDRES MARTINEZ CRUZ'
+].map(s => normalizeText_(s));
+
+function canSeeAgregarSolicitud_(){
+  if(!currentUser) return false;
+  if(currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return ALLOW_AGREGAR_SOLICITUD.includes(n);
+}
+
+function canSeePendientes_(){
+  if(!currentUser) return false;
+  if(currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return ALLOW_PENDIENTES.includes(n);
+}
+
 /* ================== ESTADISTICAS ================== */
 let __estadCache = [];      // rows no-pendientes
 let __estadMode = 'TIEMPO'; // TIEMPO | ZONAS
@@ -1684,6 +1709,28 @@ try{
   if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
 }catch(_){}
 
+    // ✅ Permisos de botones por rol (requisitos nuevos)
+try{
+  const bAgregar = document.getElementById('btn-agregar');
+  if(bAgregar) bAgregar.style.display = canSeeAgregarSolicitud_() ? '' : 'none';
+}catch(_){}
+
+try{
+  const bPend = document.getElementById('btn-pendientes');
+  if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
+}catch(_){}
+
+// ✅ Solo superusuarios pueden ver ATENDIDAS (CHAT / PRESENCIAL)
+try{
+  const bChat = document.getElementById('btn-atendidas-chat');
+  if(bChat) bChat.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+}catch(_){}
+
+try{
+  const bPres = document.getElementById('btn-atendidas-pres');
+  if(bPres) bPres.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+}catch(_){}
+
     // Mostrar/ocultar botón DRIVE ANEXOS según usuario
     try{
       const b = document.getElementById('btn-drive-anexos');
@@ -1706,6 +1753,10 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   currentUser = null;
   currentCardSelected = null;
   document.getElementById('login-doc').value = '';
+  try{ const b = document.getElementById('btn-agregar'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-pendientes'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-atendidas-chat'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-atendidas-pres'); if(b) b.style.display = 'none'; }catch(_){}
   showView('view-login');
 });
 
@@ -1717,18 +1768,36 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
 /* ================== INICIO: botones ================== */
 document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
+
+  if(!canSeePendientes_()){
+    Swal.fire({ icon:'warning', title:'No tienes permiso para ver PENDIENTES' });
+    return;
+  }
+
   currentListMode = 'PENDIENTE';
   await openListView_('PENDIENTES PREDIAL', 'PENDIENTE');
 });
 
 document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
+
+  if(!currentUser || !currentUser.isSuper){
+    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
+    return;
+  }
+
   currentListMode = 'ATENDIDA CHAT';
   await openListView_('ATENDIDAS CHAT', 'ATENDIDA CHAT');
 });
 
 document.getElementById('btn-atendidas-pres')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
+
+  if(!currentUser || !currentUser.isSuper){
+    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
+    return;
+  }
+
   currentListMode = 'ATENDIDA PRESENCIAL';
   await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
 });
@@ -1750,6 +1819,12 @@ openListView_ = async function(title, estado){
 // Botón duplicado con la MISMA función que el de inicio
 document.getElementById('btn-agregar-desde-lista')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
+
+  if(!canSeeAgregarSolicitud_()){
+    Swal.fire({ icon:'warning', title:'No tienes permiso para AGREGAR SOLICITUD' });
+    return;
+  }
+
   initResidenciaChoices_();
   resetAgregarSolicitudForm_();
   showView('view-agregar');
@@ -1757,8 +1832,14 @@ document.getElementById('btn-agregar-desde-lista')?.addEventListener('click', ()
 
 document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
+
+  if(!canSeeAgregarSolicitud_()){
+    Swal.fire({ icon:'warning', title:'No tienes permiso para AGREGAR SOLICITUD' });
+    return;
+  }
+
   initResidenciaChoices_();
-  resetAgregarSolicitudForm_(); // <-- NUEVO: resetea al iniciar la vista
+  resetAgregarSolicitudForm_(); // <-- resetea al iniciar la vista
   showView('view-agregar');
 });
 
@@ -2187,9 +2268,8 @@ document.getElementById('add-guardar')?.addEventListener('click', async ()=>{
   document.getElementById('celular').value = '';
   try{ document.getElementById('upd-residencia').value = ''; choicesResidencia?.setChoiceByValue(''); }catch(_){}
 
-  // Ir a lista atendidas presencial
-  currentListMode = 'ATENDIDA PRESENCIAL';
-  await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
+ // Ir a INICIO (requisito nuevo)
+  showView('view-inicio');
 });
 
   /* ===== DRIVE ANEXOS: botones ===== */
