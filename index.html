@@ -323,47 +323,83 @@
   text-align:center;
 }
 
-   /* ===== ESTADISTICAS: compacta estilo imagen ===== */
+ /* ===== ESTADISTICAS (FIX: no crecer infinito / chart bien) ===== */
 .card.estad-card{
   max-width: 1080px;
-  padding: 12px 12px 10px;     /* menos alto */
+  padding: 12px;
+  /* ✅ clave: que la card NO sea eterna en móvil */
+  height: min(640px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.estad-head{ text-align:center; }
+.estad-title{
+  margin: 0;
+  color: var(--primary);
+  font-weight: 1000;
+}
+.estad-sub{
+  margin-top: 2px;
+  font-weight: 800;
+  color: #2b2b2b;
+  font-size: .9rem;
 }
 
 .estad-toolbar{
   display:flex;
   gap:10px;
-  flex-wrap:wrap;
-  margin-top:10px;
 }
-.estad-toolbar > *{ flex:1; }
+@media (max-width:700px){
+  .estad-toolbar{ flex-direction: column; }
+}
 
-/* Contenedor “glass” SIN blanco y compacto */
+/* ✅ el wrap ocupa TODO el espacio restante */
 .estad-chart-wrap{
-  margin: 12px auto 0;
-  width: min(1040px, 100%);
+  flex: 1;
+  min-height: 0; /* IMPORTANTÍSIMO para que flex no “explote” */
   background: rgba(255,255,255,.10);
   border: 2px solid rgba(221,221,221,.85);
   border-radius: 18px;
-  padding: 8px 10px 8px;       /* compacto */
+  padding: 8px 10px;
   box-shadow: 0 10px 22px rgba(0,0,0,.14);
   backdrop-filter: blur(3px);
+
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* ✅ ESTA es la clave: altura más baja tipo “imagen” */
-.estad-canvas{
-  width:100%;
-  height: 300px;               /* BAJA (antes 360/420) */
+/* ✅ canvas: que SIEMPRE tenga alto real y controlado */
+#estadChart{
+  flex: 1;
+  min-height: 0;
+  width: 100% !important;
+  height: 100% !important; /* Chart.js usa el size del elemento */
   display:block;
 }
 
-@media (max-width: 700px){
-  .estad-canvas{ height: 260px; }
-}
-
+/* Totales compactos */
 .estad-totals{
-  margin-top: 6px;
+  flex: 0 0 auto;
+  margin-top: 2px;
   font-weight: 1000;
   color:#111;
+}
+
+.estad-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background: rgba(255,255,255,.16);
+  border: 2px solid rgba(221,221,221,.85);
+  border-radius: 999px;
+  padding: 6px 10px;
+  margin: 0 6px 6px 6px;
+}
+.estad-dot{
+  width:10px;height:10px;border-radius:3px;display:inline-block;
 }
   </style>
 </head>
@@ -729,10 +765,14 @@
 </section>
 
     <!-- VISTA ESTADISTICAS -->
-   <section id="view-estadisticas" class="view">
+  <section id="view-estadisticas" class="view">
   <div class="card estad-card">
-    <h2 style="color:var(--primary); margin-bottom:4px;">ESTADÍSTICAS</h2>
-    <p class="helper" style="margin:0 0 8px;"><b>Solo SUPER USUARIO</b></p>
+    <div class="estad-head">
+      <div>
+        <h2 class="estad-title">ESTADÍSTICAS</h2>
+        <div class="estad-sub">Solo SUPER USUARIO</div>
+      </div>
+    </div>
 
     <div class="estad-toolbar">
       <button id="btn-estad-tiempo" class="btn-primary">TIEMPO 2026</button>
@@ -740,23 +780,22 @@
       <button id="btn-estad-back" class="danger">Regresar</button>
     </div>
 
-    <div id="estad-chart-wrap" class="estad-chart-wrap">
-      <canvas id="estadChart" class="estad-canvas"></canvas>
+    <div class="estad-chart-wrap">
+      <canvas id="estadChart"></canvas>
 
-      <div id="estadTotals" class="center estad-totals">
+      <div class="estad-totals center">
         <span class="estad-pill">
-          <span id="dotChat" class="estad-dot" style="background:#f19986;"></span>
+          <span id="dotChat" class="estad-dot"></span>
           CHAT: <span id="totChat">0</span>
         </span>
         <span class="estad-pill">
-          <span id="dotPres" class="estad-dot" style="background:#b24c1f;"></span>
+          <span id="dotPres" class="estad-dot"></span>
           PRESENCIAL: <span id="totPres">0</span>
         </span>
       </div>
     </div>
   </div>
 </section>
-
     
   </div>
 
