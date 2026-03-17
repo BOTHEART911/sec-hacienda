@@ -1330,10 +1330,13 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
   const host = document.getElementById('estadCharts');
   if(!host) return;
 
+  // ✅ FIX: define isSmall dentro del scope correcto
+  const isSmall = window.matchMedia('(max-width: 700px)').matches;
+
   // Paleta de totales
   setTotalsPalette_(mode);
 
-  // Totales SOLO al final (siempre visibles, pero los actualizamos aquí)
+  // Totales (se muestran al final)
   const totChatEl = document.getElementById('totChat');
   const totPresEl = document.getElementById('totPres');
   if(totChatEl) totChatEl.textContent = String(totals?.chat || 0);
@@ -1350,16 +1353,16 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
   const any = (pagesData || []).some(p => (p.datasets||[]).some(ds => (ds.data||[]).some(v=>v>0)));
   if(!any) return;
 
-  // Crear N charts
   pagesData.forEach((page, idx)=>{
     const box = document.createElement('div');
     box.className = 'estad-chart-box';
 
+    // ✅ si en móvil hay muy pocas barras, el 2/2 no debe verse gigante
     const count = (page.labels || []).length;
-if(window.matchMedia('(max-width: 700px)').matches && count <= 3){
-  box.style.height = '220px';
-  box.style.minHeight = '220px';
-}
+    if(isSmall && count <= 3){
+      box.style.height = '220px';
+      box.style.minHeight = '220px';
+    }
 
     const canvas = document.createElement('canvas');
     box.appendChild(canvas);
@@ -1376,21 +1379,15 @@ if(window.matchMedia('(max-width: 700px)').matches && count <= 3){
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 6, left: 6, right: 6, bottom: isSmall ? 0 : 0 } },
-
-scales: {
-  x: {
-    stacked: true,
-    ticks: {
-      color: '#111',
-      font: { weight: '900', size: isSmall ? 10 : 11 }, /* ✅ un poco más pequeño en móvil */
-      autoSkip: false,
-      minRotation: isZonas ? 90 : 0,
-      maxRotation: isZonas ? 90 : 0,
-      padding: isZonas ? (isSmall ? 6 : 10) : 0        /* ✅ menos padding en móvil */
-    },
-    grid: { display: false }
-  },
+        layout: { padding: { top: 6, left: 6, right: 6, bottom: 0 } },
+        plugins: {
+          title: {
+            display: true,
+            text: pageTitle,
+            color: '#0b3b22',
+            font: { size: 18, weight: '900' },
+            padding: { bottom: 10 }
+          },
           legend: {
             position: 'bottom',
             labels: { boxWidth: 12, boxHeight: 12, font: { weight:'900' } }
@@ -1410,24 +1407,22 @@ scales: {
             stacked: true,
             ticks: {
               color: '#111',
-              font: { weight: '900', size: 11 },
+              font: { weight: '900', size: isSmall ? 10 : 11 },
               autoSkip: false,
               minRotation: isZonas ? 90 : 0,
               maxRotation: isZonas ? 90 : 0,
-              padding: isZonas ? 10 : 0
+              padding: isZonas ? (isSmall ? 6 : 10) : 0
             },
             grid: { display: false }
           },
           y: {
-  stacked: true,
-  beginAtZero: true,
-
-  /* ✅ Esto “acerca” el techo del eje Y cuando los valores son bajos */
-  suggestedMax: isZonas ? 4 : undefined,
-
-  ticks: { precision: 0, color:'#333', font: { weight:'800' } },
-  grid: { color: 'rgba(0,0,0,.08)' }
-}
+            stacked: true,
+            beginAtZero: true,
+            // ✅ “sube” visualmente barras pequeñas (especialmente en ZONAS)
+            suggestedMax: isZonas ? 4 : undefined,
+            ticks: { precision: 0, color:'#333', font: { weight:'800' } },
+            grid: { color: 'rgba(0,0,0,.08)' }
+          }
         }
       }
     });
@@ -1435,10 +1430,11 @@ scales: {
     __estadCharts.push(c);
   });
 
-  // ✅ Totales debajo del último gráfico (tu requisito imagen 2)
+  // ✅ Totales debajo del último gráfico
   const totalsEl = document.getElementById('estadTotals');
   if(totalsEl) host.appendChild(totalsEl);
 }
+  
 /* ===== Botones: siempre visibles ===== */
 async function showEstadTiempo_(){
   __estadMode = 'TIEMPO';
