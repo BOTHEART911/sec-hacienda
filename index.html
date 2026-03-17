@@ -1369,15 +1369,6 @@ document.getElementById('btn-estad-zonas')?.addEventListener('click', async ()=>
   await showEstadZonas_();
 });
   
-  // toggle botones
-  const bZ = document.getElementById('btn-estad-zonas');
-  const bT = document.getElementById('btn-estad-tiempo');
-  if(bZ) bZ.style.display = '';
-  if(bT) bT.style.display = 'none';
-
-  const data = buildDataTiempo2026_(__estadCache);
-  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data);
-});
 
 // También lo ocultamos al logout (por seguridad)
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
