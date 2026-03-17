@@ -1061,8 +1061,8 @@ let currentCardSelected = null; // card object
 let choicesResidencia = null;
 
 /* ================== ESTADISTICAS ================== */
-  let __estadCache = [];            // rows no-pendientes
-let __estadMode = 'TIEMPO';       // TIEMPO | ZONAS
+let __estadCache = [];      // rows no-pendientes
+let __estadMode = 'TIEMPO'; // TIEMPO | ZONAS
 let __estadChart = null;
 
 const MONTHS_ES = [
@@ -1078,28 +1078,16 @@ function parseDDMMYYYY_(s){
   return { dd, mm, yyyy };
 }
 
-function wrapLabelLines_(label, maxLineLen){
-  const s = String(label || '').trim();
-  if(!s) return '';
-  const words = s.split(/\s+/).filter(Boolean);
-  if(!words.length) return s;
-
-  const out = [];
-  let line = '';
-  for(const w of words){
-    if(!line){
-      line = w;
-      continue;
+/* ✅ Destruye el chart actual (evita errores y “pegotes” al cambiar de gráfico) */
+function destroyEstadChart_(){
+  try{
+    if(__estadChart){
+      __estadChart.destroy();
+      __estadChart = null;
     }
-    if((line + ' ' + w).length <= maxLineLen){
-      line += ' ' + w;
-    }else{
-      out.push(line);
-      line = w;
-    }
+  }catch(_){
+    __estadChart = null;
   }
-  if(line) out.push(line);
-  return out; // Chart.js admite arrays para labels multilínea
 }
 
 function estadFilterNotPendiente_(rows){
@@ -1112,18 +1100,20 @@ function estadFilterNotPendiente_(rows){
   return out;
 }
 
-// 3) API (nuevo endpoint) para traer SOLO no-pendientes
+/* API: trae SOLO no-pendientes */
 async function loadEstadisticasData_(){
-  // Requiere backend: apiGet('listSolicitudesNoPendientes')
+  // Backend: doGet action=listsolicitudesnopendientes
   const rows = await apiGet('listSolicitudesNoPendientes');
   __estadCache = estadFilterNotPendiente_(rows);
 }
 
+/* Paletas separadas (TIEMPO vs ZONAS) */
 const ESTAD_COLORS = {
   tiempo: { chat:'#f19986', pres:'#b24c1f', chatB:'#e97e67', presB:'#8f3b18' },
   zonas:  { chat:'#9bd18f', pres:'#2e7d32', chatB:'#6bb85b', presB:'#1f5f24' }
 };
 
+/* ✅ Cambia el color de los punticos del total según modo */
 function setTotalsPalette_(mode){
   const pal = (mode === 'ZONAS') ? ESTAD_COLORS.zonas : ESTAD_COLORS.tiempo;
   const dotChat = document.getElementById('dotChat');
@@ -1133,7 +1123,10 @@ function setTotalsPalette_(mode){
 }
 
 function buildDataTiempo2026_(rows){
-  const byMonth = {}; // mm -> { chat, pres }
+  // Categorías: meses existentes en 2026 según fecha (dd/mm/yyyy)
+  // Series: CHAT / PRESENCIAL
+  const byMonth = {}; // "01".."12" -> { chat, pres }
+
   for(const r of rows){
     const est = normalizeText_(r.estado || '');
     const fecha = parseDDMMYYYY_(r.fecha || '');
@@ -1184,12 +1177,18 @@ function buildDataTiempo2026_(rows){
   return {
     labels,
     datasets,
-    totals: { chat: chat.reduce((a,b)=>a+b,0), pres: pres.reduce((a,b)=>a+b,0) }
+    totals: {
+      chat: chat.reduce((a,b)=>a+b,0),
+      pres: pres.reduce((a,b)=>a+b,0)
+    }
   };
 }
 
 function buildDataZonas_(rows){
-  const byZona = {};
+  // Categorías: residencia (barrio)
+  // Series: CHAT / PRESENCIAL
+  const byZona = {}; // zona -> { chat, pres }
+
   for(const r of rows){
     const est = normalizeText_(r.estado || '');
     const zona = String(r.barrio || '').trim().toUpperCase();
@@ -1200,13 +1199,14 @@ function buildDataZonas_(rows){
     if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
   }
 
+  // orden por total desc
   const zonas = Object.keys(byZona).sort((a,b)=>{
     const ta = byZona[a].chat + byZona[a].pres;
     const tb = byZona[b].chat + byZona[b].pres;
     return tb - ta;
   });
 
-  // IMPORTANTE: para rotar 90°, NO usamos wrap multilinea aquí.
+  // ✅ Para rotar 90°, dejamos labels “planos”
   const labels = zonas;
 
   const chatArr = zonas.map(z => byZona[z].chat);
@@ -1244,7 +1244,10 @@ function buildDataZonas_(rows){
   return {
     labels,
     datasets,
-    totals: { chat: chatArr.reduce((a,b)=>a+b,0), pres: presArr.reduce((a,b)=>a+b,0) }
+    totals: {
+      chat: chatArr.reduce((a,b)=>a+b,0),
+      pres: presArr.reduce((a,b)=>a+b,0)
+    }
   };
 }
 
@@ -1252,17 +1255,23 @@ function renderEstadChart_(titleText, chartData, mode){
   const canvas = document.getElementById('estadChart');
   if(!canvas) return;
 
+  // ✅ Ajusta colores de “totales” según modo
   setTotalsPalette_(mode);
 
-  document.getElementById('totChat').textContent = String(chartData.totals.chat || 0);
-  document.getElementById('totPres').textContent = String(chartData.totals.pres || 0);
+  // ✅ Totales
+  const totChatEl = document.getElementById('totChat');
+  const totPresEl = document.getElementById('totPres');
+  if(totChatEl) totChatEl.textContent = String(chartData.totals.chat || 0);
+  if(totPresEl) totPresEl.textContent = String(chartData.totals.pres || 0);
 
+  // ✅ Siempre destruir antes de crear nuevo
   destroyEstadChart_();
 
+  // Si no hay datos, limpia canvas y listo
   const hasAny = (chartData.datasets || []).some(ds => (ds.data || []).some(v=>v>0));
   if(!hasAny){
     const ctx0 = canvas.getContext('2d');
-    ctx0.clearRect(0,0,canvas.width,canvas.height);
+    ctx0 && ctx0.clearRect(0,0,canvas.width,canvas.height);
     return;
   }
 
@@ -1313,8 +1322,8 @@ function renderEstadChart_(titleText, chartData, mode){
             minRotation: isZonas ? 90 : 0,
             maxRotation: isZonas ? 90 : 0,
 
-            /* evita que se “aplane” pegado */
-            padding: isZonas ? 8 : 0
+            /* da aire para que no quede “pegado” */
+            padding: isZonas ? 10 : 0
           },
           grid: { display: false }
         },
@@ -1329,7 +1338,7 @@ function renderEstadChart_(titleText, chartData, mode){
   });
 }
 
-/* ===== Botones: siempre visibles, no esconder/mostrar ===== */
+/* ===== Botones: siempre visibles ===== */
 async function showEstadTiempo_(){
   __estadMode = 'TIEMPO';
   const data = buildDataTiempo2026_(__estadCache);
@@ -1342,7 +1351,7 @@ async function showEstadZonas_(){
   renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL ZONAS', data, 'ZONAS');
 }
 
-/* Reemplaza openEstadisticas_ para que inicie en TIEMPO, y cargue una sola vez */
+/* Inicia en TIEMPO 2026 y carga una sola vez */
 async function openEstadisticas_(){
   if(!currentUser || !currentUser.isSuper){
     Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
@@ -1352,39 +1361,36 @@ async function openEstadisticas_(){
   showView('view-estadisticas');
 
   try{
-    await loadEstadisticasData_();  // cache de no-pendientes
+    await loadEstadisticasData_();  // cache no-pendientes
     await showEstadTiempo_();       // inicia en TIEMPO 2026
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
   }
 }
 
-  // ✅ Click botón del inicio -> abre la vista Estadísticas
+/* ✅ Handlers (no duplicar en otra parte) */
 document.getElementById('btn-estadisticas')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
   await openEstadisticas_();
 });
 
-// ✅ Click regresar en Estadísticas
 document.getElementById('btn-estad-back')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  try{ __estadChart && __estadChart.destroy(); }catch(_){}
-  __estadChart = null;
+  destroyEstadChart_();
   showView('view-inicio');
 });
 
-/* Handlers */
 document.getElementById('btn-estad-tiempo')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
   await showEstadTiempo_();
 });
+
 document.getElementById('btn-estad-zonas')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
   await showEstadZonas_();
 });
-  
 
-// También lo ocultamos al logout (por seguridad)
+/* Seguridad: ocultar botón al logout */
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   try{
     const bEst = document.getElementById('btn-estadisticas');
