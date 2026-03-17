@@ -1359,6 +1359,20 @@ async function openEstadisticas_(){
   }
 }
 
+  // ✅ Click botón del inicio -> abre la vista Estadísticas
+document.getElementById('btn-estadisticas')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back);
+  await openEstadisticas_();
+});
+
+// ✅ Click regresar en Estadísticas
+document.getElementById('btn-estad-back')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  try{ __estadChart && __estadChart.destroy(); }catch(_){}
+  __estadChart = null;
+  showView('view-inicio');
+});
+
 /* Handlers */
 document.getElementById('btn-estad-tiempo')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
