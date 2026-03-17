@@ -401,6 +401,31 @@
 .estad-dot{
   width:10px;height:10px;border-radius:3px;display:inline-block;
 }
+
+    /* === MULTI CHARTS ZONAS (sin comprimir la vista) === */
+#estadCharts{
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.estad-chart-box{
+  height: 320px;          /* alto fijo por gráfico (ajusta si quieres) */
+  min-height: 280px;
+}
+
+@media (max-width: 700px){
+  .estad-chart-box{
+    height: 300px;
+  }
+}
+.estad-chart-box canvas{
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
   </style>
 </head>
 <body>
@@ -781,21 +806,21 @@
     </div>
 
     <div class="estad-chart-wrap">
-      <canvas id="estadChart"></canvas>
+  <!-- contenedor de charts (múltiples canvases) -->
+  <div id="estadCharts"></div>
 
-      <div class="estad-totals center">
-        <span class="estad-pill">
-          <span id="dotChat" class="estad-dot"></span>
-          CHAT: <span id="totChat">0</span>
-        </span>
-        <span class="estad-pill">
-          <span id="dotPres" class="estad-dot"></span>
-          PRESENCIAL: <span id="totPres">0</span>
-        </span>
-      </div>
-    </div>
+  <!-- Totales: se muestran SOLO en el último gráfico -->
+  <div id="estadTotals" class="estad-totals center">
+    <span class="estad-pill">
+      <span id="dotChat" class="estad-dot"></span>
+      CHAT: <span id="totChat">0</span>
+    </span>
+    <span class="estad-pill">
+      <span id="dotPres" class="estad-dot"></span>
+      PRESENCIAL: <span id="totPres">0</span>
+    </span>
   </div>
-</section>
+</div>
     
   </div>
 
@@ -1108,17 +1133,21 @@ function parseDDMMYYYY_(s){
 }
 
 /* ✅ Destruye el chart actual (evita errores y “pegotes” al cambiar de gráfico) */
+let __estadCharts = []; // <-- NUEVO: lista de instancias Chart.js
+
 function destroyEstadChart_(){
   try{
-    if(__estadChart){
-      __estadChart.destroy();
-      __estadChart = null;
+    for(const c of (__estadCharts || [])){
+      try{ c.destroy(); }catch(_){}
     }
-  }catch(_){
-    __estadChart = null;
-  }
+  }catch(_){}
+  __estadCharts = [];
+  try{
+    const host = document.getElementById('estadCharts');
+    if(host) host.innerHTML = '';
+  }catch(_){}
 }
-
+  
 function estadFilterNotPendiente_(rows){
   const out = [];
   for(const r of (Array.isArray(rows) ? rows : [])){
@@ -1213,9 +1242,13 @@ function buildDataTiempo2026_(rows){
   };
 }
 
-function buildDataZonas_(rows){
-  // Categorías: residencia (barrio)
-  // Series: CHAT / PRESENCIAL
+function chunk_(arr, size){
+  const out = [];
+  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
+  return out;
+}
+
+function buildDataZonasChunks_(rows){
   const byZona = {}; // zona -> { chat, pres }
 
   for(const r of rows){
@@ -1228,167 +1261,173 @@ function buildDataZonas_(rows){
     if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
   }
 
-  // orden por total desc
   const zonas = Object.keys(byZona).sort((a,b)=>{
     const ta = byZona[a].chat + byZona[a].pres;
     const tb = byZona[b].chat + byZona[b].pres;
     return tb - ta;
   });
 
-  const chatArr = zonas.map(z => byZona[z].chat);
-  const presArr = zonas.map(z => byZona[z].pres);
+  const isSmall = window.matchMedia('(max-width: 700px)').matches;
+  const MAX = isSmall ? 15 : 20;
 
   const pal = ESTAD_COLORS.zonas;
 
-  const datasets = [];
-  const hasChat = chatArr.some(n=>n>0);
-  const hasPres = presArr.some(n=>n>0);
+  const totals = zonas.reduce((acc, z)=>{
+    acc.chat += byZona[z].chat;
+    acc.pres += byZona[z].pres;
+    return acc;
+  }, { chat:0, pres:0 });
 
-  if(hasChat){
-    datasets.push({
-      label: 'CHAT',
-      data: chatArr,
-      backgroundColor: pal.chat,
-      borderColor: pal.chatB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
-  if(hasPres){
-    datasets.push({
-      label: 'PRESENCIAL',
-      data: presArr,
-      backgroundColor: pal.pres,
-      borderColor: pal.presB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
+  const pages = chunk_(zonas, MAX).map(pageZonas=>{
+    const chatArr = pageZonas.map(z => byZona[z].chat);
+    const presArr = pageZonas.map(z => byZona[z].pres);
 
-  // ✅ WRAP visual en el eje X: a partir de la zona 16, “baja” a una segunda fila
-  // Chart.js permite labels como array => multi-line tick
-  const WRAP_AT = 15; // 15 arriba, 16+ abajo
-  let labels;
-
-  if(zonas.length > WRAP_AT){
-    labels = zonas.map((z, i)=>{
-      // primera fila: [ZONA, '']  | segunda fila: ['', ZONA]
-      return (i < WRAP_AT) ? [z, ''] : ['', z];
-    });
-  }else{
-    labels = zonas; // normal
-  }
-
-  return {
-    labels,
-    datasets,
-    totals: {
-      chat: chatArr.reduce((a,b)=>a+b,0),
-      pres: presArr.reduce((a,b)=>a+b,0)
+    const datasets = [];
+    if(chatArr.some(n=>n>0)){
+      datasets.push({
+        label: 'CHAT',
+        data: chatArr,
+        backgroundColor: pal.chat,
+        borderColor: pal.chatB,
+        borderWidth: 1.5,
+        stack: 's1',
+        borderRadius: 10
+      });
     }
-  };
+    if(presArr.some(n=>n>0)){
+      datasets.push({
+        label: 'PRESENCIAL',
+        data: presArr,
+        backgroundColor: pal.pres,
+        borderColor: pal.presB,
+        borderWidth: 1.5,
+        stack: 's1',
+        borderRadius: 10
+      });
+    }
+
+    return {
+      labels: pageZonas,     // ✅ SIN trucos de ['', z] que descentraban
+      datasets
+    };
+  });
+
+  return { pages, totals };
 }
 
-function renderEstadChart_(titleText, chartData, mode){
-  const canvas = document.getElementById('estadChart');
-  if(!canvas) return;
+function renderEstadCharts_(titleText, pagesData, totals, mode){
+  const host = document.getElementById('estadCharts');
+  if(!host) return;
 
-  // ✅ Ajusta colores de “totales” según modo
+  // Paleta de totales
   setTotalsPalette_(mode);
 
-  // ✅ Totales
+  // Totales SOLO al final (siempre visibles, pero los actualizamos aquí)
   const totChatEl = document.getElementById('totChat');
   const totPresEl = document.getElementById('totPres');
-  if(totChatEl) totChatEl.textContent = String(chartData.totals.chat || 0);
-  if(totPresEl) totPresEl.textContent = String(chartData.totals.pres || 0);
+  if(totChatEl) totChatEl.textContent = String(totals?.chat || 0);
+  if(totPresEl) totPresEl.textContent = String(totals?.pres || 0);
 
-  // ✅ Siempre destruir antes de crear nuevo
+  // Destruir todo y recrear
   destroyEstadChart_();
+  host.innerHTML = '';
 
-  // Si no hay datos, limpia canvas y listo
-  const hasAny = (chartData.datasets || []).some(ds => (ds.data || []).some(v=>v>0));
-  if(!hasAny){
-    const ctx0 = canvas.getContext('2d');
-    ctx0 && ctx0.clearRect(0,0,canvas.width,canvas.height);
-    return;
-  }
-
-  const ctx = canvas.getContext('2d');
   const dl = window.ChartDataLabels;
-
   const isZonas = (mode === 'ZONAS');
 
-  __estadChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: chartData.labels, datasets: chartData.datasets },
-    plugins: [dl],
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: { padding: { top: 8, left: 8, right: 8, bottom: 0 } },
-      plugins: {
-        title: {
-          display: true,
-          text: titleText,
-          color: '#0b3b22',
-          font: { size: 18, weight: '900' },
-          padding: { bottom: 10 }
-        },
-        legend: {
-          position: 'bottom',
-          labels: { boxWidth: 12, boxHeight: 12, font: { weight:'900' } }
-        },
-        tooltip: { enabled: true },
-        datalabels: {
-          color: '#111',
-          anchor: 'center',
-          align: 'center',
-          clamp: true,
-          font: { weight: '1000', size: 18 },
-          formatter: (v)=> (v && v > 0) ? String(v) : ''
-        }
-      },
-      scales: {
-        x: {
-          stacked: true,
-          ticks: {
-            color: '#111',
-            font: { weight: '900', size: 11 },
-            autoSkip: false,
+  // Si no hay nada, salir
+  const any = (pagesData || []).some(p => (p.datasets||[]).some(ds => (ds.data||[]).some(v=>v>0)));
+  if(!any) return;
 
-            /* ✅ ROTAR 90° IZQUIERDA SOLO EN ZONAS */
-            minRotation: isZonas ? 90 : 0,
-            maxRotation: isZonas ? 90 : 0,
+  // Crear N charts
+  pagesData.forEach((page, idx)=>{
+    const box = document.createElement('div');
+    box.className = 'estad-chart-box';
 
-            /* da aire para que no quede “pegado” */
-            padding: isZonas ? 10 : 0
+    const canvas = document.createElement('canvas');
+    box.appendChild(canvas);
+    host.appendChild(box);
+
+    const pageTitle = (pagesData.length > 1)
+      ? `${titleText} (${idx+1}/${pagesData.length})`
+      : titleText;
+
+    const c = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: { labels: page.labels, datasets: page.datasets },
+      plugins: [dl],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 8, left: 8, right: 8, bottom: 0 } },
+        plugins: {
+          title: {
+            display: true,
+            text: pageTitle,
+            color: '#0b3b22',
+            font: { size: 18, weight: '900' },
+            padding: { bottom: 10 }
           },
-          grid: { display: false }
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, boxHeight: 12, font: { weight:'900' } }
+          },
+          tooltip: { enabled: true },
+          datalabels: {
+            color: '#111',
+            anchor: 'center',
+            align: 'center',
+            clamp: true,
+            font: { weight: '1000', size: 18 },
+            formatter: (v)=> (v && v > 0) ? String(v) : ''
+          }
         },
-        y: {
-          stacked: true,
-          beginAtZero: true,
-          ticks: { precision: 0, color:'#333', font: { weight:'800' } },
-          grid: { color: 'rgba(0,0,0,.08)' }
+        scales: {
+          x: {
+            stacked: true,
+            ticks: {
+              color: '#111',
+              font: { weight: '900', size: 11 },
+              autoSkip: false,
+              minRotation: isZonas ? 90 : 0,
+              maxRotation: isZonas ? 90 : 0,
+              padding: isZonas ? 10 : 0
+            },
+            grid: { display: false }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: { precision: 0, color:'#333', font: { weight:'800' } },
+            grid: { color: 'rgba(0,0,0,.08)' }
+          }
         }
       }
-    }
-  });
-}
+    });
 
+    __estadCharts.push(c);
+  });
+
+  // ✅ Totales debajo del último gráfico (tu requisito imagen 2)
+  const totalsEl = document.getElementById('estadTotals');
+  if(totalsEl) host.appendChild(totalsEl);
+}
 /* ===== Botones: siempre visibles ===== */
 async function showEstadTiempo_(){
   __estadMode = 'TIEMPO';
   const data = buildDataTiempo2026_(__estadCache);
-  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data, 'TIEMPO');
+  renderEstadCharts_(
+    'ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026',
+    [{ labels: data.labels, datasets: data.datasets }],
+    data.totals,
+    'TIEMPO'
+  );
 }
 
 async function showEstadZonas_(){
   __estadMode = 'ZONAS';
-  const data = buildDataZonas_(__estadCache);
-  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL ZONAS', data, 'ZONAS');
+  const built = buildDataZonasChunks_(__estadCache);
+  renderEstadCharts_('ATENCIÓN IMPUESTO PREDIAL ZONAS', built.pages, built.totals, 'ZONAS');
 }
 
 /* Inicia en TIEMPO 2026 y carga una sola vez */
