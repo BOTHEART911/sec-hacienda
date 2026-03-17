@@ -322,6 +322,59 @@
   max-width:100%;
   text-align:center;
 }
+
+    /* ===== ESTADISTICAS: look glass + compact ===== */
+.card.estad-card{
+  max-width: 1080px;         /* un poco más ancho en pantallas grandes */
+  padding: 14px 14px 12px;   /* menos alto */
+}
+.estad-toolbar{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.estad-toolbar > *{ flex:1; }
+
+.estad-chart-wrap{
+  margin: 12px auto 6px;
+  width: min(1040px, 100%);
+  background: rgba(255,255,255,.10);  /* NO blanco: glass suave */
+  border: 2px solid rgba(221,221,221,.9);
+  border-radius: 18px;
+  padding: 10px 10px 8px;             /* compacto */
+  box-shadow: 0 10px 22px rgba(0,0,0,.14);
+  backdrop-filter: blur(3px);
+}
+
+.estad-canvas{
+  width:100%;
+  height: 360px;  /* <-- reduce altura (antes 420) */
+  display:block;
+}
+
+@media (max-width: 700px){
+  .estad-canvas{ height: 320px; }
+}
+
+.estad-totals{
+  margin-top: 8px;
+  font-weight: 1000;
+  color:#111;
+}
+.estad-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background: rgba(255,255,255,.16);
+  border: 2px solid rgba(221,221,221,.85);
+  border-radius: 999px;
+  padding: 6px 10px;
+  margin: 0 6px 6px 6px;
+}
+.estad-dot{
+  width:10px;height:10px;border-radius:3px;display:inline-block;
+}
   </style>
 </head>
 <body>
@@ -686,45 +739,34 @@
 </section>
 
     <!-- VISTA ESTADISTICAS -->
-    <section id="view-estadisticas" class="view">
-  <div class="card" style="max-width: 1040px;">
-    <h2 id="estadisticas-title" style="color:var(--primary); margin-bottom:6px;">ESTADÍSTICAS</h2>
-    <p class="helper" style="margin-top:0;"><b>Solo SUPER USUARIO</b></p>
+   <section id="view-estadisticas" class="view">
+  <div class="card estad-card">
+    <h2 style="color:var(--primary); margin-bottom:4px;">ESTADÍSTICAS</h2>
+    <p class="helper" style="margin:0 0 8px;"><b>Solo SUPER USUARIO</b></p>
 
-    <div class="btn-row" style="margin-top:12px;">
+    <div class="estad-toolbar">
+      <button id="btn-estad-tiempo" class="btn-primary">TIEMPO 2026</button>
       <button id="btn-estad-zonas" class="btn-primary">ZONAS</button>
-      <button id="btn-estad-tiempo" class="btn-primary" style="display:none;">TIEMPO</button>
       <button id="btn-estad-back" class="danger">Regresar</button>
     </div>
 
-    <!-- Contenedor gráfico: más amplio en pantallas grandes, responsivo en móviles -->
-    <div id="estad-chart-wrap" style="
-      margin: 16px auto 6px;
-      width: min(980px, 100%);
-      background: rgba(255,255,255,.92);
-      border: 2px solid #ddd;
-      border-radius: 18px;
-      padding: 12px 12px 10px;
-      box-shadow: 0 10px 22px rgba(0,0,0,.14);
-    ">
-      <canvas id="estadChart" style="width:100%; height:420px;"></canvas>
-      <div id="estadTotals" class="center" style="margin-top:10px; font-weight:1000;">
-        <span style="display:inline-block; margin:0 10px;">
-          <span style="display:inline-block; width:10px; height:10px; background:#f19986; border-radius:3px; margin-right:6px;"></span>
+    <div id="estad-chart-wrap" class="estad-chart-wrap">
+      <canvas id="estadChart" class="estad-canvas"></canvas>
+
+      <div id="estadTotals" class="center estad-totals">
+        <span class="estad-pill">
+          <span id="dotChat" class="estad-dot" style="background:#f19986;"></span>
           CHAT: <span id="totChat">0</span>
         </span>
-        <span style="display:inline-block; margin:0 10px;">
-          <span style="display:inline-block; width:10px; height:10px; background:#b24c1f; border-radius:3px; margin-right:6px;"></span>
+        <span class="estad-pill">
+          <span id="dotPres" class="estad-dot" style="background:#b24c1f;"></span>
           PRESENCIAL: <span id="totPres">0</span>
         </span>
       </div>
     </div>
-
-    <p class="muted center" style="margin:10px 0 0;">
-      Se excluyen solicitudes <b>PENDIENTE</b>. Se muestran únicamente categorías/series existentes.
-    </p>
   </div>
 </section>
+
     
   </div>
 
@@ -1077,9 +1119,20 @@ async function loadEstadisticasData_(){
   __estadCache = estadFilterNotPendiente_(rows);
 }
 
+const ESTAD_COLORS = {
+  tiempo: { chat:'#f19986', pres:'#b24c1f', chatB:'#e97e67', presB:'#8f3b18' },
+  zonas:  { chat:'#9bd18f', pres:'#2e7d32', chatB:'#6bb85b', presB:'#1f5f24' }
+};
+
+function setTotalsPalette_(mode){
+  const pal = (mode === 'ZONAS') ? ESTAD_COLORS.zonas : ESTAD_COLORS.tiempo;
+  const dotChat = document.getElementById('dotChat');
+  const dotPres = document.getElementById('dotPres');
+  if(dotChat) dotChat.style.background = pal.chat;
+  if(dotPres) dotPres.style.background = pal.pres;
+}
+
 function buildDataTiempo2026_(rows){
-  // Categorías: meses existentes en 2026 según Col B (fecha dd/mm/yyyy)
-  // Series: CHAT (estado ATENDIDA CHAT), PRESENCIAL (ATENDIDA PRESENCIAL)
   const byMonth = {}; // mm -> { chat, pres }
   for(const r of rows){
     const est = normalizeText_(r.estado || '');
@@ -1087,19 +1140,20 @@ function buildDataTiempo2026_(rows){
     if(!fecha) continue;
     if(fecha.yyyy !== 2026) continue;
 
-    const key = String(fecha.mm).padStart(2,'0'); // "01".."12"
+    const key = String(fecha.mm).padStart(2,'0');
     if(!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
 
     if(est === 'ATENDIDA CHAT') byMonth[key].chat++;
     if(est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
   }
 
-  const monthsSorted = Object.keys(byMonth).sort(); // "01","02",...
+  const monthsSorted = Object.keys(byMonth).sort();
   const labels = monthsSorted.map(k => MONTHS_ES[parseInt(k,10)-1]);
   const chat = monthsSorted.map(k => byMonth[k].chat);
   const pres = monthsSorted.map(k => byMonth[k].pres);
 
-  // Solo series existentes
+  const pal = ESTAD_COLORS.tiempo;
+
   const datasets = [];
   const hasChat = chat.some(n=>n>0);
   const hasPres = pres.some(n=>n>0);
@@ -1108,10 +1162,10 @@ function buildDataTiempo2026_(rows){
     datasets.push({
       label: 'CHAT',
       data: chat,
-      backgroundColor: '#f19986',
-      borderColor: '#e97e67',
+      backgroundColor: pal.chat,
+      borderColor: pal.chatB,
       borderWidth: 1.5,
-      stack: 'stack1',
+      stack: 's1',
       borderRadius: 10
     });
   }
@@ -1119,26 +1173,23 @@ function buildDataTiempo2026_(rows){
     datasets.push({
       label: 'PRESENCIAL',
       data: pres,
-      backgroundColor: '#b24c1f',
-      borderColor: '#8f3b18',
+      backgroundColor: pal.pres,
+      borderColor: pal.presB,
       borderWidth: 1.5,
-      stack: 'stack1',
+      stack: 's1',
       borderRadius: 10
     });
   }
 
-  const totals = {
-    chat: chat.reduce((a,b)=>a+b,0),
-    pres: pres.reduce((a,b)=>a+b,0)
+  return {
+    labels,
+    datasets,
+    totals: { chat: chat.reduce((a,b)=>a+b,0), pres: pres.reduce((a,b)=>a+b,0) }
   };
-
-  return { labels, datasets, totals };
 }
 
 function buildDataZonas_(rows){
-  // Categorías: residencia (Col E) existentes
-  // Series: CHAT / PRESENCIAL por estado
-  const byZona = {}; // zona -> { chat, pres }
+  const byZona = {};
   for(const r of rows){
     const est = normalizeText_(r.estado || '');
     const zona = String(r.barrio || '').trim().toUpperCase();
@@ -1149,18 +1200,19 @@ function buildDataZonas_(rows){
     if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
   }
 
-  // Solo categorías existentes; orden por total desc
   const zonas = Object.keys(byZona).sort((a,b)=>{
     const ta = byZona[a].chat + byZona[a].pres;
     const tb = byZona[b].chat + byZona[b].pres;
     return tb - ta;
   });
 
-  // (evitar “remontados”) -> multilínea con wrap
-  const labels = zonas.map(z => wrapLabelLines_(z, 14));
+  // IMPORTANTE: para rotar 90°, NO usamos wrap multilinea aquí.
+  const labels = zonas;
 
   const chatArr = zonas.map(z => byZona[z].chat);
   const presArr = zonas.map(z => byZona[z].pres);
+
+  const pal = ESTAD_COLORS.zonas;
 
   const datasets = [];
   const hasChat = chatArr.some(n=>n>0);
@@ -1170,10 +1222,10 @@ function buildDataZonas_(rows){
     datasets.push({
       label: 'CHAT',
       data: chatArr,
-      backgroundColor: '#9bd18f',
-      borderColor: '#6bb85b',
+      backgroundColor: pal.chat,
+      borderColor: pal.chatB,
       borderWidth: 1.5,
-      stack: 'stack1',
+      stack: 's1',
       borderRadius: 10
     });
   }
@@ -1181,38 +1233,32 @@ function buildDataZonas_(rows){
     datasets.push({
       label: 'PRESENCIAL',
       data: presArr,
-      backgroundColor: '#2e7d32',
-      borderColor: '#1f5f24',
+      backgroundColor: pal.pres,
+      borderColor: pal.presB,
       borderWidth: 1.5,
-      stack: 'stack1',
+      stack: 's1',
       borderRadius: 10
     });
   }
 
-  const totals = {
-    chat: chatArr.reduce((a,b)=>a+b,0),
-    pres: presArr.reduce((a,b)=>a+b,0)
+  return {
+    labels,
+    datasets,
+    totals: { chat: chatArr.reduce((a,b)=>a+b,0), pres: presArr.reduce((a,b)=>a+b,0) }
   };
-
-  return { labels, datasets, totals };
 }
 
-function destroyEstadChart_(){
-  try{ __estadChart && __estadChart.destroy(); }catch(_){}
-  __estadChart = null;
-}
-
-function renderEstadChart_(titleText, chartData){
+function renderEstadChart_(titleText, chartData, mode){
   const canvas = document.getElementById('estadChart');
   if(!canvas) return;
 
-  // Totales bajo el gráfico
+  setTotalsPalette_(mode);
+
   document.getElementById('totChat').textContent = String(chartData.totals.chat || 0);
   document.getElementById('totPres').textContent = String(chartData.totals.pres || 0);
 
   destroyEstadChart_();
 
-  // Si no hay datos, muestra un “gráfico vacío” con mensaje
   const hasAny = (chartData.datasets || []).some(ds => (ds.data || []).some(v=>v>0));
   if(!hasAny){
     const ctx0 = canvas.getContext('2d');
@@ -1221,32 +1267,29 @@ function renderEstadChart_(titleText, chartData){
   }
 
   const ctx = canvas.getContext('2d');
-
-  // plugin labels sobre barras (contadores)
   const dl = window.ChartDataLabels;
+
+  const isZonas = (mode === 'ZONAS');
 
   __estadChart = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels: chartData.labels,
-      datasets: chartData.datasets
-    },
+    data: { labels: chartData.labels, datasets: chartData.datasets },
     plugins: [dl],
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 10, left: 8, right: 8, bottom: 0 } },
+      layout: { padding: { top: 8, left: 8, right: 8, bottom: 0 } },
       plugins: {
         title: {
           display: true,
           text: titleText,
           color: '#0b3b22',
-          font: { size: 20, weight: '900' },
-          padding: { bottom: 14 }
+          font: { size: 18, weight: '900' },
+          padding: { bottom: 10 }
         },
         legend: {
           position: 'bottom',
-          labels: { boxWidth: 12, boxHeight: 12, font: { weight:'800' } }
+          labels: { boxWidth: 12, boxHeight: 12, font: { weight:'900' } }
         },
         tooltip: { enabled: true },
         datalabels: {
@@ -1264,9 +1307,14 @@ function renderEstadChart_(titleText, chartData){
           ticks: {
             color: '#111',
             font: { weight: '900', size: 11 },
-            maxRotation: 0,
-            minRotation: 0,
-            autoSkip: false
+            autoSkip: false,
+
+            /* ✅ ROTAR 90° IZQUIERDA SOLO EN ZONAS */
+            minRotation: isZonas ? 90 : 0,
+            maxRotation: isZonas ? 90 : 0,
+
+            /* evita que se “aplane” pegado */
+            padding: isZonas ? 8 : 0
           },
           grid: { display: false }
         },
@@ -1281,62 +1329,46 @@ function renderEstadChart_(titleText, chartData){
   });
 }
 
-// 4) Abrir vista estadísticas
+/* ===== Botones: siempre visibles, no esconder/mostrar ===== */
+async function showEstadTiempo_(){
+  __estadMode = 'TIEMPO';
+  const data = buildDataTiempo2026_(__estadCache);
+  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data, 'TIEMPO');
+}
+
+async function showEstadZonas_(){
+  __estadMode = 'ZONAS';
+  const data = buildDataZonas_(__estadCache);
+  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL ZONAS', data, 'ZONAS');
+}
+
+/* Reemplaza openEstadisticas_ para que inicie en TIEMPO, y cargue una sola vez */
 async function openEstadisticas_(){
   if(!currentUser || !currentUser.isSuper){
     Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
     return;
   }
 
-  __estadMode = 'TIEMPO';
-
-  // botones: por defecto TIEMPO visible (ZONAS cambia modo)
-  const bZ = document.getElementById('btn-estad-zonas');
-  const bT = document.getElementById('btn-estad-tiempo');
-  if(bZ) bZ.style.display = '';
-  if(bT) bT.style.display = 'none';
-
   showView('view-estadisticas');
 
   try{
-    await loadEstadisticasData_();
-    const data = buildDataTiempo2026_(__estadCache);
-    renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026', data);
+    await loadEstadisticasData_();  // cache de no-pendientes
+    await showEstadTiempo_();       // inicia en TIEMPO 2026
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
   }
 }
 
-// 5) Eventos UI (solo super)
-document.getElementById('btn-estadisticas')?.addEventListener('click', async ()=>{
+/* Handlers */
+document.getElementById('btn-estad-tiempo')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
-  await openEstadisticas_();
+  await showEstadTiempo_();
 });
-
-document.getElementById('btn-estad-back')?.addEventListener('click', ()=>{
+document.getElementById('btn-estad-zonas')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
-  destroyEstadChart_();
-  showView('view-inicio');
+  await showEstadZonas_();
 });
-
-document.getElementById('btn-estad-zonas')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  __estadMode = 'ZONAS';
-
-  // toggle botones
-  const bZ = document.getElementById('btn-estad-zonas');
-  const bT = document.getElementById('btn-estad-tiempo');
-  if(bZ) bZ.style.display = 'none';
-  if(bT) bT.style.display = '';
-
-  const data = buildDataZonas_(__estadCache);
-  renderEstadChart_('ATENCIÓN IMPUESTO PREDIAL ZONAS', data);
-});
-
-document.getElementById('btn-estad-tiempo')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  __estadMode = 'TIEMPO';
-
+  
   // toggle botones
   const bZ = document.getElementById('btn-estad-zonas');
   const bT = document.getElementById('btn-estad-tiempo');
