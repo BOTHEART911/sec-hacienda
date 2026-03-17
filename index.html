@@ -1235,9 +1235,6 @@ function buildDataZonas_(rows){
     return tb - ta;
   });
 
-  // ✅ Para rotar 90°, dejamos labels “planos”
-  const labels = zonas;
-
   const chatArr = zonas.map(z => byZona[z].chat);
   const presArr = zonas.map(z => byZona[z].pres);
 
@@ -1268,6 +1265,20 @@ function buildDataZonas_(rows){
       stack: 's1',
       borderRadius: 10
     });
+  }
+
+  // ✅ WRAP visual en el eje X: a partir de la zona 16, “baja” a una segunda fila
+  // Chart.js permite labels como array => multi-line tick
+  const WRAP_AT = 15; // 15 arriba, 16+ abajo
+  let labels;
+
+  if(zonas.length > WRAP_AT){
+    labels = zonas.map((z, i)=>{
+      // primera fila: [ZONA, '']  | segunda fila: ['', ZONA]
+      return (i < WRAP_AT) ? [z, ''] : ['', z];
+    });
+  }else{
+    labels = zonas; // normal
   }
 
   return {
