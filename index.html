@@ -1330,34 +1330,39 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
   const host = document.getElementById('estadCharts');
   if(!host) return;
 
-  // ✅ FIX: define isSmall dentro del scope correcto
   const isSmall = window.matchMedia('(max-width: 700px)').matches;
 
-  // Paleta de totales
   setTotalsPalette_(mode);
 
-  // Totales (se muestran al final)
+  // ✅ FIX: vuelve a escribir los totales y asegúrate de que el bloque NO quede vacío/oculto
   const totChatEl = document.getElementById('totChat');
   const totPresEl = document.getElementById('totPres');
-  if(totChatEl) totChatEl.textContent = String(totals?.chat || 0);
-  if(totPresEl) totPresEl.textContent = String(totals?.pres || 0);
+  const totalsWrap = document.getElementById('estadTotals');
 
-  // Destruir todo y recrear
+  if(totChatEl) totChatEl.textContent = String((totals && typeof totals.chat === 'number') ? totals.chat : 0);
+  if(totPresEl) totPresEl.textContent = String((totals && typeof totals.pres === 'number') ? totals.pres : 0);
+
+  if(totalsWrap){
+    totalsWrap.style.display = ''; // por si quedó oculto por algún css/estado anterior
+  }
+
   destroyEstadChart_();
   host.innerHTML = '';
 
   const dl = window.ChartDataLabels;
   const isZonas = (mode === 'ZONAS');
 
-  // Si no hay nada, salir
   const any = (pagesData || []).some(p => (p.datasets||[]).some(ds => (ds.data||[]).some(v=>v>0)));
-  if(!any) return;
+  if(!any){
+    // ✅ Aunque no haya datos, dejamos los totales visibles
+    if(totalsWrap) host.appendChild(totalsWrap);
+    return;
+  }
 
   pagesData.forEach((page, idx)=>{
     const box = document.createElement('div');
     box.className = 'estad-chart-box';
 
-    // ✅ si en móvil hay muy pocas barras, el 2/2 no debe verse gigante
     const count = (page.labels || []).length;
     if(isSmall && count <= 3){
       box.style.height = '220px';
@@ -1418,7 +1423,6 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
           y: {
             stacked: true,
             beginAtZero: true,
-            // ✅ “sube” visualmente barras pequeñas (especialmente en ZONAS)
             suggestedMax: isZonas ? 4 : undefined,
             ticks: { precision: 0, color:'#333', font: { weight:'800' } },
             grid: { color: 'rgba(0,0,0,.08)' }
@@ -1430,9 +1434,8 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
     __estadCharts.push(c);
   });
 
-  // ✅ Totales debajo del último gráfico
-  const totalsEl = document.getElementById('estadTotals');
-  if(totalsEl) host.appendChild(totalsEl);
+  // ✅ Totales debajo del último gráfico (siempre)
+  if(totalsWrap) host.appendChild(totalsWrap);
 }
   
 /* ===== Botones: siempre visibles ===== */
