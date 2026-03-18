@@ -437,34 +437,6 @@
   height: 100% !important;
   display: block;
 }
-
-     /* ===== NUEVO: conteo debajo del chart (zona A/B) ===== */
-  .estad-counts{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:18px;
-    flex-wrap:wrap;
-    margin-top: 6px; /* queda justo debajo del canvas */
-    padding-bottom: 6px;
-  }
-  .estad-count-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    background: rgba(255,255,255,.20);
-    border: 2px solid rgba(221,221,221,.90);
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-weight: 1000;
-    color:#111;
-  }
-  .estad-count-dot{
-    width:12px;
-    height:12px;
-    border-radius:4px;
-    display:inline-block;
-  }
   </style>
 </head>
 <body>
@@ -1186,52 +1158,6 @@ function canSeePendientes_(){
 }
 
 /* ================== ESTADISTICAS ================== */
-/* NUEVO: helpers conteo abajo */
-function sumArray_(arr){
-  return (Array.isArray(arr) ? arr : []).reduce((a,b)=> a + (Number(b)||0), 0);
-}
-function getDatasetTotal_(ds){
-  return sumArray_(ds && ds.data ? ds.data : []);
-}
-function getPaletteForMode_(mode){
-  return (mode === 'ZONAS') ? ESTAD_COLORS.zonas : ESTAD_COLORS.tiempo;
-}
-function renderCountsRowBelowChart_(hostEl, page, mode){
-  const pal = getPaletteForMode_(mode);
-
-  const wrap = document.createElement('div');
-  wrap.className = 'estad-counts';
-
-  const dsets = Array.isArray(page?.datasets) ? page.datasets : [];
-  const dsChat = dsets.find(d => normalizeText_(d?.label || '') === 'CHAT');
-  const dsPres = dsets.find(d => normalizeText_(d?.label || '') === 'PRESENCIAL');
-
-  if(dsChat){
-    const pill = document.createElement('div');
-    pill.className = 'estad-count-pill';
-    pill.innerHTML = `
-      <span class="estad-count-dot" style="background:${pal.chat}"></span>
-      CHAT: <span>${getDatasetTotal_(dsChat)}</span>
-    `;
-    wrap.appendChild(pill);
-  }
-
-  if(dsPres){
-    const pill = document.createElement('div');
-    pill.className = 'estad-count-pill';
-    pill.innerHTML = `
-      <span class="estad-count-dot" style="background:${pal.pres}"></span>
-      PRESENCIAL: <span>${getDatasetTotal_(dsPres)}</span>
-    `;
-    wrap.appendChild(pill);
-  }
-
-  if(!wrap.children.length) return;
-  hostEl.appendChild(wrap);
-}
-
-  
-  
 let __estadCache = [];      // rows no-pendientes
 let __estadMode = 'TIEMPO'; // TIEMPO | ZONAS
 let __estadChart = null;
@@ -1539,8 +1465,6 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
 
     __estadCharts.push(c);
   });
-
-  renderCountsRowBelowChart_(box, page, mode);
 
   // ✅ Totales debajo del último gráfico (siempre)
   if(totalsWrap) host.appendChild(totalsWrap);
