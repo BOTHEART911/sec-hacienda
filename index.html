@@ -507,6 +507,10 @@
         </div>
 
         <div class="btn-row" style="margin-top:10px;">
+          <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px;">
           <button id="btn-drive-anexos" class="btn-primary">DRIVE ANEXOS</button>
         </div>
         
@@ -1718,6 +1722,12 @@ try{
   if(bAgregar) bAgregar.style.display = canSeeAgregarSolicitud_() ? '' : 'none';
 }catch(_){}
 
+  // ✅ Mostrar botón MIS INFORMES PREDIAL solo si puede ver AGREGAR SOLICITUD o es SUPER
+try{
+  const bInf = document.getElementById('btn-mis-informes');
+  if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
+}catch(_){}
+
 try{
   const bPend = document.getElementById('btn-pendientes');
   if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
@@ -1766,6 +1776,11 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   try{
   const b = document.getElementById('btn-drive-anexos');
   if(b) b.style.display = 'none';
+}catch(_){}
+
+  try{ 
+  const bInf = document.getElementById('btn-mis-informes'); 
+  if(bInf) bInf.style.display = 'none'; 
 }catch(_){}
 
 /* ================== INICIO: botones ================== */
@@ -1844,6 +1859,29 @@ document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
   initResidenciaChoices_();
   resetAgregarSolicitudForm_(); // <-- resetea al iniciar la vista
   showView('view-agregar');
+});
+
+  document.getElementById('btn-mis-informes')?.addEventListener('click', async ()=>{
+  playSoundOnce(SOUNDS.back); // sonido (puedes cambiar a SOUNDS.menu si prefieres)
+
+  try{
+    if(!currentUser){
+      Swal.fire({ icon:'warning', title:'Sesión inválida' });
+      return;
+    }
+
+    const res = await apiGet('getMisInformesLink', { documento: currentUser.documento });
+    const link = String(res?.link || '').trim();
+
+    if(!link){
+      Swal.fire({ icon:'info', title:'Sin enlace', text:'No tienes enlace configurado en la hoja USUARIOS (columna G).' });
+      return;
+    }
+
+    window.open(link, '_blank', 'noopener');
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
 });
 
 /* ================== LISTA: render + filtro ================== */
