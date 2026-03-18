@@ -1405,13 +1405,39 @@ function renderEstadCharts_(titleText, pagesData, totals, mode){
     box.appendChild(canvas);
     host.appendChild(box);
 
-    const pageTitle = (pagesData.length > 1)
-      ? `${titleText} (${idx+1}/${pagesData.length})`
-      : titleText;
+    const pageTitleBase = (pagesData.length > 1)
+  ? `${titleText} (${idx+1}/${pagesData.length})`
+  : titleText;
+
+// ✅ total general (CHAT + PRES) para mostrar bajo el título
+const totalGeneral =
+  ((totals && typeof totals.chat === 'number') ? totals.chat : 0) +
+  ((totals && typeof totals.pres === 'number') ? totals.pres : 0);
+
+// ✅ 2 líneas en el título (no afecta datalabels)
+const pageTitle = [pageTitleBase, `TOTAL: ${totalGeneral}`];
+
+    // ✅ Totales por serie para mostrar en la leyenda (solo texto)
+const totalChatSerie = (page.datasets || [])
+  .find(d => String(d.label || '').toUpperCase() === 'CHAT')
+  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
+
+const totalPresSerie = (page.datasets || [])
+  .find(d => String(d.label || '').toUpperCase() === 'PRESENCIAL')
+  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
+
+// ✅ Clonar datasets para NO dañar el dataset original
+const datasetsWithTotals = (page.datasets || []).map(ds=>{
+  const lbl = String(ds.label || '').toUpperCase();
+  let t = 0;
+  if(lbl === 'CHAT') t = totalChatSerie;
+  if(lbl === 'PRESENCIAL') t = totalPresSerie;
+  return { ...ds, label: `${ds.label} (Total: ${t})` };
+});
 
     const c = new Chart(canvas.getContext('2d'), {
       type: 'bar',
-      data: { labels: page.labels, datasets: page.datasets },
+      data: { labels: page.labels, datasets: datasetsWithTotals },
       plugins: [dl],
       options: {
         responsive: true,
