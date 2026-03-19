@@ -1794,6 +1794,7 @@ try{
 
 /* ================== LOGOUT ================== */
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+  stopPendientesAutoRefresh_();
   playSoundOnce(SOUNDS.logout);
   currentUser = null;
   currentCardSelected = null;
@@ -1826,6 +1827,9 @@ document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
 
   currentListMode = 'PENDIENTE';
   await openListView_('PENDIENTES PREDIAL', 'PENDIENTE');
+
+  // ✅ NUEVO: refresco cada 30s solo en Pendientes
+  startPendientesAutoRefresh_();
 });
 
 document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
@@ -1918,12 +1922,56 @@ document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
 
 /* ================== LISTA: render + filtro ================== */
 let __listCache = [];
+
+/* ================== AUTO REFRESH PENDIENTES (NUEVO) ================== */
+let __pendientesIntervalId = null;
+const PENDIENTES_REFRESH_MS = 30000;
+
+function startPendientesAutoRefresh_(){
+  // Evita duplicar intervalos
+  stopPendientesAutoRefresh_();
+
+  __pendientesIntervalId = setInterval(async ()=>{
+    try{
+      // Solo refrescar si:
+      // 1) estoy en modo PENDIENTE
+      // 2) la vista lista está activa (el usuario realmente está viendo la lista)
+      const vistaListaActiva = document.getElementById('view-lista')?.classList.contains('active');
+      if(currentListMode !== 'PENDIENTE') return;
+      if(!vistaListaActiva) return;
+
+      // Respeta el filtro actual (si el usuario está buscando algo)
+      const q = String(document.getElementById('lista-filter')?.value || '').trim();
+
+      // Carga lista actualizada desde backend
+      await loadAndRenderList_('PENDIENTE');
+
+      // Si había filtro, lo reaplicamos (dispara el listener o filtra manual)
+      if(q){
+        document.getElementById('lista-filter').value = q;
+        const evt = new Event('input', { bubbles:true });
+        document.getElementById('lista-filter').dispatchEvent(evt);
+      }
+    }catch(_){
+      // Silencioso: no molestamos al usuario cada 30s si hay un fallo puntual
+    }
+  }, PENDIENTES_REFRESH_MS);
+}
+
+function stopPendientesAutoRefresh_(){
+  if(__pendientesIntervalId){
+    clearInterval(__pendientesIntervalId);
+    __pendientesIntervalId = null;
+  }
+}
+  
 function normalizeText_(s){
   return String(s||'')
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g,'')
     .toUpperCase();
 }
+
 
 async function openListView_(title, estado){
   if(!currentUser) { Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
@@ -2083,6 +2131,10 @@ document.getElementById('lista-filter')?.addEventListener('input', ()=>{
 
 document.getElementById('lista-back')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
+
+  // ✅ NUEVO: parar refresco al salir
+  stopPendientesAutoRefresh_();
+
   showView('view-inicio');
 });
 
