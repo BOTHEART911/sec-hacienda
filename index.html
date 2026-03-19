@@ -1825,11 +1825,39 @@ document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
     return;
   }
 
-  currentListMode = 'PENDIENTE';
-  await openListView_('PENDIENTES PREDIAL', 'PENDIENTE');
+  if(!currentUser){
+    Swal.fire({ icon:'warning', title:'Sesión inválida' });
+    return;
+  }
 
-  // ✅ NUEVO: refresco cada 30s solo en Pendientes
-  startPendientesAutoRefresh_();
+  try{
+    // ✅ Antes de entrar a la vista, validamos si hay filas
+    const data = await apiGet('listSolicitudes', { estado: 'PENDIENTE' });
+    const items = Array.isArray(data) ? data : [];
+
+    if(items.length === 0){
+      // Por si quedó algún refresco prendido
+      stopPendientesAutoRefresh_();
+
+      // ✅ No entrar a la vista, solo alert
+      await showAlDiaAlert_();
+      return;
+    }
+
+    // ✅ Sí hay filas -> entrar y renderizar
+    currentListMode = 'PENDIENTE';
+    document.getElementById('lista-title').textContent = 'PENDIENTES PREDIAL';
+    document.getElementById('lista-filter').value = '';
+    __listCache = items;
+    renderList_(__listCache);
+    showView('view-lista');
+    updateListaAddButtonVisibility_();
+
+    // ✅ Auto-refresh cada 30s solo en Pendientes
+    startPendientesAutoRefresh_();
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
 });
 
 document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
@@ -1970,6 +1998,16 @@ function normalizeText_(s){
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g,'')
     .toUpperCase();
+}
+
+  function showAlDiaAlert_(){
+  return Swal.fire({
+    icon: 'success',
+    title: 'ESTÁS AL DÍA 💪🏻',
+    html: 'Revisa posteriormente para validar nuevas solicitudes 👩🏻‍💻',
+    timer: 3200,
+    showConfirmButton: false
+  });
 }
 
 
