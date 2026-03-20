@@ -559,7 +559,9 @@
         <h2 style="color:var(--primary); margin-bottom:8px;">RESPUESTA SOLICITUD</h2>
 
         <!-- (Cambio solicitado) quitamos el "resumen" (el bloque head) -->
-        <!-- <div id="resp-head" class="narrow" style="background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px;"></div> -->
+        <div id="resp-head"
+     style="margin:10px auto 12px; text-align:center; background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px;">
+</div
 
         <label>Respuesta (opcional)</label>
         <textarea id="respuesta" rows="4" placeholder="Escribe si tienes algo anexo que referir, de lo contrario, solo adjunta los recibos."></textarea>
@@ -2258,6 +2260,21 @@ function openRespuestaView_(){
 
     const v = document.getElementById('vigencia');
   if(v) v.value = '';
+
+       // Mostrar resumen centrado (igual a la tarjeta de PENDIENTES)
+  const rh = document.getElementById('resp-head');
+  if(rh && currentCardSelected){
+    rh.innerHTML = `
+      <div style="font-weight:1000; margin-bottom:6px;">Usuario: <b>${escapeHtml_(currentCardSelected.nombre || '')}</b></div>
+      <div style="display:grid; gap:4px; font-weight:800; color:#222;">
+        <div>Documento / NIT: ${escapeHtml_(currentCardSelected.documento || '')}</div>
+        <div>Residencia: ${escapeHtml_(currentCardSelected.barrio || '')}</div>
+        <div>Código Catastral: ${escapeHtml_(currentCardSelected.codigo || '')}</div>
+        <div>Solicitud: ${escapeHtml_(currentCardSelected.solicitud || '')}</div>
+        <div>Fecha: ${escapeHtml_(currentCardSelected.fecha || '')}</div>
+      </div>
+    `;
+  }
 
   showView('view-respuesta');
 }
