@@ -2063,15 +2063,15 @@ function renderList_(items){
     meta.className = 'sol-meta';
 
     const respondedExtra = (currentListMode === 'ATENDIDA CHAT' && it.respondida && String(it.respondida).trim())
-      ? `<p>RESPONDIDA: ${escapeHtml_(it.respondida)}</p>`
-      : '';
+  ? `<p><span style="color:#16a34a;font-weight:1000;">RESPONDIDA:</span> ${escapeHtml_(it.respondida)}</p>`
+  : '';
 
     meta.innerHTML = `
       <p>Documento / NIT: ${escapeHtml_(it.documento || '')}</p>
       <p>Residencia: ${escapeHtml_(it.barrio || '')}</p>
       <p>Código Catastral: ${escapeHtml_(it.codigo || '')}</p>
       <p>Solicitud: ${escapeHtml_(it.solicitud || '')}</p>
-      <p>Fecha: ${escapeHtml_(it.fecha || '')}</p>
+      <p><span style="color:#dc2626;font-weight:1000;">Fecha:</span> ${escapeHtml_(it.fecha || '')}</p>
       ${respondedExtra}
     `;
 
