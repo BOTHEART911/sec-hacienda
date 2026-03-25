@@ -454,6 +454,30 @@
     </div>
   </div>
 
+  <!-- MODAL: RESPUESTA LIMPIA -->
+<div id="modal-respuesta-limpia" class="hidden"
+  style="position:fixed; inset:0; background:var(--scrim); z-index:10000; display:flex; align-items:center; justify-content:center; padding:16px;">
+  <div class="card narrow" style="margin:0; width:min(560px, 100%);">
+    <h2 style="color:var(--primary); margin-bottom:8px;">RESPUESTA LIMPIA</h2>
+    <p class="muted center" style="margin-top:0; font-weight:800;">
+      Solo si es necesario.
+    </p>
+
+    <label>Respuesta</label>
+    <textarea
+      id="respuesta-limpia"
+      rows="5"
+      required
+      placeholder="Envía esta respuesta solo si el contribuyente no solicito un recibo existente o necesita ser retroalimentado con respecto a tu solicitud."
+    ></textarea>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="btn-enviar-respuesta-limpia" class="btn-primary">Enviar</button>
+      <button id="btn-cerrar-respuesta-limpia" class="danger">Cerrar</button>
+    </div>
+  </div>
+</div>
+
   <div class="container">
     <!-- VISTA INSTALAR -->
     <section id="view-instalar" class="view">
