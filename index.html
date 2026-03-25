@@ -2177,23 +2177,6 @@ function renderList_(items){
     const icons = document.createElement('div');
     icons.className = 'right-icons';}
 
-   // Icono RESPUESTA LIMPIA
-const respLimpiaBtn = document.createElement('button');
-respLimpiaBtn.className = 'icon-btn';
-respLimpiaBtn.type = 'button';
-respLimpiaBtn.title = 'RESPUESTA LIMPIA';
-respLimpiaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1774398142/mensaje_xu3mbq.webp" alt="RESPUESTA LIMPIA">`;
-respLimpiaBtn.addEventListener('click', async ()=>{
-  // al igual que responder-adjuntar, seleccionamos la tarjeta actual
-  currentCardSelected = it;
-
-  // opcional: si quieres restringirlo SOLO en pendientes, descomenta:
-  // if(currentListMode !== 'PENDIENTE'){ return; }
-
-  playSoundOnce(SOUNDS.menu);
-  openRespuestaLimpiaModal_();
-});
-
     // Icono AL DÍA
     const alDiaBtn = document.createElement('button');
     alDiaBtn.className = 'icon-btn';
@@ -2236,10 +2219,26 @@ respLimpiaBtn.addEventListener('click', async ()=>{
       Swal.fire({ icon:'success', title:'Listo', timer:1400, showConfirmButton:false });
     });
 
+    // Icono RESPUESTA LIMPIA
+const respLimpiaBtn = document.createElement('button');
+respLimpiaBtn.className = 'icon-btn';
+respLimpiaBtn.type = 'button';
+respLimpiaBtn.title = 'RESPUESTA LIMPIA';
+respLimpiaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1774398142/mensaje_xu3mbq.webp" alt="RESPUESTA LIMPIA">`;
+respLimpiaBtn.addEventListener('click', async ()=>{
+  // al igual que responder-adjuntar, seleccionamos la tarjeta actual
+  currentCardSelected = it;
+
+  // opcional: si quieres restringirlo SOLO en pendientes, descomenta:
+  // if(currentListMode !== 'PENDIENTE'){ return; }
+
+  playSoundOnce(SOUNDS.menu);
+  openRespuestaLimpiaModal_();
+});
+
     icons.appendChild(respLimpiaBtn);
     icons.appendChild(alDiaBtn);
     icons.appendChild(noBtn);
-
 
     actions.appendChild(btnResp);
     actions.appendChild(icons);
