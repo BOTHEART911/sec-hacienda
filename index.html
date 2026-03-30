@@ -2126,7 +2126,7 @@ async function loadAndRenderList_(estado){
     const str = String(s || '').trim();
     if(!str) return null;
 
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
     if(!m) return null;
 
     const dd = parseInt(m[1],10);
@@ -2156,8 +2156,12 @@ async function loadAndRenderList_(estado){
     // Hora 12h
     let h = d.getHours();
     const min = String(d.getMinutes()).padStart(2,'0');
-    const ampm = (h >= 12) ? 'PM' : 'AM';
-    h = (h % 12) || 12;
+    const ampm = m[7] ? String(m[7]).toUpperCase() : '';
+let HH = m[4] ? parseInt(m[4],10) : 0;
+if(ampm){
+  if(ampm === 'PM' && HH < 12) HH += 12;
+  if(ampm === 'AM' && HH === 12) HH = 0;
+}
 
     return `${diaSemana}, ${diaMes} de ${mes} ${h}:${min} ${ampm}`;
   }
