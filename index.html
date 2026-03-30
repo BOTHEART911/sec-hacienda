@@ -2156,12 +2156,6 @@ async function loadAndRenderList_(estado){
     // Hora 12h
     let h = d.getHours();
     const min = String(d.getMinutes()).padStart(2,'0');
-    const ampm = m[7] ? String(m[7]).toUpperCase() : '';
-let HH = m[4] ? parseInt(m[4],10) : 0;
-if(ampm){
-  if(ampm === 'PM' && HH < 12) HH += 12;
-  if(ampm === 'AM' && HH === 12) HH = 0;
-}
 
     return `${diaSemana}, ${diaMes} de ${mes} ${h}:${min} ${ampm}`;
   }
