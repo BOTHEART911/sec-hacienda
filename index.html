@@ -1239,6 +1239,17 @@ const ALLOW_PENDIENTES = [
   'AMANDA VANESSA TAMAYO BEJARANO'
 ].map(s => normalizeText_(s));
 
+  const ALLOW_ATENDIDAS_CHAT = [
+  'AMANDA VANESSA TAMAYO BEJARANO'
+].map(s => normalizeText_(s));
+
+function canSeeAtendidasChat_(){
+  if(!currentUser) return false;
+  if(currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return ALLOW_ATENDIDAS_CHAT.includes(n);
+}
+
 function canSeeAgregarSolicitud_(){
   if(!currentUser) return false;
   if(currentUser.isSuper) return true;
@@ -1855,10 +1866,10 @@ try{
   if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
 }catch(_){}
 
-// ✅ Solo superusuarios pueden ver ATENDIDAS (CHAT / PRESENCIAL)
+// ✅ Solo superusuarios y algunos usuarios con permiso pueden ver ATENDIDAS (CHAT / PRESENCIAL)
 try{
   const bChat = document.getElementById('btn-atendidas-chat');
-  if(bChat) bChat.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+  if(bChat) bChat.style.display = canSeeAtendidasChat_() ? '' : 'none';
 }catch(_){}
 
 try{
@@ -1953,10 +1964,10 @@ document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
 document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
 
-  if(!currentUser || !currentUser.isSuper){
-    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
-    return;
-  }
+  if(!currentUser || !canSeeAtendidasChat_()){
+  Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
+  return;
+}
 
   currentListMode = 'ATENDIDA CHAT';
   await openListView_('ATENDIDAS CHAT', 'ATENDIDA CHAT');
