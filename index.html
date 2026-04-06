@@ -36,7 +36,7 @@
   --error:         #dc2626;
   --scrim:         rgba(0,0,0,.40);
  
-  --card-bg:       rgba(255,255,255,.88);
+  --card-bg:       rgba(255,255,255,.55);
   --card-border:   rgba(6,64,43,.14);
   --glass-blur:    blur(16px);
  
@@ -68,17 +68,7 @@ html, body {
     center / cover fixed no-repeat;
 }
  
-/* Overlay claro encima del fondo verde */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: linear-gradient(160deg,
-    rgba(236,250,241,.88) 0%,
-    rgba(220,245,232,.82) 50%,
-    rgba(209,240,225,.86) 100%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* Sin overlay — el fondo se ve directo */
  
 /* ── Layout ─────────────────────────────────────────────── */
 .container {
@@ -1729,7 +1719,7 @@ const datasetsWithTotals = (page.datasets || []).map(ds=>{
         responsive: true,
         maintainAspectRatio: false,
         layout: { padding: { top: 6, left: 6, right: 6, bottom: 0 } },
-        plugins: {
+         plugins: {
     title: {
       display: true,
       text: pageTitle,
@@ -1747,12 +1737,14 @@ const datasetsWithTotals = (page.datasets || []).map(ds=>{
     },
     tooltip: { enabled: true },
     datalabels: {
-      color: '#fff',                             // ← blanco sobre barra
+      color: '#0f1f16',                          // ← verde muy oscuro, legible en cualquier barra
       anchor: 'center',
       align: 'center',
       clamp: true,
       font: { weight: '800', size: 16, family: "'IBM Plex Sans', sans-serif" },
-      formatter: (v) => (v && v > 0) ? String(v) : ''
+      formatter: (v) => (v && v > 0) ? String(v) : '',
+      textStrokeColor: 'rgba(255,255,255,.55)',  // ← halo blanco suave detrás del número
+      textStrokeWidth: 3
     }
   },
   scales: {
@@ -1775,7 +1767,7 @@ const datasetsWithTotals = (page.datasets || []).map(ds=>{
       ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
       grid: { color: 'rgba(6,64,43,.08)' }      // ← grilla verde muy suave
     }
-  }     
+  }   
       }
     });
 
