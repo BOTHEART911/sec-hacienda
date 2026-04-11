@@ -1086,6 +1086,45 @@ button:active { transform: translateY(0) scale(.98); }
   color: var(--primary);
   font-weight: 700;
 }
+
+    /* ── Cat-pill con color de categoría ─────────────────────── */
+.cat-pill-colored {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: 20px;
+  border: 2px solid;            /* color se aplica inline */
+  font-weight: 700;
+  font-size: .82rem;
+  cursor: default;
+  transition: .15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.10);
+  white-space: nowrap;
+}
+.cat-pill-colored img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+  border-radius: 6px;
+}
+.cat-pill-colored.clickable { cursor: pointer; }
+.cat-pill-colored.clickable:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+}
+.cat-pill-colored.selected {
+  filter: brightness(.95);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.18);
+}
+
+/* ── Badge jurídico con borde negro ──────────────────────── */
+.etapa-badge-mini {
+  border: 2px solid #111 !important;
+}
     
   </style>
 </head>
@@ -3790,26 +3829,26 @@ const FERIADOS_2026 = new Set([
 ]);
 
 const CAT_ICONS = {
-  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/categoria1_afyfcm.png',
-  'COBRO COACTIVO Y PERSUASIVO':                'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/categoria2_lfvswp.png',
-  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788179/categoria3_ux6uvg.png',
-  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    'https://res.cloudinary.com/dqqeavica/image/upload/v1775788267/categoria4_k0c9dh.png'
+  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775925730/categoria1_dytugz.png',
+  'COBRO COACTIVO Y PERSUASIVO':                'https://res.cloudinary.com/dqqeavica/image/upload/v1775925920/categoria2_hsjnwc.png',
+  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': 'https://res.cloudinary.com/dqqeavica/image/upload/v1775926064/categoria3_zvzmre.png',
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    'https://res.cloudinary.com/dqqeavica/image/upload/v1775926219/categoria4_u9oodc.png'
 };
 
 const SUBCAT_ICONS = {
-  'LIQUIDACIÓN DE IMPUESTOS (FACTURACIÓN)':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.1_sjsexg.png',
-  'EXENCIONES Y BENEFICIOS TRIBUTARIOS':        'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.2_ilhkxz.png',
-  'REVISIONES DE AVALÚO O TARIFA':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.3_umtwhz.png',
-  'DEVOLUCIONES O COMPENSACIONES DE SALDO':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.4_rbbcx7.png',
-  'ETAPA PERSUASIVA (INVITACIÓN AL PAGO)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/subcategoria2.1_ku6ckr.png',
-  'ETAPA COACTIVA (EMBARGOS Y EJECUCIÓN)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/subcategoria2.2_lalan7.png',
-  'FACILIDADES DE PAGO (ACUERDOS)':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775788089/subcategoria2.3_tyrobs.png',
-  'DERECHO DE PETICIÓN DE INFORMACIÓN':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775788177/subcategoria3.1_fwis9a.png',
-  'CERTIFICACIONES Y CONSTANCIAS':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775788176/subcategoria3.2_z7bdmk.png',
-  'QUEJAS, RECLAMOS Y SUGERENCIAS':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775788176/subcategoria3.3_kythjs.png',
-  'RECURSO DE REPOSICIÓN':                      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788266/subcategoria4.1_c1nm1b.png',
-  'RECURSO DE RECONSIDERACIÓN':                 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788269/subcategoria4.2_umhobs.png',
-  'REVOCATORIA DIRECTA':                        'https://res.cloudinary.com/dqqeavica/image/upload/v1775788269/subcategoria4.3_pznqxk.png'
+  'LIQUIDACIÓN DE IMPUESTOS (FACTURACIÓN)':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775925730/subcategoria1.1_obq8j3.png',
+  'EXENCIONES Y BENEFICIOS TRIBUTARIOS':        'https://res.cloudinary.com/dqqeavica/image/upload/v1775925731/subcategoria1.2_fexkst.png',
+  'REVISIONES DE AVALÚO O TARIFA':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775925730/subcategoria1.3_cjc9uw.png',
+  'DEVOLUCIONES O COMPENSACIONES DE SALDO':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775925730/subcategoria1.4_but7fh.png',
+  'ETAPA PERSUASIVA (INVITACIÓN AL PAGO)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775925920/subcategoria2.1_tkss3x.png',
+  'ETAPA COACTIVA (EMBARGOS Y EJECUCIÓN)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775925920/subcategoria2.2_a9ffzt.png',
+  'FACILIDADES DE PAGO (ACUERDOS)':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775925920/subcategroia2.3_iijlxw.png',
+  'DERECHO DE PETICIÓN DE INFORMACIÓN':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775926065/subcategoria3.1_v11uug.png',
+  'CERTIFICACIONES Y CONSTANCIAS':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775926065/subcategoria3.2_zd5p4f.png',
+  'QUEJAS, RECLAMOS Y SUGERENCIAS':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775926065/subcategoria3.3_rv6imv.png',
+  'RECURSO DE REPOSICIÓN':                      'https://res.cloudinary.com/dqqeavica/image/upload/v1775926219/subcategoria4.1_cosola.png',
+  'RECURSO DE RECONSIDERACIÓN':                 'https://res.cloudinary.com/dqqeavica/image/upload/v1775926220/subcategoria4.2_ndos1e.png',
+  'REVOCATORIA DIRECTA':                        'https://res.cloudinary.com/dqqeavica/image/upload/v1775926220/subcategoria4.3_zwehxh.png'
 };
 
 const SUBCAT_POR_CAT = {
@@ -3855,7 +3894,42 @@ const ETAPAS_POR_CAT = {
   ]
 };
 
-const ICONO_JURIDICO   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788266/subcategoria4.1_c1nm1b.png';
+/* ── Colores de borde por categoría / subcategoría ──────── */
+const CAT_COLORS = {
+  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         { border: '#1e40af', bg: '#dbeafe' }, // azul oscuro / azul claro
+  'COBRO COACTIVO Y PERSUASIVO':                { border: '#15803d', bg: '#dcfce7' }, // verde oscuro / verde claro
+  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': { border: '#6d28d9', bg: '#ede9fe' }, // lila oscuro / lila claro
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    { border: '#c2410c', bg: '#ffedd5' }  // naranja oscuro / naranja claro
+};
+
+// Mapa: subcategoría → su categoría padre (para heredar color más claro)
+const SUBCAT_TO_CAT = {
+  'LIQUIDACIÓN DE IMPUESTOS (FACTURACIÓN)':  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)',
+  'EXENCIONES Y BENEFICIOS TRIBUTARIOS':     'GESTIÓN DE IMPUESTOS (FACTURACIÓN)',
+  'REVISIONES DE AVALÚO O TARIFA':           'GESTIÓN DE IMPUESTOS (FACTURACIÓN)',
+  'DEVOLUCIONES O COMPENSACIONES DE SALDO':  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)',
+  'ETAPA PERSUASIVA (INVITACIÓN AL PAGO)':   'COBRO COACTIVO Y PERSUASIVO',
+  'ETAPA COACTIVA (EMBARGOS Y EJECUCIÓN)':   'COBRO COACTIVO Y PERSUASIVO',
+  'FACILIDADES DE PAGO (ACUERDOS)':          'COBRO COACTIVO Y PERSUASIVO',
+  'DERECHO DE PETICIÓN DE INFORMACIÓN':      'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)',
+  'CERTIFICACIONES Y CONSTANCIAS':           'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)',
+  'QUEJAS, RECLAMOS Y SUGERENCIAS':          'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)',
+  'RECURSO DE REPOSICIÓN':                   'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)',
+  'RECURSO DE RECONSIDERACIÓN':              'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)',
+  'REVOCATORIA DIRECTA':                     'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)'
+};
+
+function getCatColor_(catName) {
+  const key = normalizeText_(catName || '');
+  return Object.entries(CAT_COLORS).find(([k]) => normalizeText_(k) === key)?.[1] || null;
+}
+function getSubcatColor_(subcatName) {
+  const catKey = SUBCAT_TO_CAT[subcatName] ||
+    Object.entries(SUBCAT_TO_CAT).find(([k]) => normalizeText_(k) === normalizeText_(subcatName))?.[1];
+  return catKey ? CAT_COLORS[catKey] || null : null;
+}
+
+const ICONO_JURIDICO   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775926546/juridico_oepj4a.png';
 const ICONO_CHINCHETA  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png';
 const ICONO_ELIMINAR   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
 const ICONO_EDITAR     = 'https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp';
@@ -3902,17 +3976,17 @@ function formatFechaLarga_(str) {
 }
 
 function diasHabiles_(fechaIni, fechaFin) {
-  // Ambas dd/mm/yyyy. Retorna días hábiles (puede ser negativo)
+  // Ambas dd/mm/yyyy. Retorna días hábiles INCLUYENDO el día de fechaFin.
   const a = parseDDMMYYYYtoDate_(fechaIni);
   const b = parseDDMMYYYYtoDate_(fechaFin);
   if (!a || !b) return 0;
   let count = 0;
   const cursor = new Date(a);
-  const end = new Date(b);
-  // Determinar dirección
-  const dir = end >= cursor ? 1 : -1;
-  while (dir === 1 ? cursor < end : cursor > end) {
-    const dow = cursor.getDay();
+  const end    = new Date(b);
+  const dir    = end >= cursor ? 1 : -1;
+  // Incluimos fechaFin: avanzamos hasta cursor <= end (en vez de cursor < end)
+  while (dir === 1 ? cursor <= end : cursor >= end) {
+    const dow  = cursor.getDay();
     const dStr = formatDDMMYYYY_(cursor);
     if (dow !== 0 && dow !== 6 && !FERIADOS_2026.has(dStr)) count += dir;
     cursor.setDate(cursor.getDate() + dir);
@@ -4042,27 +4116,33 @@ function renderCatSelector_(containerId, selectId, selectedValue, prefijo) {
   if (!wrap) return;
   wrap.innerHTML = '';
   Object.entries(CAT_ICONS).forEach(([cat, iconUrl]) => {
+    const color   = getCatColor_(cat);
+    const borderC = color ? color.border : '#aaa';
+    const bgC     = color ? color.bg     : '#f9f9f9';
+    const isSelected = normalizeText_(selectedValue) === normalizeText_(cat);
+
     const pill = document.createElement('div');
-    pill.className = 'cat-pill clickable' + (normalizeText_(selectedValue) === normalizeText_(cat) ? ' selected' : '');
+    pill.className = 'cat-pill-colored clickable' + (isSelected ? ' selected' : '');
+    pill.style.borderColor = borderC;
+    pill.style.background  = bgC;
+    pill.style.color       = borderC;
     pill.innerHTML = `<img src="${iconUrl}" alt="${cat}" /><span>${cat}</span>`;
     pill.title = cat;
     pill.addEventListener('click', () => {
-      wrap.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+      wrap.querySelectorAll('.cat-pill-colored').forEach(p => p.classList.remove('selected'));
       pill.classList.add('selected');
       const sel = document.getElementById(selectId);
       if (sel) sel.value = cat;
-      // Actualizar subcategorías
       renderSubcatSelector_(
         prefijo + 'subcat-selector',
         prefijo + 'subcategoria',
         cat, ''
       );
-      // Actualizar etapas si es editar
       if (prefijo === 'edit-') updateEditEtapas_(cat);
     });
     wrap.appendChild(pill);
   });
-  // Sync select oculto
+
   const sel = document.getElementById(selectId);
   if (sel) {
     sel.innerHTML = '<option value="">— Selecciona —</option>';
@@ -4081,22 +4161,33 @@ function renderSubcatSelector_(containerId, selectId, catVal, selectedValue) {
   wrap.innerHTML = '';
   const subcats = SUBCAT_POR_CAT[catVal] || [];
   subcats.forEach(subcat => {
-    const iconUrl = SUBCAT_ICONS[normalizeText_(subcat)] ||
-                    SUBCAT_ICONS[subcat] ||
-                    Object.entries(SUBCAT_ICONS).find(([k]) => normalizeText_(k) === normalizeText_(subcat))?.[1] || '';
+    const iconUrl = getSubcatIcon_(subcat);
+    const color   = getSubcatColor_(subcat);
+    const borderC = color ? color.border : '#aaa';
+    // tono más claro: mezcla bg con un poco más de blanco
+    const bgC     = color ? color.bg     : '#f9f9f9';
+    const isSelected = normalizeText_(selectedValue) === normalizeText_(subcat);
+
     const pill = document.createElement('div');
-    pill.className = 'cat-pill clickable' + (normalizeText_(selectedValue) === normalizeText_(subcat) ? ' selected' : '');
-    pill.innerHTML = iconUrl ? `<img src="${iconUrl}" alt="${subcat}" /><span>${subcat}</span>` : `<span>${subcat}</span>`;
+    pill.className = 'cat-pill-colored clickable' + (isSelected ? ' selected' : '');
+    // borde mismo color pero bg más claro (usamos opacity trick)
+    pill.style.borderColor = borderC;
+    pill.style.background  = bgC;
+    pill.style.color       = borderC;
+    pill.style.opacity     = '0.88'; // tono visualmente más claro que la cat
+    pill.innerHTML = iconUrl
+      ? `<img src="${iconUrl}" alt="${subcat}" /><span>${subcat}</span>`
+      : `<span>${subcat}</span>`;
     pill.title = subcat;
     pill.addEventListener('click', () => {
-      wrap.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+      wrap.querySelectorAll('.cat-pill-colored').forEach(p => p.classList.remove('selected'));
       pill.classList.add('selected');
       const sel = document.getElementById(selectId);
       if (sel) sel.value = subcat;
     });
     wrap.appendChild(pill);
   });
-  // Sync select oculto
+
   const sel = document.getElementById(selectId);
   if (sel) {
     sel.innerHTML = '<option value="">— Opcional —</option>';
@@ -4856,8 +4947,7 @@ document.getElementById('edit-evidencia')?.addEventListener('change', () => {
 
 document.getElementById('btn-edit-asig-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
-  if (currentProcesoSelected) showView('view-ver-asignacion');
-  else showView('view-asignaciones');
+  showView('view-asignaciones');
 });
 
 document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', async () => {
@@ -5114,18 +5204,39 @@ renderProcList_ = function(items) {
     desc.innerHTML = `<img src="${ICONO_CHINCHETA}" alt="📌" /><span>${escapeHtml_(row.descripcion || '')}</span>`;
     card.appendChild(desc);
 
-    // Fila iconos categoría (SOLO IMAGEN)
+        // Fila iconos categoría (CON COLOR)
     const catRow = document.createElement('div');
     catRow.className = 'cat-row';
 
     if (row.categoria && catIcon) {
-      catRow.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.categoria)}"><img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /></div>`;
+      const cColor = getCatColor_(row.categoria);
+      const pill   = document.createElement('div');
+      pill.className = 'cat-pill-colored';
+      pill.title     = row.categoria;
+      pill.style.borderColor = cColor ? cColor.border : '#aaa';
+      pill.style.background  = cColor ? cColor.bg     : '#f9f9f9';
+      pill.style.color       = cColor ? cColor.border : '#333';
+      pill.innerHTML = `<img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /><span>${escapeHtml_(row.categoria)}</span>`;
+      catRow.appendChild(pill);
     }
     if (row.subcategoria && subcatIcon) {
-      catRow.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.subcategoria)}"><img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /></div>`;
+      const sColor = getSubcatColor_(row.subcategoria);
+      const pill   = document.createElement('div');
+      pill.className = 'cat-pill-colored';
+      pill.title     = row.subcategoria;
+      pill.style.borderColor = sColor ? sColor.border : '#aaa';
+      pill.style.background  = sColor ? sColor.bg     : '#f9f9f9';
+      pill.style.color       = sColor ? sColor.border : '#333';
+      pill.style.opacity     = '0.88';
+      pill.innerHTML = `<img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /><span>${escapeHtml_(row.subcategoria)}</span>`;
+      catRow.appendChild(pill);
     }
     if (etapa) {
-      catRow.innerHTML += `<div class="etapa-badge-mini" title="Etapa Jurídica"><img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(etapa)}</span></div>`;
+      const etapaPill = document.createElement('div');
+      etapaPill.className = 'etapa-badge-mini';
+      etapaPill.title = 'Etapa Jurídica: ' + etapa;
+      etapaPill.innerHTML = `<img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(etapa)}</span>`;
+      catRow.appendChild(etapaPill);
     }
     card.appendChild(catRow);
 
@@ -5187,23 +5298,45 @@ abrirVerAsignacion_ = function(row) {
   const subcatIcon = getSubcatIcon_(row.subcategoria);
 
   // Header: solo iconos + estado
+   // Header: pills con color + estado
   const header = document.getElementById('proc-ver-header');
   header.innerHTML = '';
 
   if (row.categoria && catIcon) {
-    header.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.categoria)}"><img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /></div>`;
+    const cColor = getCatColor_(row.categoria);
+    const pill   = document.createElement('div');
+    pill.className = 'cat-pill-colored';
+    pill.title     = row.categoria;
+    pill.style.borderColor = cColor ? cColor.border : '#aaa';
+    pill.style.background  = cColor ? cColor.bg     : '#f9f9f9';
+    pill.style.color       = cColor ? cColor.border : '#333';
+    pill.innerHTML = `<img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /><span>${escapeHtml_(row.categoria)}</span>`;
+    header.appendChild(pill);
   }
   if (row.subcategoria && subcatIcon) {
-    header.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.subcategoria)}"><img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /></div>`;
+    const sColor = getSubcatColor_(row.subcategoria);
+    const pill   = document.createElement('div');
+    pill.className = 'cat-pill-colored';
+    pill.title     = row.subcategoria;
+    pill.style.borderColor = sColor ? sColor.border : '#aaa';
+    pill.style.background  = sColor ? sColor.bg     : '#f9f9f9';
+    pill.style.color       = sColor ? sColor.border : '#333';
+    pill.style.opacity     = '0.88';
+    pill.innerHTML = `<img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /><span>${escapeHtml_(row.subcategoria)}</span>`;
+    header.appendChild(pill);
   }
   if (row.etapa) {
-    header.innerHTML += `<div class="etapa-badge-mini" title="Etapa Jurídica"><img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(row.etapa)}</span></div>`;
+    const etapaPill = document.createElement('div');
+    etapaPill.className = 'etapa-badge-mini';
+    etapaPill.title = 'Etapa Jurídica: ' + row.etapa;
+    etapaPill.innerHTML = `<img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(row.etapa)}</span>`;
+    header.appendChild(etapaPill);
   }
-  header.innerHTML += `
-    <div class="proc-estado-badge ${sem.clase}" style="min-width:140px;">
-      ${escapeHtml_(row.estado || '')}
-      <span class="proc-dias-txt">${sem.texto}</span>
-    </div>`;
+   const estadoBadge = document.createElement('div');
+  estadoBadge.className = `proc-estado-badge ${sem.clase}`;
+  estadoBadge.style.minWidth = '140px';
+  estadoBadge.innerHTML = `${escapeHtml_(row.estado || '')}<span class="proc-dias-txt">${sem.texto}</span>`;
+  header.appendChild(estadoBadge);
 
   // Cuerpo — SIN "Creada" aquí
   const body = document.getElementById('proc-ver-body');
@@ -5383,37 +5516,6 @@ abrirEditarAsignacion_ = function(row) {
       evPreImg.src = '';
     }
   }
-};
-
-/* ── 7. PATCH selectores CAT/SUBCAT en AGREGAR y EDITAR: solo icono ── */
-const __origRenderCatSelector = renderCatSelector_;
-renderCatSelector_ = function(containerId, selectId, selectedValue, prefijo) {
-  __origRenderCatSelector(containerId, selectId, selectedValue, prefijo);
-  // Quitar texto de los pills (dejar solo img)
-  const wrap = document.getElementById(containerId);
-  if (!wrap) return;
-  wrap.querySelectorAll('.cat-pill.clickable span').forEach(span => span.remove());
-  // Aseguramos que sean icon-only visuales pero mantengan clic
-  wrap.querySelectorAll('.cat-pill.clickable').forEach(pill => {
-    pill.style.padding = '4px';
-    pill.style.background = 'transparent';
-    pill.style.border = 'none';
-    pill.style.boxShadow = 'none';
-  });
-};
-
-const __origRenderSubcatSelector = renderSubcatSelector_;
-renderSubcatSelector_ = function(containerId, selectId, catVal, selectedValue) {
-  __origRenderSubcatSelector(containerId, selectId, catVal, selectedValue);
-  const wrap = document.getElementById(containerId);
-  if (!wrap) return;
-  wrap.querySelectorAll('.cat-pill.clickable span').forEach(span => span.remove());
-  wrap.querySelectorAll('.cat-pill.clickable').forEach(pill => {
-    pill.style.padding = '4px';
-    pill.style.background = 'transparent';
-    pill.style.border = 'none';
-    pill.style.boxShadow = 'none';
-  });
 };
   
 </script>
