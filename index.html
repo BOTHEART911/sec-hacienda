@@ -2390,35 +2390,6 @@ async function openEstadisticas_(){
 }
 
   /* ================== MI SEMÁFORO ================== */
-document.getElementById('btn-semaforo')?.addEventListener('click', async () => {
-  playSoundOnce(SOUNDS.back);
-  if (!currentUser) { Swal.fire({ icon: 'warning', title: 'Sesión inválida' }); return; }
-  await abrirAsignaciones_();
-});
-
-async function abrirAsignaciones_() {
-  try {
-    document.getElementById('proc-count').textContent = '0';
-    document.getElementById('proc-filter').value = '';
-    document.getElementById('proc-list').innerHTML = '';
-
-    // Mostrar botón Agregar solo para super usuario
-    const btnAgregar = document.getElementById('btn-agregar-asignacion');
-    if (btnAgregar) btnAgregar.style.display = currentUser?.isSuper ? '' : 'none';
-
-    showView('view-asignaciones');
-
-    const data = await apiGet('listProcesos', {
-      asignado: currentUser?.isSuper ? '' : (currentUser?.nombre || '')
-    });
-    __procCache = Array.isArray(data) ? [...data].reverse() : [];
-    renderProcList_(__procCache);
-  } catch (e) {
-    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
-  }
-}
-
-let __procCache = [];
 
 function renderProcList_(items) {
   const wrap = document.getElementById('proc-list');
