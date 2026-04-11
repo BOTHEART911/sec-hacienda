@@ -849,31 +849,62 @@ button:active { transform: translateY(0) scale(.98); }
 }
 @media (max-width: 600px) { .proc-view-title { font-size: 1.5rem; } }
 
-   /* ── Iconos solo imagen (sin texto) en cat-row ─────────── */
-.cat-pill.icon-only {
-  padding: 3px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  min-width: 0;
+ /* ── cat-pill CON icono grande + texto (todas las vistas) ── */
+.cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(6,64,43,.18);
+  background: rgba(255,255,255,.9);
+  font-weight: 600;
+  font-size: .78rem;
+  color: var(--text-sub);
+  cursor: default;
+  transition: .15s;
 }
-.cat-pill.icon-only img {
-  width: 28px;      /* ← tamaño ajustado según imagen 1 */
-  height: 28px;
+.cat-pill img {
+  width: 40px;
+  height: 40px;
   object-fit: contain;
+  flex-shrink: 0;
   display: block;
 }
-.cat-pill.icon-only:hover {
+.cat-pill.clickable:hover {
+  border-color: var(--primary);
   background: rgba(6,64,43,.06);
-  border-radius: 8px;
+  transform: translateY(-1px);
+}
+.cat-pill.selected {
+  border-color: var(--primary);
+  background: rgba(6,64,43,.10);
+  color: var(--primary);
+}
+/* Quitar la clase icon-only (ya no se usa) */
+.cat-pill.icon-only {
+  padding: 6px 12px 6px 6px;
+  background: rgba(255,255,255,.9);
+  border: 1.5px solid rgba(6,64,43,.18);
+}
+.cat-pill.icon-only img {
+  width: 40px;
+  height: 40px;
 }
 
-/* ── Etapa jurídica: solo icono del mismo tamaño, texto afuera ── */
+/* ── Etapa Jurídica: badge oscuro con icono + "Etapa Jurídica",
+      y el valor {etapa} DEBAJO en texto separado ────────── */
+.etapa-badge-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
 .etapa-badge-mini {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px 3px 3px;
+  padding: 5px 12px 5px 5px;
   border-radius: 20px;
   background: #1e1e2e;
   color: #fff;
@@ -882,12 +913,18 @@ button:active { transform: translateY(0) scale(.98); }
   white-space: nowrap;
 }
 .etapa-badge-mini img {
-  width: 28px;      /* ← mismo tamaño que cat/subcat */
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   flex-shrink: 0;
 }
-
+.etapa-valor {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  padding-left: 6px;
+  white-space: nowrap;
+}
 
 /* ── Modal Picker fechas — estilo imagen 3 ──────────────── */
 .picker-box {
@@ -4198,10 +4235,13 @@ function renderProcList_(items) {
         ${subcatIcon ? `<img src="${subcatIcon}" alt="${escapeHtml_(subcat)}" />` : ''}
         <span>${escapeHtml_(subcat)}</span>
       </div>`;
-        if (etapa) catRow.innerHTML += `
-      <div class="etapa-badge-mini" title="Etapa Jurídica">
-        <img src="${ICONO_JURIDICO}" alt="⚖️" />
-        <span>${escapeHtml_(etapa)}</span>
+    if (etapa) catRow.innerHTML += `
+      <div class="etapa-badge-wrap">
+        <div class="etapa-badge-mini" title="Etapa Jurídica">
+          <img src="${ICONO_JURIDICO}" alt="⚖️" />
+          <span>Etapa Jurídica</span>
+        </div>
+        <span class="etapa-valor">${escapeHtml_(etapa)}</span>
       </div>`;
     card.appendChild(catRow);
 
@@ -4505,11 +4545,14 @@ function abrirVerAsignacion_(row) {
         <span style="font-weight:700;">${escapeHtml_(row.subcategoria)}</span>
       </div>`;
   }
-    if (row.etapa) {
+     if (row.etapa) {
     header.innerHTML += `
-      <div class="etapa-badge-mini" title="Etapa Jurídica">
-        <img src="${ICONO_JURIDICO}" alt="⚖️" />
-        <span>${escapeHtml_(row.etapa)}</span>
+      <div class="etapa-badge-wrap">
+        <div class="etapa-badge-mini" title="Etapa Jurídica">
+          <img src="${ICONO_JURIDICO}" alt="⚖️" />
+          <span>Etapa Jurídica</span>
+        </div>
+        <span class="etapa-valor">${escapeHtml_(row.etapa)}</span>
       </div>`;
   }
   header.innerHTML += `
