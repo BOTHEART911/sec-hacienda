@@ -3930,7 +3930,7 @@ const GRUPOS_SEMAFORO = [
   { asignado:'LUIS GILBERTO MOYA ROMERO',        contacto1:'3208858086', asistente:'NICOL ESTEFANI MADRIGALES GONZALEZ', contacto2:'3212331684' },
   { asignado:'ANDREA KATERINE LAMAR RODRIGUEZ',  contacto1:'3163170769', asistente:'VICTOR MANUEL FANDIÑO GIRALDO',      contacto2:'3203811201' },
   { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3183200977', asistente:'',                                   contacto2:'' },
-  { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3183200977', asistente:'',                                   contacto2:'' }
+  { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3166139232', asistente:'',                                   contacto2:'' }
 ];
 
 const FERIADOS_2026 = new Set([
@@ -4679,9 +4679,9 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
     // Enviar WhatsApp si hay asignado
     if (asignado && contacto1) {
       const msg1 =
-        `Estimado(a) *${asignado}*\n` +
+        `Estimado(a) *${asignado}*\n\n` +
         `Se te ha asignado el oficio *${consecutivo.toUpperCase()}* recibido a través de *${medio}*.\n` +
-        `*Asunto:* ${descripcion}.\n` +
+        `*Asunto:* ${descripcion}.\n\n` +
         `Por favor, entra a la App para iniciarlo asignando subcategoría y etapa jurídica.\n\n` +
         `Cordialmente,\n\n*${coordinador}*`;
       sendProcWA_(contacto1, msg1);
