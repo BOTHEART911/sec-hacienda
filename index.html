@@ -2389,6 +2389,152 @@ async function openEstadisticas_(){
   }
 }
 
+  /* ================== MI SEMÁFORO ================== */
+document.getElementById('btn-semaforo')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  if (!currentUser) { Swal.fire({ icon: 'warning', title: 'Sesión inválida' }); return; }
+  await abrirAsignaciones_();
+});
+
+async function abrirAsignaciones_() {
+  try {
+    document.getElementById('proc-count').textContent = '0';
+    document.getElementById('proc-filter').value = '';
+    document.getElementById('proc-list').innerHTML = '';
+
+    // Mostrar botón Agregar solo para super usuario
+    const btnAgregar = document.getElementById('btn-agregar-asignacion');
+    if (btnAgregar) btnAgregar.style.display = currentUser?.isSuper ? '' : 'none';
+
+    showView('view-asignaciones');
+
+    const data = await apiGet('listProcesos', {
+      asignado: currentUser?.isSuper ? '' : (currentUser?.nombre || '')
+    });
+    __procCache = Array.isArray(data) ? [...data].reverse() : [];
+    renderProcList_(__procCache);
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+}
+
+let __procCache = [];
+
+function renderProcList_(items) {
+  const wrap = document.getElementById('proc-list');
+  const countEl = document.getElementById('proc-count');
+  wrap.innerHTML = '';
+  countEl.textContent = String(items.length);
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="muted center" style="margin-top:20px;">No hay asignaciones.</p>';
+    return;
+  }
+
+  for (const it of items) {
+    const color = getSemaforoColor_(it);
+    const diasTxt = getDiasTxt_(it);
+    const card = document.createElement('div');
+    card.className = `proc-card color-${color}`;
+
+    card.innerHTML = `
+      <div class="proc-head">
+        <div class="proc-head-left">
+          <p class="proc-asignado">${escapeHtml_(it.asignado || '')}</p>
+          <p class="proc-asistente">${escapeHtml_(it.asistente || '')}</p>
+          <p class="proc-descripcion">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png" alt="">
+            ${escapeHtml_(it.descripcion || '')}
+          </p>
+        </div>
+        <div class="proc-head-right">
+          <span class="proc-estado-badge semaforo-${color}">
+            ${escapeHtml_(it.estado || '')}
+            <span class="proc-dias-txt">${diasTxt}</span>
+          </span>
+        </div>
+      </div>
+      <div class="cat-row">
+        ${getCatPill_(it.categoria)}
+        ${getSubcatPill_(it.subcategoria)}
+        ${it.etapa ? `<span class="etapa-badge"><img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788266/subcategoria4.1_c1nm1b.png" style="width:16px;height:16px;" alt=""> ${escapeHtml_(it.etapa)}</span>` : ''}
+      </div>
+      <div class="proc-actions">
+        <div class="proc-icons" id="proc-icons-${it.id_proceso}"></div>
+      </div>
+    `;
+
+    wrap.appendChild(card);
+
+    // Íconos
+    const iconsWrap = card.querySelector(`#proc-icons-${it.id_proceso}`);
+    const estadoFinalizado = normalizeText_(it.estado || '') === 'FINALIZADO';
+
+    if (currentUser?.isSuper) {
+      // Firmar
+      const btnFirmar = makeIconBtn_('https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp', 'Firmar', async () => {
+        const ok = await Swal.fire({ icon: 'info', title: '¿Marcar como PENDIENTE DE EVIDENCIA?', showCancelButton: true, confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar' });
+        if (!ok.isConfirmed) return;
+        await apiPost('updateProceso', { id_proceso: it.id_proceso, estado: 'PENDIENTE DE EVIDENCIA' });
+        await abrirAsignaciones_();
+      });
+      // Eliminar
+      const btnEliminar = makeIconBtn_('https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp', 'Eliminar', async () => {
+        const ok = await Swal.fire({ icon: 'warning', title: '¿Eliminar esta asignación?', showCancelButton: true, confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar' });
+        if (!ok.isConfirmed) return;
+        await apiPost('deleteProceso', { id_proceso: it.id_proceso });
+        await abrirAsignaciones_();
+      });
+      iconsWrap.appendChild(btnFirmar);
+      iconsWrap.appendChild(btnEliminar);
+    }
+
+    // Ver
+    const btnVer = makeIconBtn_('https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png', 'Ver', () => {
+      __procSelected = it;
+      abrirVerAsignacion_(it);
+    });
+    iconsWrap.appendChild(btnVer);
+
+    // Editar (para super: siempre; para asignado: solo si no es FINALIZADO)
+    if (currentUser?.isSuper || !estadoFinalizado) {
+      const btnEditar = makeIconBtn_('https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp', 'Editar', () => {
+        __procSelected = it;
+        abrirEditarAsignacion_(it);
+      });
+      iconsWrap.appendChild(btnEditar);
+    }
+  }
+}
+
+function makeIconBtn_(src, title, onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'proc-icon-btn';
+  btn.title = title;
+  btn.type = 'button';
+  btn.innerHTML = `<img src="${src}" alt="${title}">`;
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+// Filtro
+document.getElementById('proc-filter')?.addEventListener('input', () => {
+  const q = normalizeText_(document.getElementById('proc-filter').value || '');
+  if (!q) { renderProcList_(__procCache); return; }
+  renderProcList_(__procCache.filter(it => normalizeText_(JSON.stringify(it)).includes(q)));
+});
+
+// Regresar
+document.getElementById('btn-asignaciones-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+
+document.getElementById('btn-agregar-asignacion')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  abrirFormAgregarAsignacion_();
+});
+
 /* ✅ Handlers (no duplicar en otra parte) */
 document.getElementById('btn-estadisticas')?.addEventListener('click', async ()=>{
   playSoundOnce(SOUNDS.back);
@@ -2418,6 +2564,7 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
     if(bEst) bEst.style.display = 'none';
   }catch(_){}
 });
+
 
 /* ================== DRIVE ANEXOS (NUEVO) ================== */
 const DRIVE_HIDE_FOR = [
