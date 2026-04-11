@@ -848,6 +848,205 @@ button:active { transform: translateY(0) scale(.98); }
   text-shadow: 0 2px 4px rgba(6,64,43,.10);
 }
 @media (max-width: 600px) { .proc-view-title { font-size: 1.5rem; } }
+
+    /* ── Iconos solo imagen (sin texto) en cat-row ─────────── */
+.cat-pill.icon-only {
+  padding: 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  min-width: 0;
+}
+.cat-pill.icon-only img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+}
+.cat-pill.icon-only:hover {
+  background: rgba(6,64,43,.06);
+  border-radius: 10px;
+}
+
+/* ── Etapa jurídica solo icono + texto al lado ──────────── */
+.etapa-badge-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 20px;
+  background: #1e1e2e;
+  color: #fff;
+  font-weight: 700;
+  font-size: .75rem;
+}
+.etapa-badge-mini img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* ── Modal Picker fechas — estilo imagen 3 ──────────────── */
+.picker-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.22);
+  min-width: 280px;
+  max-width: 95vw;
+}
+.picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.picker-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.picker-grid small {
+  font-weight: 700;
+  font-size: .78rem;
+  text-transform: uppercase;
+  color: var(--primary);
+  letter-spacing: .5px;
+}
+.picker-grid select {
+  border: 1.5px solid rgba(6,64,43,.18);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: .92rem;
+  background: #f8faf9;
+  color: #111;
+  height: 180px;
+  overflow-y: auto;
+}
+.picker-grid select option:checked {
+  background: #06402B;
+  color: #fff;
+}
+.picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+.picker-actions .btn {
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  border: none;
+}
+.picker-actions .btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1.5px solid #d1d5db;
+}
+.picker-actions .btn-cancel:hover { background: #e5e7eb; }
+.picker-actions .btn-ok {
+  background: linear-gradient(135deg,#0a7a46,#06402B);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6,64,43,.28);
+}
+.picker-actions .btn-ok:hover {
+  background: linear-gradient(135deg,#0d9156,#075234);
+}
+
+/* ── Indicador archivo ya cargado en editar ─────────────── */
+.file-already-loaded {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: rgba(2,132,199,.08);
+  border: 1.5px solid rgba(2,132,199,.25);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  text-decoration: none;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.file-already-loaded:hover { background: rgba(2,132,199,.16); }
+.file-already-loaded img { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* ── Preview evidencia ──────────────────────────────────── */
+#edit-evidencia-preview {
+  display: none;
+  margin-top: 8px;
+  text-align: center;
+}
+#edit-evidencia-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(6,64,43,.15);
+}
+
+/* ── Zoom evidencia (lightbox) ──────────────────────────── */
+#proc-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  cursor: zoom-out;
+}
+#proc-lightbox.open { display: flex; }
+#proc-lightbox img {
+  max-width: 98vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.6);
+  cursor: default;
+}
+#proc-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 900;
+  cursor: pointer;
+  background: rgba(0,0,0,.4);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: none;
+  transition: background .15s;
+}
+#proc-lightbox-close:hover { background: rgba(255,0,0,.5); }
+
+/* ── Creación en detalle ────────────────────────────────── */
+.proc-creacion-field {
+  margin-top: 10px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(6,64,43,.08);
+  font-size: .85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.proc-creacion-field span {
+  color: var(--primary);
+  font-weight: 700;
+}
     
   </style>
 </head>
@@ -1530,8 +1729,11 @@ button:active { transform: translateY(0) scale(.98); }
     </select>
 
     <label>Evidencia Respuesta <span class="muted">(imagen, 5MB)</span></label>
-    <input id="edit-evidencia" type="file" accept="image/*" />
-    <div id="edit-evidencia-status" class="proc-file-status"></div>
+<input id="edit-evidencia" type="file" accept="image/*" />
+<div id="edit-evidencia-status" class="proc-file-status"></div>
+<div id="edit-evidencia-preview">
+  <img id="edit-evidencia-preview-img" src="" alt="Preview evidencia" />
+</div>
 
     <label>Estado</label>
     <select id="edit-estado">
@@ -1555,6 +1757,12 @@ button:active { transform: translateY(0) scale(.98); }
 <!-- ============================================================
      MODALES SEMÁFORO
      ============================================================ -->
+
+    <!-- Lightbox evidencia proceso -->
+<div id="proc-lightbox" aria-modal="true" role="dialog" aria-label="Ver imagen">
+  <button id="proc-lightbox-close" aria-label="Cerrar zoom" title="Cerrar">✕</button>
+  <img id="proc-lightbox-img" src="" alt="Evidencia ampliada" onclick="event.stopPropagation()" />
+</div>
 
 <!-- Modal REBOTAR -->
 <div id="modal-rebotar" class="hidden"
@@ -4733,6 +4941,435 @@ if (__origLogoutBtn && !__origLogoutBtn.dataset.semaforoPatch) {
     } catch (_) {}
   });
 }
+
+  /* ============================================================
+   PARCHES DE MEJORA — aplicar al final del <script>
+   ============================================================ */
+
+/* ── 1. LIGHTBOX ─────────────────────────────────────────── */
+(function initLightbox_() {
+  const lb    = document.getElementById('proc-lightbox');
+  const lbImg = document.getElementById('proc-lightbox-img');
+  const lbClose = document.getElementById('proc-lightbox-close');
+  if (!lb || !lbImg) return;
+
+  window.openLightbox_ = function(src) {
+    lbImg.src = src;
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeLightbox_ = function() {
+    lb.classList.remove('open');
+    lbImg.src = '';
+    document.body.style.overflow = '';
+  };
+
+  lb.addEventListener('click', closeLightbox_);
+  lbClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox_(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox_(); });
+})();
+
+/* ── 2. PREVIEW EVIDENCIA en EDITAR ─────────────────────── */
+(function patchEditEvidencia_() {
+  const inp     = document.getElementById('edit-evidencia');
+  const preview = document.getElementById('edit-evidencia-preview');
+  const preImg  = document.getElementById('edit-evidencia-preview-img');
+  if (!inp || !preview || !preImg) return;
+
+  // Reemplazamos el listener existente con uno nuevo
+  const newInp = inp.cloneNode(true);
+  inp.parentNode.replaceChild(newInp, inp);
+
+  newInp.addEventListener('change', () => {
+    const f  = newInp.files?.[0];
+    const st = document.getElementById('edit-evidencia-status');
+    preview.style.display = 'none';
+    preImg.src = '';
+    if (!f) { if (st) st.textContent = ''; return; }
+    if (f.size > 5 * 1024 * 1024) {
+      newInp.value = '';
+      if (st) st.textContent = '';
+      Swal.fire({ icon: 'warning', title: 'Imagen muy pesada', text: 'Máximo 5 MB.' });
+      return;
+    }
+    if (st) st.textContent = `✓ ${f.name}`;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preImg.src = e.target.result;
+      preview.style.display = '';
+    };
+    reader.readAsDataURL(f);
+  });
+})();
+
+/* ── 3. HELPER: formatear fecha creación ────────────────── */
+function formatCreacionLarga_(str) {
+  // "10/04/2026 15:30:00" → "10/04/2026 — Viernes, 10 de abril de 2026"
+  const parte = String(str || '').trim().split(' ')[0]; // solo la parte dd/mm/yyyy
+  const m = parte.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return str || '';
+  const dd = parseInt(m[1], 10), mm2 = parseInt(m[2], 10) - 1, yy = parseInt(m[3], 10);
+  const dt = new Date(yy, mm2, dd);
+  if (isNaN(dt.getTime())) return str || '';
+  const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parte} — ${dias[dt.getDay()]}, ${dd} de ${meses[mm2]} de ${yy}`;
+}
+
+/* ── 4. REEMPLAZAR renderProcList_ (iconos solo imagen) ─── */
+renderProcList_ = function(items) {
+  const wrap    = document.getElementById('proc-list');
+  const countEl = document.getElementById('proc-count');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (countEl) countEl.textContent = String(items.length);
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1;">No hay asignaciones.</p>';
+    return;
+  }
+
+  for (const row of items) {
+    const sem       = calcSemaforo_(row);
+    const catIcon   = getCatIcon_(row.categoria);
+    const subcatIcon= getSubcatIcon_(row.subcategoria);
+    const etapa     = row.etapa || '';
+
+    const card = document.createElement('div');
+    card.className = `proc-card ${sem.cardClass}`;
+
+    // HEAD
+    const head = document.createElement('div');
+    head.className = 'proc-head';
+
+    const headLeft = document.createElement('div');
+    headLeft.className = 'proc-head-left';
+    headLeft.innerHTML = `
+      <p class="proc-asignado">${escapeHtml_(row.asignado || '')}</p>
+      ${row.asistente ? `<p class="proc-asistente">${escapeHtml_(row.asistente)}</p>` : ''}
+    `;
+
+    const headRight = document.createElement('div');
+    headRight.className = 'proc-head-right';
+    headRight.innerHTML = `
+      <div class="proc-estado-badge ${sem.clase}">
+        ${escapeHtml_(row.estado || '')}
+        <span class="proc-dias-txt">${sem.texto}</span>
+      </div>
+    `;
+
+    head.appendChild(headLeft);
+    head.appendChild(headRight);
+    card.appendChild(head);
+
+    // Descripción
+    const desc = document.createElement('div');
+    desc.className = 'proc-descripcion';
+    desc.innerHTML = `<img src="${ICONO_CHINCHETA}" alt="📌" /><span>${escapeHtml_(row.descripcion || '')}</span>`;
+    card.appendChild(desc);
+
+    // Fila iconos categoría (SOLO IMAGEN)
+    const catRow = document.createElement('div');
+    catRow.className = 'cat-row';
+
+    if (row.categoria && catIcon) {
+      catRow.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.categoria)}"><img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /></div>`;
+    }
+    if (row.subcategoria && subcatIcon) {
+      catRow.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.subcategoria)}"><img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /></div>`;
+    }
+    if (etapa) {
+      catRow.innerHTML += `<div class="etapa-badge-mini" title="Etapa Jurídica"><img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(etapa)}</span></div>`;
+    }
+    card.appendChild(catRow);
+
+    // Acciones
+    const actions = document.createElement('div');
+    actions.className = 'proc-actions';
+
+    const consEl = document.createElement('span');
+    consEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--text-muted);';
+    consEl.textContent = row.consecutivo || '';
+    actions.appendChild(consEl);
+
+    const icons = document.createElement('div');
+    icons.className = 'proc-icons';
+
+    if (currentUser?.isSuper) {
+      const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Firmar — marcar PENDIENTE DE EVIDENCIA');
+      btnFirma.addEventListener('click', async () => {
+        const ok = await Swal.fire({ icon:'info', title:'FIRMAR ASIGNACIÓN', html:`Se marcará como <b>PENDIENTE DE EVIDENCIA</b>.<br>¿Confirmar?`, showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Cancelar' });
+        if (!ok.isConfirmed) return;
+        await apiPost('firmarProceso', { id_proceso: row.id_proceso });
+        playSoundOnce(SOUNDS.success);
+        await loadAndRenderProcesos_();
+      });
+      icons.appendChild(btnFirma);
+
+      const btnElim = _mkProcIconBtn_(ICONO_ELIMINAR, 'Eliminar asignación');
+      btnElim.addEventListener('click', async () => {
+        const ok = await Swal.fire({ icon:'warning', title:'¿Eliminar asignación?', html:`<b>${escapeHtml_(row.descripcion || row.id_proceso)}</b><br>Esta acción es irreversible.`, showCancelButton:true, confirmButtonText:'Eliminar', cancelButtonText:'Cancelar' });
+        if (!ok.isConfirmed) return;
+        await apiPost('eliminarProceso', { id_proceso: row.id_proceso });
+        playSoundOnce(SOUNDS.success);
+        await loadAndRenderProcesos_();
+      });
+      icons.appendChild(btnElim);
+    }
+
+    const btnVer = _mkProcIconBtn_(ICONO_VER, 'Ver detalles');
+    btnVer.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirVerAsignacion_(row); });
+    icons.appendChild(btnVer);
+
+    const estadoUpper = String(row.estado || '').toUpperCase();
+    if (currentUser?.isSuper || estadoUpper !== 'FINALIZADO') {
+      const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
+      btnEdit.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirEditarAsignacion_(row); });
+      icons.appendChild(btnEdit);
+    }
+
+    actions.appendChild(icons);
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  }
+};
+
+/* ── 5. REEMPLAZAR abrirVerAsignacion_ ──────────────────── */
+abrirVerAsignacion_ = function(row) {
+  const sem        = calcSemaforo_(row);
+  const catIcon    = getCatIcon_(row.categoria);
+  const subcatIcon = getSubcatIcon_(row.subcategoria);
+
+  // Header: solo iconos + estado
+  const header = document.getElementById('proc-ver-header');
+  header.innerHTML = '';
+
+  if (row.categoria && catIcon) {
+    header.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.categoria)}"><img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" /></div>`;
+  }
+  if (row.subcategoria && subcatIcon) {
+    header.innerHTML += `<div class="cat-pill icon-only" title="${escapeHtml_(row.subcategoria)}"><img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" /></div>`;
+  }
+  if (row.etapa) {
+    header.innerHTML += `<div class="etapa-badge-mini" title="Etapa Jurídica"><img src="${ICONO_JURIDICO}" alt="⚖️" /><span>${escapeHtml_(row.etapa)}</span></div>`;
+  }
+  header.innerHTML += `
+    <div class="proc-estado-badge ${sem.clase}" style="min-width:140px;">
+      ${escapeHtml_(row.estado || '')}
+      <span class="proc-dias-txt">${sem.texto}</span>
+    </div>`;
+
+  // Cuerpo — SIN "Creada" aquí
+  const body = document.getElementById('proc-ver-body');
+  body.innerHTML = '';
+  const addField = (label, value, esHTML) => {
+    if (!value) return;
+    const div = document.createElement('div');
+    div.className = 'proc-detalle-field';
+    div.innerHTML = `<span class="proc-detalle-label">${label}</span>
+      <span class="proc-detalle-value">${esHTML ? value : escapeHtml_(value)}</span>`;
+    body.appendChild(div);
+  };
+  addField('Asunto:',             row.descripcion);
+  addField('Consecutivo:',        row.consecutivo);
+  addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
+  addField('Medio:',              row.medio);
+  addField('Fecha de Respuesta:', formatFechaLarga_(row.respuesta));
+  addField('Bitácora:',           row.bitacora);
+  addField('Fecha de Cierre:',    formatFechaLarga_(row.cierre));
+  addField('Asignado:',           row.asignado);
+  addField('Asistente:',          row.asistente);
+
+  // Creación con formato largo (posición correcta, debajo de campos)
+  const creacionEl = document.getElementById('proc-ver-creacion');
+  if (creacionEl) {
+    creacionEl.className = 'proc-creacion-field';
+    creacionEl.innerHTML = row.creacion
+      ? `<span>Creada:</span> ${escapeHtml_(formatCreacionLarga_(row.creacion))}`
+      : '';
+  }
+
+  // Evidencia — con zoom al hacer clic
+  const evWrap = document.getElementById('proc-ver-evidencia');
+  const evImg  = document.getElementById('proc-ver-evidencia-img');
+  if (row.evidencia) {
+    // Forzar la URL de visualización directa desde Drive
+    let evUrl = String(row.evidencia).trim();
+    // Si es enlace de Drive, convertir a thumbnail/preview
+    const driveMatch = evUrl.match(/\/d\/([A-Za-z0-9_-]{10,})\//);
+    if (driveMatch) {
+      evUrl = `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+    }
+    evImg.src = evUrl;
+    evImg.style.cursor = 'zoom-in';
+    // Reemplazar listener previo
+    const newEvImg = evImg.cloneNode(true);
+    evImg.parentNode.replaceChild(newEvImg, evImg);
+    newEvImg.addEventListener('click', () => {
+      if (typeof openLightbox_ === 'function') openLightbox_(evUrl);
+    });
+    evWrap.style.display = '';
+  } else {
+    evWrap.style.display = 'none';
+  }
+
+  // Archivos recibidos / respuestas
+  const filesWrap = document.getElementById('proc-ver-files');
+  filesWrap.innerHTML = '';
+  const addFileIcon_ = (urls, srcIcon, label) => {
+    const validUrls = urls.filter(Boolean);
+    if (!validUrls.length) return;
+    validUrls.forEach((url, idx) => {
+      if (!url) return;
+      const item = document.createElement('div');
+      item.className = 'proc-file-item';
+      item.title = `${label} ${idx + 1}`;
+      item.innerHTML = `
+        <img src="${srcIcon}" alt="${label}" />
+        ${validUrls.length > 1 ? `<span class="proc-file-counter">${idx + 1}</span>` : ''}
+        <span class="proc-file-label">${label} ${idx + 1}</span>`;
+      item.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+      filesWrap.appendChild(item);
+    });
+  };
+  addFileIcon_([row.recibido1, row.recibido2, row.recibido3],     ICONO_INBOX,  'Recibido');
+  addFileIcon_([row.respuesta1, row.respuesta2, row.respuesta3],  ICONO_OUTBOX, 'Respuesta');
+
+  // Botones acción
+  const actionsWrap = document.getElementById('proc-ver-actions');
+  actionsWrap.innerHTML = '';
+  const estado = String(row.estado || '').toUpperCase();
+
+  if (estado === 'ASIGNADO') {
+    const btnRebotar = document.createElement('button');
+    btnRebotar.type = 'button';
+    btnRebotar.className = 'proc-action-btn proc-btn-rebotar';
+    btnRebotar.innerHTML = `<img src="${ICONO_REBOTAR}" alt="Rebotar" /> REBOTAR`;
+    btnRebotar.addEventListener('click', () => {
+      document.getElementById('proc-rebote').value = '';
+      document.getElementById('modal-rebotar').classList.remove('hidden');
+    });
+    actionsWrap.appendChild(btnRebotar);
+  }
+
+  const puedeEditar = currentUser?.isSuper || estado !== 'FINALIZADO';
+  if (puedeEditar) {
+    const btnEditar = document.createElement('button');
+    btnEditar.type = 'button';
+    btnEditar.className = 'btn-primary proc-action-btn';
+    btnEditar.style.width = 'auto';
+    btnEditar.innerHTML = `<img src="${ICONO_EDITAR}" style="width:20px;height:20px;vertical-align:middle;" alt="Editar" /> EDITAR`;
+    btnEditar.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); abrirEditarAsignacion_(row); });
+    actionsWrap.appendChild(btnEditar);
+  }
+
+  if (estado === 'PENDIENTE DE EVIDENCIA') {
+    const btnFin = document.createElement('button');
+    btnFin.type = 'button';
+    btnFin.className = 'proc-action-btn';
+    btnFin.style.cssText = 'background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:0;width:auto;';
+    btnFin.innerHTML = `<img src="${ICONO_MEMORIA}" class="proc-btn-finalizar" alt="Finalizar" style="width:28px;height:28px;" /> SOLICITAR FINALIZACIÓN`;
+    btnFin.addEventListener('click', async () => {
+      const ok = await Swal.fire({ icon:'success', title:'FINALIZACIÓN DE ASIGNACIÓN', html:`Antes de realizar este proceso corrobora:<br>- Oficio(s) de respuesta firmado y adjuntado<br>- Bitácora Editada correctamente<br>- Etapa Jurídica Actualizada`, showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Cancelar' });
+      if (!ok.isConfirmed) return;
+      const c3  = row.contacto3 || '';
+      const msg = `Estimado *${row.coordinador || ''}*\nSolicito la finalización de mi asignación *${row.descripcion || ''}*\nTodos los soportes están correctamente cargados.\n\nCordialmente,\n\n*${row.asignado || ''}*`;
+      sendProcWA_(c3, msg);
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({ icon:'success', title:'Solicitud enviada', timer:1800, showConfirmButton:false });
+      abrirVerAsignacion_(row);
+    });
+    actionsWrap.appendChild(btnFin);
+  }
+
+  showView('view-ver-asignacion');
+};
+
+/* ── 6. PATCH abrirEditarAsignacion_: indicar archivos ya cargados ── */
+const __origAbrirEditar = abrirEditarAsignacion_;
+abrirEditarAsignacion_ = function(row) {
+  __origAbrirEditar(row);
+
+  // Mapeo: id del input → URL ya guardada en row
+  const fileMap = [
+    { inputId: 'edit-recibido1',  url: row.recibido1  || '', label: 'Recibido 1'  },
+    { inputId: 'edit-recibido2',  url: row.recibido2  || '', label: 'Recibido 2'  },
+    { inputId: 'edit-recibido3',  url: row.recibido3  || '', label: 'Recibido 3'  },
+    { inputId: 'edit-respuesta1', url: row.respuesta1 || '', label: 'Respuesta 1' },
+    { inputId: 'edit-respuesta2', url: row.respuesta2 || '', label: 'Respuesta 2' },
+    { inputId: 'edit-respuesta3', url: row.respuesta3 || '', label: 'Respuesta 3' },
+    { inputId: 'edit-evidencia',  url: row.evidencia  || '', label: 'Evidencia'   }
+  ];
+
+  fileMap.forEach(({ inputId, url, label }) => {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+
+    // Eliminar badge anterior si existía
+    const prevBadge = document.getElementById(inputId + '-loaded');
+    if (prevBadge) prevBadge.remove();
+
+    if (!url) return;
+
+    const badge = document.createElement('a');
+    badge.id        = inputId + '-loaded';
+    badge.href      = url;
+    badge.target    = '_blank';
+    badge.rel       = 'noopener';
+    badge.className = 'file-already-loaded';
+    badge.innerHTML = `<img src="${ICONO_INBOX}" alt="Cargado" />${label}: archivo ya cargado — clic para ver`;
+    inp.parentNode.insertBefore(badge, inp.nextSibling);
+  });
+
+  // Preview evidencia si ya tiene imagen
+  const evPreview = document.getElementById('edit-evidencia-preview');
+  const evPreImg  = document.getElementById('edit-evidencia-preview-img');
+  if (evPreview && evPreImg) {
+    const evUrl = row.evidencia || '';
+    if (evUrl) {
+      let thumb = evUrl;
+      const dm = evUrl.match(/\/d\/([A-Za-z0-9_-]{10,})\//);
+      if (dm) thumb = `https://lh3.googleusercontent.com/d/${dm[1]}`;
+      evPreImg.src = thumb;
+      evPreview.style.display = '';
+    } else {
+      evPreview.style.display = 'none';
+      evPreImg.src = '';
+    }
+  }
+};
+
+/* ── 7. PATCH selectores CAT/SUBCAT en AGREGAR y EDITAR: solo icono ── */
+const __origRenderCatSelector = renderCatSelector_;
+renderCatSelector_ = function(containerId, selectId, selectedValue, prefijo) {
+  __origRenderCatSelector(containerId, selectId, selectedValue, prefijo);
+  // Quitar texto de los pills (dejar solo img)
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.querySelectorAll('.cat-pill.clickable span').forEach(span => span.remove());
+  // Aseguramos que sean icon-only visuales pero mantengan clic
+  wrap.querySelectorAll('.cat-pill.clickable').forEach(pill => {
+    pill.style.padding = '4px';
+    pill.style.background = 'transparent';
+    pill.style.border = 'none';
+    pill.style.boxShadow = 'none';
+  });
+};
+
+const __origRenderSubcatSelector = renderSubcatSelector_;
+renderSubcatSelector_ = function(containerId, selectId, catVal, selectedValue) {
+  __origRenderSubcatSelector(containerId, selectId, catVal, selectedValue);
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.querySelectorAll('.cat-pill.clickable span').forEach(span => span.remove());
+  wrap.querySelectorAll('.cat-pill.clickable').forEach(pill => {
+    pill.style.padding = '4px';
+    pill.style.background = 'transparent';
+    pill.style.border = 'none';
+    pill.style.boxShadow = 'none';
+  });
+};
   
 </script>
 </body>
