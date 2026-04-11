@@ -602,6 +602,253 @@ button:active { transform: translateY(0) scale(.98); }
   backdrop-filter: blur(4px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
 }
+
+    /* ============================================================
+   MI SEMÁFORO 🚦 — Estilos Sistema de Semaforización
+   Agregar al bloque <style> existente de index.html
+   ============================================================ */
+
+/* ── Colores semáforo ─────────────────────────────────────── */
+.semaforo-verde    { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; }
+.semaforo-amarillo { background: linear-gradient(135deg,#d97706,#b45309); color:#fff; }
+.semaforo-naranja  { background: linear-gradient(135deg,#ea580c,#c2410c); color:#fff; }
+.semaforo-rojo     { background: linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; }
+.semaforo-gris     { background: linear-gradient(135deg,#6b7280,#4b5563); color:#fff; }
+
+/* ── Tarjeta proceso ─────────────────────────────────────── */
+.proc-card {
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(6,64,43,.12);
+  border-left: 6px solid #16a34a;
+  border-radius: var(--radius-lg);
+  padding: 16px 14px 12px;
+  box-shadow: 0 4px 18px rgba(6,64,43,.10);
+  display: flex; flex-direction: column; gap: 10px;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.proc-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(6,64,43,.16);
+}
+.proc-card.color-amarillo { border-left-color: #d97706; }
+.proc-card.color-naranja  { border-left-color: #ea580c; }
+.proc-card.color-rojo     { border-left-color: #dc2626; }
+.proc-card.color-gris     { border-left-color: #6b7280; opacity: .88; }
+
+/* ── Cabecera tarjeta ────────────────────────────────────── */
+.proc-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 10px; flex-wrap: wrap;
+}
+.proc-head-left  { flex: 1 1 0; min-width: 0; }
+.proc-head-right { flex: 0 0 auto; text-align: right; }
+
+.proc-asignado {
+  font-family: 'Sora', sans-serif; font-weight: 800;
+  font-size: 1.02rem; color: var(--primary); margin: 0;
+  overflow-wrap: anywhere;
+}
+.proc-asistente {
+  font-size: .82rem; color: var(--text-muted); font-weight: 600; margin: 2px 0 0;
+}
+
+.proc-descripcion {
+  font-size: .88rem; font-weight: 700; color: var(--text-sub);
+  margin: 2px 0 0; display: flex; align-items: flex-start; gap: 6px;
+}
+.proc-descripcion img { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+
+/* ── Estado badge semáforo ───────────────────────────────── */
+.proc-estado-badge {
+  display: inline-flex; flex-direction: column;
+  align-items: center; gap: 2px;
+  padding: 6px 14px; border-radius: var(--radius-xl);
+  font-family: 'Sora', sans-serif; font-weight: 800;
+  font-size: .78rem; letter-spacing: .3px; white-space: nowrap;
+  min-width: 110px; text-align: center;
+}
+.proc-dias-txt {
+  font-size: .72rem; font-weight: 700; opacity: .92; margin-top: 1px;
+}
+
+/* ── Iconos categoría (tipo pill horizontal) ─────────────── */
+.cat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+
+.cat-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 20px;
+  border: 1.5px solid rgba(6,64,43,.18);
+  background: rgba(255,255,255,.9);
+  font-weight: 600; font-size: .78rem;
+  color: var(--text-sub); cursor: default;
+  transition: .15s;
+}
+.cat-pill img { width: 26px; height: 26px; object-fit: contain; }
+.cat-pill.clickable:hover {
+  border-color: var(--primary); background: rgba(6,64,43,.06);
+  transform: translateY(-1px);
+}
+.cat-pill.selected {
+  border-color: var(--primary); background: rgba(6,64,43,.10);
+  color: var(--primary);
+}
+
+/* Selector de categoría con iconos (en formularios) */
+.cat-selector { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.cat-selector .cat-pill { cursor: pointer; }
+
+/* ── Etapa Jurídica badge ─────────────────────────────────── */
+.etapa-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px;
+  background: #1e1e2e; color: #fff;
+  font-weight: 700; font-size: .75rem;
+}
+.etapa-badge img { width: 18px; height: 18px; }
+
+/* ── Acciones iconos tarjeta ─────────────────────────────── */
+.proc-actions {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 8px;
+  flex-wrap: wrap; margin-top: 4px;
+}
+.proc-icons { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+.proc-icon-btn {
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 1.5px solid rgba(6,64,43,.15);
+  background: rgba(255,255,255,.92);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .15s; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(6,64,43,.08);
+}
+.proc-icon-btn:hover {
+  background: #fff; border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6,64,43,.14);
+}
+.proc-icon-btn img { width: 24px; height: 24px; object-fit: contain; }
+
+/* ── Grid desktop ─────────────────────────────────────────── */
+@media (min-width: 900px) {
+  #proc-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
+/* ── Vista detalle asignación ─────────────────────────────── */
+.proc-detalle-header {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.proc-detalle-field {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid rgba(6,64,43,.08);
+  font-size: .92rem;
+}
+.proc-detalle-field:last-child { border-bottom: none; }
+.proc-detalle-label {
+  font-weight: 700; color: var(--primary);
+  min-width: 150px; flex-shrink: 0; font-size: .85rem;
+}
+.proc-detalle-value { color: var(--text-main); font-weight: 500; }
+
+/* Evidencia imagen */
+.proc-evidencia-wrap {
+  margin: 12px 0; text-align: center;
+}
+.proc-evidencia-img {
+  max-width: 100%; max-height: 260px; object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(6,64,43,.15);
+  cursor: pointer; transition: transform .15s;
+}
+.proc-evidencia-img:hover { transform: scale(1.02); }
+
+/* Iconos archivos recibidos/respuesta */
+.proc-files-row {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  align-items: center; justify-content: center;
+  margin: 10px 0;
+}
+.proc-file-item {
+  position: relative; display: inline-flex;
+  flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer;
+}
+.proc-file-item img { width: 52px; height: 52px; object-fit: contain; transition: .15s; }
+.proc-file-item:hover img { transform: scale(1.08); }
+.proc-file-counter {
+  position: absolute; bottom: 14px; right: -4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  font-size: .65rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff;
+}
+.proc-file-label {
+  font-size: .7rem; font-weight: 700; color: var(--text-muted);
+}
+
+/* ── Botones de acción vista detalle ─────────────────────── */
+.proc-action-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: var(--radius-md);
+  font-weight: 700; font-size: .85rem;
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: .18s;
+}
+.proc-btn-rebotar {
+  background: rgba(220,38,38,.08);
+  border-color: rgba(220,38,38,.30); color: #b91c1c;
+}
+.proc-btn-rebotar:hover {
+  background: rgba(220,38,38,.15);
+  border-color: rgba(220,38,38,.50);
+}
+.proc-btn-rebotar img { width: 22px; height: 22px; }
+.proc-btn-finalizar img { width: 28px; height: 28px; }
+
+/* ── Picker modal (para procesos) ────────────────────────── */
+.proc-picker-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 10001;
+}
+.proc-picker-modal.open { display: flex; }
+
+/* ── Resumen dinámico previo a guardar ───────────────────── */
+.proc-resumen-item {
+  display: flex; gap: 8px; padding: 4px 0;
+  border-bottom: 1px solid rgba(6,64,43,.08);
+  font-size: .88rem;
+}
+.proc-resumen-item b { color: var(--primary); min-width: 140px; }
+
+/* ── Formulario: campo file con preview ──────────────────── */
+.proc-file-wrap { margin-top: 4px; }
+.proc-file-status {
+  margin-top: 4px; font-size: .82rem;
+  font-weight: 600; color: var(--ok);
+}
+
+/* ── Asignaciones título grande ─────────────────────────── */
+.proc-view-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900; font-size: 2rem;
+  color: var(--primary); text-align: center;
+  margin: 0 0 16px; letter-spacing: -.5px;
+  text-shadow: 0 2px 4px rgba(6,64,43,.10);
+}
+@media (max-width: 600px) { .proc-view-title { font-size: 1.5rem; } }
+    
   </style>
 </head>
 <body>
@@ -702,6 +949,14 @@ button:active { transform: translateY(0) scale(.98); }
         <div class="btn-row" style="margin-top:10px;">
           <button id="btn-drive-anexos" class="btn-primary">DRIVE ANEXOS</button>
         </div>
+
+        <div class="btn-row" style="margin-top:10px;">
+  <button id="btn-semaforo" class="btn-primary"
+    style="background:linear-gradient(135deg,#dc2626 0%,#ea580c 40%,#d97706 70%,#16a34a 100%);
+           display:none; font-size:1rem; letter-spacing:.5px;">
+    MI SEMÁFORO 🚦
+  </button>
+</div>
         
           <div class="btn-row" style="margin-top:10px;">
         <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS</button>
@@ -1024,6 +1279,327 @@ button:active { transform: translateY(0) scale(.98); }
       <span id="dotPres" class="estad-dot"></span>
       PRESENCIAL: <span id="totPres">0</span>
     </span>
+  </div>
+</div>
+
+    <!-- ============================================================
+     MI SEMÁFORO — NUEVAS VISTAS
+     Agregar antes del cierre </div> del .container en index.html
+     ============================================================ -->
+
+<!-- VISTA ASIGNACIONES -->
+<section id="view-asignaciones" class="view">
+  <div class="card" style="max-width:1100px;">
+
+    <h2 class="proc-view-title">ASIGNACIONES</h2>
+
+    <div class="count-row" style="margin-bottom:12px;">
+      <span class="count-pill" id="proc-count-pill">TOTAL: <span id="proc-count">0</span></span>
+      <input id="proc-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
+    </div>
+
+    <div class="btn-row" style="margin-bottom:14px;">
+      <button id="btn-agregar-asignacion" class="btn-primary"
+        style="background:linear-gradient(135deg,#06b6d4,#0284c7);display:none;">
+        AGREGAR ASIGNACIÓN
+      </button>
+      <button id="btn-asignaciones-back" class="danger">REGRESAR</button>
+    </div>
+
+    <div id="proc-list" class="sol-list"></div>
+  </div>
+</section>
+
+<!-- VISTA AGREGAR ASIGNACIÓN -->
+<section id="view-agregar-asignacion" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary);">AGREGAR ASIGNACIÓN</h2>
+
+    <!-- Fecha de Recibido -->
+    <label>Fecha de Recibido</label>
+    <input id="proc-recibido" type="text" placeholder="dd/mm/2026" readonly
+      onclick="abrirProcPicker('recibido')" required
+      style="cursor:pointer;" />
+
+    <!-- Consecutivo -->
+    <label>Consecutivo</label>
+    <input id="proc-consecutivo" type="text" placeholder="Ingresa Consecutivo" required />
+
+    <!-- Asunto -->
+    <label>Asunto</label>
+    <textarea id="proc-descripcion" rows="2"
+      placeholder="Relaciona brevemente el asunto" required></textarea>
+
+    <!-- Fecha Respuesta oportuna -->
+    <label>Fecha de Respuesta oportuna</label>
+    <p class="muted" style="margin:0 0 6px;font-size:.8rem;">
+      Selecciona al menos 3 días hábiles antes del vencimiento
+    </p>
+    <input id="proc-respuesta" type="text" placeholder="dd/mm/2026" readonly
+      onclick="abrirProcPicker('respuesta')" required
+      style="cursor:pointer;" />
+
+    <!-- Medio -->
+    <label>Medio</label>
+    <select id="proc-medio" required>
+      <option value="" disabled selected>Selecciona el Medio</option>
+      <option value="CORRESPONDENCIA">CORRESPONDENCIA</option>
+      <option value="CORREO">CORREO</option>
+    </select>
+
+    <!-- Categoría (con iconos dinámicos) -->
+    <label>Categoría</label>
+    <div id="proc-cat-selector" class="cat-selector"></div>
+    <select id="proc-categoria" style="display:none;" required></select>
+
+    <!-- Subcategoría -->
+    <label>Subcategoría</label>
+    <div id="proc-subcat-selector" class="cat-selector"></div>
+    <select id="proc-subcategoria" style="display:none;"></select>
+
+    <!-- Asignado -->
+    <label>Asignado <span class="muted">(opcional)</span></label>
+    <select id="proc-asignado">
+      <option value="">— Sin asignar —</option>
+      <option value="LEESLIE JULIET GOMEZ QUINTERO">LEESLIE JULIET GOMEZ QUINTERO</option>
+      <option value="LUIS GILBERTO MOYA ROMERO">LUIS GILBERTO MOYA ROMERO</option>
+      <option value="ANDREA KATERINE LAMAR RODRIGUEZ">ANDREA KATERINE LAMAR RODRIGUEZ</option>
+      <option value="LUIS GABRIEL RAMIREZ RAMIREZ">LUIS GABRIEL RAMIREZ RAMIREZ</option>
+      <option value="DIEGO FERNANDO GARCIA">DIEGO FERNANDO GARCIA</option>
+    </select>
+    <input id="proc-contacto1" type="hidden" />
+
+    <!-- Asistente (automático) -->
+    <label>Asistente</label>
+    <input id="proc-asistente" type="text" readonly
+      placeholder="Se asigna automáticamente" style="background:rgba(6,64,43,.04);" />
+    <input id="proc-contacto2" type="hidden" />
+
+    <!-- Ocultos -->
+    <input id="proc-coordinador" type="hidden" />
+    <input id="proc-contacto3"   type="hidden" />
+
+    <!-- Documentos Recibidos -->
+    <label>Documento Recibido 1 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="proc-recibido1" type="file" accept="application/pdf" />
+    <div id="proc-recibido1-status" class="proc-file-status"></div>
+
+    <label>Documento Recibido 2 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="proc-recibido2" type="file" accept="application/pdf" />
+    <div id="proc-recibido2-status" class="proc-file-status"></div>
+
+    <label>Documento Recibido 3 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="proc-recibido3" type="file" accept="application/pdf" />
+    <div id="proc-recibido3-status" class="proc-file-status"></div>
+
+    <div class="btn-row" style="margin-top:16px;">
+      <button id="btn-proc-add-guardar" class="btn-primary">Guardar</button>
+      <button id="btn-proc-add-back" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
+
+<!-- VISTA VER DETALLES DE ASIGNACIÓN -->
+<section id="view-ver-asignacion" class="view">
+  <div class="card" style="max-width:860px;">
+
+    <h2 style="color:var(--primary); margin-bottom:8px;">DETALLE DE TU ASIGNACIÓN</h2>
+
+    <!-- Header: categoría + subcategoría + estado -->
+    <div id="proc-ver-header" class="proc-detalle-header"></div>
+
+    <!-- Cuerpo campos -->
+    <div id="proc-ver-body" style="margin-top:10px;"></div>
+
+    <!-- Evidencia -->
+    <div id="proc-ver-evidencia" class="proc-evidencia-wrap" style="display:none;">
+      <p style="font-weight:800;text-align:center;color:var(--primary);margin-bottom:8px;">Evidencia</p>
+      <img id="proc-ver-evidencia-img" class="proc-evidencia-img" alt="Evidencia" />
+    </div>
+
+    <!-- Archivos recibidos y respuestas -->
+    <div id="proc-ver-files" class="proc-files-row" style="margin-top:14px;"></div>
+
+    <!-- Creada -->
+    <div id="proc-ver-creacion" style="margin-top:10px;font-size:.82rem;color:var(--text-muted);text-align:left;"></div>
+
+    <!-- Botones de acción -->
+    <div class="btn-row" id="proc-ver-actions" style="margin-top:16px; flex-wrap:wrap; gap:10px;">
+      <!-- Se renderizan dinámicamente -->
+    </div>
+
+    <div class="btn-row" style="margin-top:10px;">
+      <button id="btn-ver-asignacion-back" class="danger">REGRESAR</button>
+    </div>
+  </div>
+</section>
+
+<!-- VISTA EDITAR ASIGNACIÓN -->
+<section id="view-editar-asignacion" class="view">
+  <div class="card narrow">
+    <h2 style="color:var(--primary);">EDICIÓN DE ASIGNACIÓN</h2>
+    <div id="edit-badge-row" style="text-align:center;margin-bottom:10px;"></div>
+
+    <!-- Solo super usuario -->
+    <div id="edit-super-fields">
+      <label>Fecha de Recibido</label>
+      <input id="edit-recibido" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirProcPicker('edit-recibido')" style="cursor:pointer;" />
+
+      <label>Consecutivo</label>
+      <input id="edit-consecutivo" type="text" placeholder="Ingresa Consecutivo" />
+
+      <label>Asunto</label>
+      <textarea id="edit-descripcion" rows="2" placeholder="Relaciona brevemente el asunto"></textarea>
+
+      <label>Fecha de Respuesta oportuna</label>
+      <input id="edit-respuesta" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirProcPicker('edit-respuesta')" style="cursor:pointer;" />
+
+      <label>Medio</label>
+      <select id="edit-medio">
+        <option value="">— Sin cambio —</option>
+        <option value="CORRESPONDENCIA">CORRESPONDENCIA</option>
+        <option value="CORREO">CORREO</option>
+      </select>
+
+      <label>Asignado</label>
+      <select id="edit-asignado">
+        <option value="">— Sin asignar —</option>
+        <option value="LEESLIE JULIET GOMEZ QUINTERO">LEESLIE JULIET GOMEZ QUINTERO</option>
+        <option value="LUIS GILBERTO MOYA ROMERO">LUIS GILBERTO MOYA ROMERO</option>
+        <option value="ANDREA KATERINE LAMAR RODRIGUEZ">ANDREA KATERINE LAMAR RODRIGUEZ</option>
+        <option value="LUIS GABRIEL RAMIREZ RAMIREZ">LUIS GABRIEL RAMIREZ RAMIREZ</option>
+        <option value="DIEGO FERNANDO GARCIA">DIEGO FERNANDO GARCIA</option>
+      </select>
+      <input id="edit-contacto1" type="hidden" />
+    </div>
+
+    <!-- Ambos roles -->
+    <label>Categoría</label>
+    <div id="edit-cat-selector" class="cat-selector"></div>
+    <select id="edit-categoria" style="display:none;"></select>
+
+    <label>Subcategoría</label>
+    <div id="edit-subcat-selector" class="cat-selector"></div>
+    <select id="edit-subcategoria" style="display:none;"></select>
+
+    <label>Asistente</label>
+    <input id="edit-asistente" type="text" readonly
+      placeholder="Se asigna automáticamente" style="background:rgba(6,64,43,.04);" />
+    <input id="edit-contacto2"   type="hidden" />
+    <input id="edit-coordinador" type="hidden" />
+    <input id="edit-contacto3"   type="hidden" />
+
+    <!-- Solo super usuario: recibidos -->
+    <div id="edit-recibidos-super">
+      <label>Documento Recibido 1 <span class="muted">(opcional, PDF 10MB)</span></label>
+      <input id="edit-recibido1" type="file" accept="application/pdf" />
+      <div id="edit-recibido1-status" class="proc-file-status"></div>
+
+      <label>Documento Recibido 2 <span class="muted">(opcional, PDF 10MB)</span></label>
+      <input id="edit-recibido2" type="file" accept="application/pdf" />
+      <div id="edit-recibido2-status" class="proc-file-status"></div>
+
+      <label>Documento Recibido 3 <span class="muted">(opcional, PDF 10MB)</span></label>
+      <input id="edit-recibido3" type="file" accept="application/pdf" />
+      <div id="edit-recibido3-status" class="proc-file-status"></div>
+    </div>
+
+    <!-- Ambos roles: respuestas -->
+    <label>Documento Respuesta 1 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="edit-respuesta1" type="file" accept="application/pdf" />
+    <div id="edit-respuesta1-status" class="proc-file-status"></div>
+
+    <label>Documento Respuesta 2 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="edit-respuesta2" type="file" accept="application/pdf" />
+    <div id="edit-respuesta2-status" class="proc-file-status"></div>
+
+    <label>Documento Respuesta 3 <span class="muted">(opcional, PDF 10MB)</span></label>
+    <input id="edit-respuesta3" type="file" accept="application/pdf" />
+    <div id="edit-respuesta3-status" class="proc-file-status"></div>
+
+    <label>Bitácora</label>
+    <textarea id="edit-bitacora" rows="5"
+      placeholder="Realiza tus bitácoras con fechas"></textarea>
+
+    <label>Etapa Jurídica</label>
+    <select id="edit-etapa">
+      <option value="">— Selecciona —</option>
+    </select>
+
+    <label>Evidencia Respuesta <span class="muted">(imagen, 5MB)</span></label>
+    <input id="edit-evidencia" type="file" accept="image/*" />
+    <div id="edit-evidencia-status" class="proc-file-status"></div>
+
+    <label>Estado</label>
+    <select id="edit-estado">
+      <option value="">— Selecciona —</option>
+    </select>
+
+    <!-- Solo super: fecha cierre -->
+    <div id="edit-cierre-super">
+      <label>Fecha de Cierre <span class="muted">(opcional)</span></label>
+      <input id="edit-cierre" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirProcPicker('edit-cierre')" style="cursor:pointer;" />
+    </div>
+
+    <div class="btn-row" style="margin-top:16px;">
+      <button id="btn-edit-asig-guardar" class="btn-primary">Guardar</button>
+      <button id="btn-edit-asig-back" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     MODALES SEMÁFORO
+     ============================================================ -->
+
+<!-- Modal REBOTAR -->
+<div id="modal-rebotar" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card narrow" style="margin:0;width:min(560px,100%);">
+    <h2 style="color:var(--primary);">REBOTAR ASIGNACIÓN</h2>
+    <p class="helper" style="margin-top:0;">Justifica por qué esta asignación no es de tu competencia.</p>
+    <label>Justificación Jurídica</label>
+    <textarea id="proc-rebote" rows="5"
+      placeholder="Redacta la razón por la cual esta asignación no es de tu competencia."></textarea>
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="btn-rebote-guardar" class="btn-primary">Guardar</button>
+      <button id="btn-rebote-regresar" class="danger">Regresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Picker Fecha (para procesos) -->
+<div id="proc-fecha-modal" class="proc-picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px;font-family:'Sora',sans-serif;color:var(--primary);">
+      Selecciona la fecha
+    </h3>
+    <div class="picker-grid">
+      <div>
+        <small>Día</small>
+        <select id="proc-picker-dia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="proc-picker-mes" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="proc-picker-anio" size="3" disabled>
+          <option selected>2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="picker-actions">
+      <button type="button" class="btn btn-cancel"
+        onclick="cancelarProcPicker()">Cancelar</button>
+      <button type="button" class="btn btn-ok"
+        onclick="confirmarProcPicker()">Ok</button>
+    </div>
   </div>
 </div>
     
@@ -2803,6 +3379,1218 @@ document.getElementById('btn-drive-guardar')?.addEventListener('click', async ()
     Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
   }
 });
+
+  /* ============================================================
+   MI SEMÁFORO 🚦 — Lógica JavaScript
+   Agregar al final del bloque <script> de index.html
+   ============================================================ */
+
+/* ── Constantes ─────────────────────────────────────────── */
+const GRUPOS_SEMAFORO = [
+  { asignado:'LEESLIE JULIET GOMEZ QUINTERO',   contacto1:'3183200977', asistente:'MARIA NIDIA MENESES MARTINEZ',       contacto2:'3015786913' },
+  { asignado:'LUIS GILBERTO MOYA ROMERO',        contacto1:'3208858086', asistente:'NICOL ESTEFANI MADRIGALES GONZALEZ', contacto2:'3212331684' },
+  { asignado:'ANDREA KATERINE LAMAR RODRIGUEZ',  contacto1:'3163170769', asistente:'VICTOR MANUEL FANDIÑO GIRALDO',      contacto2:'3203811201' },
+  { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3183200977', asistente:'',                                   contacto2:'' },
+  { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3183200977', asistente:'',                                   contacto2:'' }
+];
+
+const FERIADOS_2026 = new Set([
+  '23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026',
+  '15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026',
+  '02/11/2026','16/11/2026','08/12/2026','25/12/2026'
+]);
+
+const CAT_ICONS = {
+  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/categoria1_afyfcm.png',
+  'COBRO COACTIVO Y PERSUASIVO':                'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/categoria2_lfvswp.png',
+  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788179/categoria3_ux6uvg.png',
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    'https://res.cloudinary.com/dqqeavica/image/upload/v1775788267/categoria4_k0c9dh.png'
+};
+
+const SUBCAT_ICONS = {
+  'LIQUIDACIÓN DE IMPUESTOS (FACTURACIÓN)':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.1_sjsexg.png',
+  'EXENCIONES Y BENEFICIOS TRIBUTARIOS':        'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.2_ilhkxz.png',
+  'REVISIONES DE AVALÚO O TARIFA':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.3_umtwhz.png',
+  'DEVOLUCIONES O COMPENSACIONES DE SALDO':     'https://res.cloudinary.com/dqqeavica/image/upload/v1775787874/subcategoria1.4_rbbcx7.png',
+  'ETAPA PERSUASIVA (INVITACIÓN AL PAGO)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/subcategoria2.1_ku6ckr.png',
+  'ETAPA COACTIVA (EMBARGOS Y EJECUCIÓN)':      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788090/subcategoria2.2_lalan7.png',
+  'FACILIDADES DE PAGO (ACUERDOS)':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775788089/subcategoria2.3_tyrobs.png',
+  'DERECHO DE PETICIÓN DE INFORMACIÓN':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775788177/subcategoria3.1_fwis9a.png',
+  'CERTIFICACIONES Y CONSTANCIAS':              'https://res.cloudinary.com/dqqeavica/image/upload/v1775788176/subcategoria3.2_z7bdmk.png',
+  'QUEJAS, RECLAMOS Y SUGERENCIAS':             'https://res.cloudinary.com/dqqeavica/image/upload/v1775788176/subcategoria3.3_kythjs.png',
+  'RECURSO DE REPOSICIÓN':                      'https://res.cloudinary.com/dqqeavica/image/upload/v1775788266/subcategoria4.1_c1nm1b.png',
+  'RECURSO DE RECONSIDERACIÓN':                 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788269/subcategoria4.2_umhobs.png',
+  'REVOCATORIA DIRECTA':                        'https://res.cloudinary.com/dqqeavica/image/upload/v1775788269/subcategoria4.3_pznqxk.png'
+};
+
+const SUBCAT_POR_CAT = {
+  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)': [
+    'LIQUIDACIÓN DE IMPUESTOS (FACTURACIÓN)',
+    'EXENCIONES Y BENEFICIOS TRIBUTARIOS',
+    'REVISIONES DE AVALÚO O TARIFA',
+    'DEVOLUCIONES O COMPENSACIONES DE SALDO'
+  ],
+  'COBRO COACTIVO Y PERSUASIVO': [
+    'ETAPA PERSUASIVA (INVITACIÓN AL PAGO)',
+    'ETAPA COACTIVA (EMBARGOS Y EJECUCIÓN)',
+    'FACILIDADES DE PAGO (ACUERDOS)'
+  ],
+  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': [
+    'DERECHO DE PETICIÓN DE INFORMACIÓN',
+    'CERTIFICACIONES Y CONSTANCIAS',
+    'QUEJAS, RECLAMOS Y SUGERENCIAS'
+  ],
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
+    'RECURSO DE REPOSICIÓN',
+    'RECURSO DE RECONSIDERACIÓN',
+    'REVOCATORIA DIRECTA'
+  ]
+};
+
+const ETAPAS_POR_CAT = {
+  'GESTIÓN DE IMPUESTOS (FACTURACIÓN)': [
+    'Recepción y Análisis','Requerimiento de Información',
+    'Proyección de Acto Administrativo','Notificación','Firmeza'
+  ],
+  'COBRO COACTIVO Y PERSUASIVO': [
+    'Verificación de Título Ejecutivo','Mandamiento de Pago',
+    'Investigaciones de Bienes / Medidas Cautelares',
+    'Resolución de Excepciones','Terminación y Archivo'
+  ],
+  'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': [
+    'En Trámite / Reparto Interno','Solicitud de Concepto Técnico',
+    'Respuesta Proyectada','Respuesta Enviada / Finalizado'
+  ],
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
+    'Auto Admisorio','Práctica de Pruebas','Fallo de Segunda Instancia'
+  ]
+};
+
+const ICONO_JURIDICO   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788266/subcategoria4.1_c1nm1b.png';
+const ICONO_CHINCHETA  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png';
+const ICONO_ELIMINAR   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp';
+const ICONO_EDITAR     = 'https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp';
+const ICONO_VER        = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png';
+const ICONO_FIRMA      = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp';
+const ICONO_REBOTAR    = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775844088/devolver_zhe62l.webp';
+const ICONO_INBOX      = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775841196/inbox_nvanat.webp';
+const ICONO_OUTBOX     = 'https://res.cloudinary.com/dqqeavica/image/upload/v1775841196/outbox_tnns1w.webp';
+const ICONO_MEMORIA    = 'https://res.cloudinary.com/dqqeavica/image/upload/v1773105921/memoria_o2lro5.webp';
+
+const BB_PROC_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
+const BB_PROC_KEY      = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
+
+/* ── Estado global ──────────────────────────────────────── */
+let currentProcesoSelected = null;
+let __procListCache = [];
+let __procFechaTarget = null; // 'recibido' | 'respuesta' | 'edit-recibido' | 'edit-respuesta' | 'edit-cierre'
+
+/* ── Utilidades de fecha ────────────────────────────────── */
+function parseDDMMYYYYtoDate_(str) {
+  const s = String(str || '').trim();
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const d = parseInt(m[1], 10), mo = parseInt(m[2], 10), y = parseInt(m[3], 10);
+  const dt = new Date(y, mo - 1, d);
+  if (isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function formatDDMMYYYY_(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${d}/${m}/${date.getFullYear()}`;
+}
+
+function formatFechaLarga_(str) {
+  // dd/mm/yyyy → "Viernes, 10 de abril de 2026"
+  const dt = parseDDMMYYYYtoDate_(str);
+  if (!dt) return str || '';
+  const dias   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses  = ['enero','febrero','marzo','abril','mayo','junio',
+                  'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${dias[dt.getDay()]}, ${dt.getDate()} de ${meses[dt.getMonth()]} de ${dt.getFullYear()}`;
+}
+
+function diasHabiles_(fechaIni, fechaFin) {
+  // Ambas dd/mm/yyyy. Retorna días hábiles (puede ser negativo)
+  const a = parseDDMMYYYYtoDate_(fechaIni);
+  const b = parseDDMMYYYYtoDate_(fechaFin);
+  if (!a || !b) return 0;
+  let count = 0;
+  const cursor = new Date(a);
+  const end = new Date(b);
+  // Determinar dirección
+  const dir = end >= cursor ? 1 : -1;
+  while (dir === 1 ? cursor < end : cursor > end) {
+    const dow = cursor.getDay();
+    const dStr = formatDDMMYYYY_(cursor);
+    if (dow !== 0 && dow !== 6 && !FERIADOS_2026.has(dStr)) count += dir;
+    cursor.setDate(cursor.getDate() + dir);
+  }
+  return count;
+}
+
+function calcSemaforo_(row) {
+  const estado = String(row.estado || '').trim().toUpperCase();
+  if (estado === 'FINALIZADO') {
+    const dias = diasHabiles_(row.recibido, row.cierre);
+    return { clase: 'semaforo-gris', texto: `Resp. en ${Math.abs(dias)} días`, cardClass: 'color-gris' };
+  }
+  const hoy = formatDDMMYYYY_(new Date());
+  const total  = diasHabiles_(row.recibido, row.respuesta);
+  const faltan = diasHabiles_(hoy, row.respuesta);
+  let clase, texto, cardClass;
+  if (faltan <= 0) {
+    clase = 'semaforo-rojo'; cardClass = 'color-rojo';
+    texto = faltan === 0 ? 'Vence hoy' : `Venció hace ${Math.abs(faltan)} días`;
+  } else if (faltan <= 3) {
+    clase = 'semaforo-naranja'; cardClass = 'color-naranja';
+    texto = `Faltan ${faltan} días`;
+  } else if (total > 0 && (faltan / total) < 0.5) {
+    clase = 'semaforo-amarillo'; cardClass = 'color-amarillo';
+    texto = `Faltan ${faltan} días`;
+  } else {
+    clase = 'semaforo-verde'; cardClass = '';
+    texto = `Faltan ${faltan} días`;
+  }
+  return { clase, texto, cardClass };
+}
+
+/* ── Visibilidad botón semáforo ─────────────────────────── */
+function canSeeSemaforo_() {
+  if (!currentUser) return false;
+  if (currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return GRUPOS_SEMAFORO.some(g =>
+    normalizeText_(g.asignado) === n || normalizeText_(g.asistente) === n
+  );
+}
+
+function updateSemaforoBtn_() {
+  try {
+    const b = document.getElementById('btn-semaforo');
+    if (b) b.style.display = canSeeSemaforo_() ? '' : 'none';
+  } catch (_) {}
+}
+
+/* ── Picker de fechas para procesos ─────────────────────── */
+(function initProcPicker_() {
+  const dSel = document.getElementById('proc-picker-dia');
+  const mSel = document.getElementById('proc-picker-mes');
+  if (!dSel || !mSel || dSel.childElementCount) return;
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = String(d).padStart(2, '0');
+    o.textContent = o.value;
+    dSel.appendChild(o);
+  }
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  meses.forEach((nm, i) => {
+    const o = document.createElement('option');
+    o.value = String(i + 1).padStart(2, '0');
+    o.textContent = nm;
+    mSel.appendChild(o);
+  });
+})();
+
+function abrirProcPicker_(target) {
+  __procFechaTarget = target;
+  const m = document.getElementById('proc-fecha-modal');
+  if (m) { m.classList.add('open'); m.setAttribute('aria-hidden', 'false'); }
+}
+// Alias global para los onclick del HTML
+function abrirProcPicker(t) { abrirProcPicker_(t); }
+
+function cancelarProcPicker() {
+  const m = document.getElementById('proc-fecha-modal');
+  if (m) { m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); }
+  __procFechaTarget = null;
+}
+
+function confirmarProcPicker() {
+  const dia = document.getElementById('proc-picker-dia')?.value || '01';
+  const mes = document.getElementById('proc-picker-mes')?.value || '01';
+  const val = `${dia}/${mes}/2026`;
+
+  if (__procFechaTarget) {
+    let inputId = '';
+    switch (__procFechaTarget) {
+      case 'recibido':       inputId = 'proc-recibido'; break;
+      case 'respuesta':      inputId = 'proc-respuesta'; break;
+      case 'edit-recibido':  inputId = 'edit-recibido'; break;
+      case 'edit-respuesta': inputId = 'edit-respuesta'; break;
+      case 'edit-cierre':    inputId = 'edit-cierre'; break;
+    }
+    if (inputId) {
+      const el = document.getElementById(inputId);
+      if (el) el.value = val;
+    }
+  }
+  cancelarProcPicker();
+}
+
+/* ── Helpers grupos ─────────────────────────────────────── */
+function getGrupoByAsignado_(nombre) {
+  const n = normalizeText_(nombre || '');
+  return GRUPOS_SEMAFORO.find(g => normalizeText_(g.asignado) === n) || null;
+}
+
+function autoFillAsistente_(asignadoVal, prefijo) {
+  const g = getGrupoByAsignado_(asignadoVal);
+  const asist = document.getElementById(prefijo + 'asistente');
+  const c1    = document.getElementById(prefijo + 'contacto1');
+  const c2    = document.getElementById(prefijo + 'contacto2');
+  if (asist) asist.value = g ? (g.asistente || '') : '';
+  if (c1)    c1.value    = g ? (g.contacto1 || '') : '';
+  if (c2)    c2.value    = g ? (g.contacto2 || '') : '';
+}
+
+/* ── Selector de categorías con iconos ──────────────────── */
+function renderCatSelector_(containerId, selectId, selectedValue, prefijo) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  Object.entries(CAT_ICONS).forEach(([cat, iconUrl]) => {
+    const pill = document.createElement('div');
+    pill.className = 'cat-pill clickable' + (normalizeText_(selectedValue) === normalizeText_(cat) ? ' selected' : '');
+    pill.innerHTML = `<img src="${iconUrl}" alt="${cat}" /><span>${cat}</span>`;
+    pill.title = cat;
+    pill.addEventListener('click', () => {
+      wrap.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      const sel = document.getElementById(selectId);
+      if (sel) sel.value = cat;
+      // Actualizar subcategorías
+      renderSubcatSelector_(
+        prefijo + 'subcat-selector',
+        prefijo + 'subcategoria',
+        cat, ''
+      );
+      // Actualizar etapas si es editar
+      if (prefijo === 'edit-') updateEditEtapas_(cat);
+    });
+    wrap.appendChild(pill);
+  });
+  // Sync select oculto
+  const sel = document.getElementById(selectId);
+  if (sel) {
+    sel.innerHTML = '<option value="">— Selecciona —</option>';
+    Object.keys(CAT_ICONS).forEach(cat => {
+      const o = document.createElement('option');
+      o.value = cat; o.textContent = cat;
+      sel.appendChild(o);
+    });
+    if (selectedValue) sel.value = selectedValue;
+  }
+}
+
+function renderSubcatSelector_(containerId, selectId, catVal, selectedValue) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const subcats = SUBCAT_POR_CAT[catVal] || [];
+  subcats.forEach(subcat => {
+    const iconUrl = SUBCAT_ICONS[normalizeText_(subcat)] ||
+                    SUBCAT_ICONS[subcat] ||
+                    Object.entries(SUBCAT_ICONS).find(([k]) => normalizeText_(k) === normalizeText_(subcat))?.[1] || '';
+    const pill = document.createElement('div');
+    pill.className = 'cat-pill clickable' + (normalizeText_(selectedValue) === normalizeText_(subcat) ? ' selected' : '');
+    pill.innerHTML = iconUrl ? `<img src="${iconUrl}" alt="${subcat}" /><span>${subcat}</span>` : `<span>${subcat}</span>`;
+    pill.title = subcat;
+    pill.addEventListener('click', () => {
+      wrap.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+      const sel = document.getElementById(selectId);
+      if (sel) sel.value = subcat;
+    });
+    wrap.appendChild(pill);
+  });
+  // Sync select oculto
+  const sel = document.getElementById(selectId);
+  if (sel) {
+    sel.innerHTML = '<option value="">— Opcional —</option>';
+    subcats.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+    if (selectedValue) sel.value = selectedValue;
+  }
+}
+
+/* ── Normalizar icono de subcategoría ───────────────────── */
+function getSubcatIcon_(subcat) {
+  if (!subcat) return '';
+  const key = normalizeText_(subcat);
+  return Object.entries(SUBCAT_ICONS).find(([k]) => normalizeText_(k) === key)?.[1] || '';
+}
+function getCatIcon_(cat) {
+  if (!cat) return '';
+  const key = normalizeText_(cat);
+  return Object.entries(CAT_ICONS).find(([k]) => normalizeText_(k) === key)?.[1] || '';
+}
+
+/* ── WhatsApp Builderbot ────────────────────────────────── */
+function sendProcWA_(numero, mensaje) {
+  try {
+    if (!numero) return;
+    let num = String(numero).replace(/\D/g, '');
+    if (num.length === 10) num = '57' + num;
+    if (!num) return;
+    fetch(BB_PROC_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-builderbot': BB_PROC_KEY },
+      body: JSON.stringify({ messages: { content: mensaje }, number: num, checkIfExists: false })
+    }).catch(() => {});
+  } catch (_) {}
+}
+
+/* ── Vista ASIGNACIONES ─────────────────────────────────── */
+async function abrirVistaAsignaciones_() {
+  if (!currentUser) return;
+  showView('view-asignaciones');
+  document.getElementById('proc-filter').value = '';
+  // Mostrar / ocultar botón agregar
+  const btnAgregar = document.getElementById('btn-agregar-asignacion');
+  if (btnAgregar) btnAgregar.style.display = currentUser.isSuper ? '' : 'none';
+
+  await loadAndRenderProcesos_();
+}
+
+async function loadAndRenderProcesos_() {
+  const esSuper = currentUser?.isSuper ? 'true' : 'false';
+  // Para no super: determinar el asignado (puede ser el asignado o el asistente del grupo)
+  let asignado = '';
+  if (!currentUser.isSuper) {
+    const nombre = normalizeText_(currentUser.nombre || '');
+    const grupo = GRUPOS_SEMAFORO.find(g =>
+      normalizeText_(g.asignado) === nombre || normalizeText_(g.asistente) === nombre
+    );
+    // Siempre filtrar por el campo "asignado" del grupo (columna K)
+    asignado = grupo ? grupo.asignado : (currentUser.nombre || '');
+  }
+  const data = await apiGet('listProcesos', { asignado, esSuper });
+  __procListCache = Array.isArray(data) ? data : [];
+  renderProcList_(__procListCache);
+}
+
+function renderProcList_(items) {
+  const wrap = document.getElementById('proc-list');
+  const countEl = document.getElementById('proc-count');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (countEl) countEl.textContent = String(items.length);
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1;">No hay asignaciones.</p>';
+    return;
+  }
+
+  for (const row of items) {
+    const sem = calcSemaforo_(row);
+    const catIcon  = getCatIcon_(row.categoria);
+    const subcatIcon = getSubcatIcon_(row.subcategoria);
+    const cat  = row.categoria  || '';
+    const subcat = row.subcategoria || '';
+    const etapa = row.etapa || '';
+
+    const card = document.createElement('div');
+    card.className = `proc-card ${sem.cardClass}`;
+
+    // HEAD: asignado + estado
+    const head = document.createElement('div');
+    head.className = 'proc-head';
+
+    const headLeft = document.createElement('div');
+    headLeft.className = 'proc-head-left';
+    headLeft.innerHTML = `
+      <p class="proc-asignado">${escapeHtml_(row.asignado || '')}</p>
+      ${row.asistente ? `<p class="proc-asistente">${escapeHtml_(row.asistente)}</p>` : ''}
+    `;
+
+    const headRight = document.createElement('div');
+    headRight.className = 'proc-head-right';
+    headRight.innerHTML = `
+      <div class="proc-estado-badge ${sem.clase}">
+        ${escapeHtml_(row.estado || '')}
+        <span class="proc-dias-txt">${sem.texto}</span>
+      </div>
+    `;
+
+    head.appendChild(headLeft);
+    head.appendChild(headRight);
+    card.appendChild(head);
+
+    // Descripción con chincheta
+    const desc = document.createElement('div');
+    desc.className = 'proc-descripcion';
+    desc.innerHTML = `
+      <img src="${ICONO_CHINCHETA}" alt="📌" title="Asunto" />
+      <span>${escapeHtml_(row.descripcion || '')}</span>
+    `;
+    card.appendChild(desc);
+
+    // Fila categorías + etapa
+    const catRow = document.createElement('div');
+    catRow.className = 'cat-row';
+    if (cat) catRow.innerHTML += `
+      <div class="cat-pill" title="${escapeHtml_(cat)}">
+        ${catIcon ? `<img src="${catIcon}" alt="${escapeHtml_(cat)}" />` : ''}
+        <span>${escapeHtml_(cat)}</span>
+      </div>`;
+    if (subcat) catRow.innerHTML += `
+      <div class="cat-pill" title="${escapeHtml_(subcat)}">
+        ${subcatIcon ? `<img src="${subcatIcon}" alt="${escapeHtml_(subcat)}" />` : ''}
+        <span>${escapeHtml_(subcat)}</span>
+      </div>`;
+    if (etapa) catRow.innerHTML += `
+      <div class="etapa-badge" title="Etapa Jurídica">
+        <img src="${ICONO_JURIDICO}" alt="⚖️" />
+        <span>${escapeHtml_(etapa)}</span>
+      </div>`;
+    card.appendChild(catRow);
+
+    // Acciones
+    const actions = document.createElement('div');
+    actions.className = 'proc-actions';
+
+    // Consultivo (consecutivo)
+    const consEl = document.createElement('span');
+    consEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--text-muted);';
+    consEl.textContent = row.consecutivo || '';
+    actions.appendChild(consEl);
+
+    const icons = document.createElement('div');
+    icons.className = 'proc-icons';
+
+    // Firmar (solo super)
+    if (currentUser.isSuper) {
+      const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Firmar — marcar PENDIENTE DE EVIDENCIA');
+      btnFirma.addEventListener('click', async () => {
+        const ok = await Swal.fire({
+          icon: 'info',
+          title: 'FIRMAR ASIGNACIÓN',
+          html: `Se marcará como <b>PENDIENTE DE EVIDENCIA</b>.<br>¿Confirmar?`,
+          showCancelButton: true, confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'
+        });
+        if (!ok.isConfirmed) return;
+        await apiPost('firmarProceso', { id_proceso: row.id_proceso });
+        playSoundOnce(SOUNDS.success);
+        await loadAndRenderProcesos_();
+        const q = document.getElementById('proc-filter')?.value || '';
+        if (q) { const ev = new Event('input',{bubbles:true}); document.getElementById('proc-filter').dispatchEvent(ev); }
+      });
+      icons.appendChild(btnFirma);
+    }
+
+    // Eliminar (solo super)
+    if (currentUser.isSuper) {
+      const btnElim = _mkProcIconBtn_(ICONO_ELIMINAR, 'Eliminar asignación');
+      btnElim.addEventListener('click', async () => {
+        const ok = await Swal.fire({
+          icon: 'warning',
+          title: '¿Eliminar asignación?',
+          html: `<b>${escapeHtml_(row.descripcion || row.id_proceso)}</b><br>Esta acción es irreversible.`,
+          showCancelButton: true, confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar'
+        });
+        if (!ok.isConfirmed) return;
+        await apiPost('eliminarProceso', { id_proceso: row.id_proceso });
+        playSoundOnce(SOUNDS.success);
+        await loadAndRenderProcesos_();
+      });
+      icons.appendChild(btnElim);
+    }
+
+    // Ver
+    const btnVer = _mkProcIconBtn_(ICONO_VER, 'Ver detalles');
+    btnVer.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      currentProcesoSelected = row;
+      abrirVerAsignacion_(row);
+    });
+    icons.appendChild(btnVer);
+
+    // Editar
+    const estadoUpper = String(row.estado || '').toUpperCase();
+    const puedeEditar = currentUser.isSuper || estadoUpper !== 'FINALIZADO';
+    if (puedeEditar) {
+      const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
+      btnEdit.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.menu);
+        currentProcesoSelected = row;
+        abrirEditarAsignacion_(row);
+      });
+      icons.appendChild(btnEdit);
+    }
+
+    actions.appendChild(icons);
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  }
+}
+
+function _mkProcIconBtn_(src, title) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'proc-icon-btn';
+  btn.title = title;
+  btn.setAttribute('aria-label', title);
+  btn.innerHTML = `<img src="${src}" alt="${title}" />`;
+  return btn;
+}
+
+// Filtro asignaciones
+document.getElementById('proc-filter')?.addEventListener('input', () => {
+  const q = normalizeText_(document.getElementById('proc-filter').value || '');
+  if (!q) { renderProcList_(__procListCache); return; }
+  const filtered = __procListCache.filter(row => {
+    const blob = normalizeText_([
+      row.id_proceso, row.estado, row.recibido, row.consecutivo, row.descripcion,
+      row.respuesta, row.medio, row.categoria, row.subcategoria, row.asignado,
+      row.asistente, row.coordinador, row.etapa, row.bitacora
+    ].join(' '));
+    return blob.includes(q);
+  });
+  renderProcList_(filtered);
+});
+
+// Botones vista asignaciones
+document.getElementById('btn-agregar-asignacion')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  abrirAgregarAsignacion_();
+});
+document.getElementById('btn-asignaciones-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
+document.getElementById('btn-semaforo')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  if (!currentUser) return;
+  await abrirVistaAsignaciones_();
+});
+
+/* ── Vista AGREGAR ASIGNACIÓN ─────────────────────────────*/
+function abrirAgregarAsignacion_() {
+  // Limpiar form
+  ['proc-recibido','proc-consecutivo','proc-respuesta'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('proc-descripcion').value = '';
+  document.getElementById('proc-medio').value = '';
+  document.getElementById('proc-asignado').value = '';
+  document.getElementById('proc-asistente').value = '';
+  document.getElementById('proc-contacto1').value = '';
+  document.getElementById('proc-contacto2').value = '';
+  // Coordinador y contacto3 del usuario logueado
+  document.getElementById('proc-coordinador').value = currentUser?.nombre || '';
+  document.getElementById('proc-contacto3').value   = currentUser?.telefono || '';
+  // Files
+  ['proc-recibido1','proc-recibido2','proc-recibido3'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+    const st = document.getElementById(id + '-status'); if (st) st.textContent = '';
+  });
+  // Selector categorías
+  renderCatSelector_('proc-cat-selector', 'proc-categoria', '', 'proc-');
+  renderSubcatSelector_('proc-subcat-selector', 'proc-subcategoria', '', '');
+
+  showView('view-agregar-asignacion');
+}
+
+// Asignado → auto asistente/contactos
+document.getElementById('proc-asignado')?.addEventListener('change', () => {
+  const v = document.getElementById('proc-asignado').value;
+  autoFillAsistente_(v, 'proc-');
+});
+
+// Validación archivos agregar
+['proc-recibido1','proc-recibido2','proc-recibido3'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', () => {
+    const f = document.getElementById(id)?.files?.[0];
+    const st = document.getElementById(id + '-status');
+    if (!f) { if (st) st.textContent = ''; return; }
+    if (f.size > 10 * 1024 * 1024) {
+      document.getElementById(id).value = '';
+      if (st) st.textContent = '';
+      Swal.fire({ icon: 'warning', title: 'Archivo muy pesado', text: 'Máximo 10 MB por PDF.' });
+      return;
+    }
+    if (st) st.textContent = `✓ ${f.name}`;
+  });
+});
+
+// Guardar asignación
+document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async () => {
+  // Validaciones
+  const recibido     = document.getElementById('proc-recibido').value.trim();
+  const consecutivo  = document.getElementById('proc-consecutivo').value.trim();
+  const descripcion  = document.getElementById('proc-descripcion').value.trim();
+  const respuesta    = document.getElementById('proc-respuesta').value.trim();
+  const medio        = document.getElementById('proc-medio').value;
+  const categoria    = document.getElementById('proc-categoria').value;
+  const subcategoria = document.getElementById('proc-subcategoria')?.value || '';
+  const asignado     = document.getElementById('proc-asignado').value;
+  const contacto1    = document.getElementById('proc-contacto1').value;
+  const asistente    = document.getElementById('proc-asistente').value;
+  const contacto2    = document.getElementById('proc-contacto2').value;
+  const coordinador  = document.getElementById('proc-coordinador').value;
+  const contacto3    = document.getElementById('proc-contacto3').value;
+
+  if (!recibido)    { Swal.fire({ icon:'warning', title:'Fecha de Recibido requerida' }); return; }
+  if (!consecutivo) { Swal.fire({ icon:'warning', title:'Consecutivo requerido' }); return; }
+  if (!descripcion) { Swal.fire({ icon:'warning', title:'Asunto requerido' }); return; }
+  if (!respuesta)   { Swal.fire({ icon:'warning', title:'Fecha de Respuesta requerida' }); return; }
+  // Validar 3 días hábiles mínimo
+  const hoy = formatDDMMYYYY_(new Date());
+  if (diasHabiles_(hoy, respuesta) < 3) {
+    Swal.fire({ icon:'warning', title:'Fecha muy cercana', text:'Selecciona al menos 3 días hábiles desde hoy.' });
+    return;
+  }
+  if (!medio)    { Swal.fire({ icon:'warning', title:'Medio requerido' }); return; }
+  if (!categoria){ Swal.fire({ icon:'warning', title:'Categoría requerida' }); return; }
+
+  // Subir archivos
+  const files = {};
+  for (const id of ['proc-recibido1','proc-recibido2','proc-recibido3']) {
+    const f = document.getElementById(id)?.files?.[0];
+    if (f) files[id.replace('proc-','')] = { filename: f.name, base64: await fileToBase64_(f) };
+  }
+
+  // Resumen
+  const resumenHtml = buildResumenHtml_({
+    'Recibido': recibido, 'Consecutivo': consecutivo, 'Asunto': descripcion,
+    'Respuesta': respuesta, 'Medio': medio, 'Categoría': categoria,
+    'Subcategoría': subcategoria, 'Asignado': asignado, 'Asistente': asistente,
+    'Documentos': Object.keys(files).length + ' archivo(s)'
+  });
+  const ok = await Swal.fire({
+    icon: 'info', title: 'Confirmar Asignación',
+    html: resumenHtml, showCancelButton: true,
+    confirmButtonText: 'Guardar', cancelButtonText: 'Editar'
+  });
+  if (!ok.isConfirmed) return;
+
+  try {
+    const res = await apiPost('agregarProceso', {
+      recibido, consecutivo: consecutivo.toUpperCase(),
+      descripcion: descripcion.toUpperCase(), respuesta, medio,
+      categoria, subcategoria, asignado, contacto1, asistente,
+      contacto2, coordinador, contacto3,
+      recibido1: files['recibido1'] || null,
+      recibido2: files['recibido2'] || null,
+      recibido3: files['recibido3'] || null
+    });
+
+    // Enviar WhatsApp si hay asignado
+    if (asignado && contacto1) {
+      const msg1 =
+        `Estimado(a) *${asignado}*\n` +
+        `Se te ha asignado el oficio *${consecutivo.toUpperCase()}* recibido a través de *${medio}*.\n` +
+        `*Asunto:* ${descripcion}.\n` +
+        `Por favor, entra a la App para iniciarlo asignando subcategoría y etapa jurídica.\n\n` +
+        `Cordialmente,\n\n*${coordinador}*`;
+      sendProcWA_(contacto1, msg1);
+
+      if (asistente && contacto2) {
+        setTimeout(() => {
+          const msg2 =
+            `Estimado(a) *${asistente}*\n` +
+            `Se te ha asignado un apoyo para responder el oficio *${consecutivo.toUpperCase()}* recibido a través de *${medio}*.\n` +
+            `*Asunto:* ${descripcion}.\n` +
+            `Por favor, entra a la App para iniciarlo.\n\n` +
+            `Cordialmente,\n\n*${coordinador}*`;
+          sendProcWA_(contacto2, msg2);
+        }, 3000);
+      }
+
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({
+        icon: 'success', title: 'ASIGNACIÓN EXITOSA',
+        html: `<b>Asignado:</b> ${escapeHtml_(asignado)}${asistente ? `<br><b>Apoyo:</b> ${escapeHtml_(asistente)}` : ''}`,
+        timer: 3000, showConfirmButton: false
+      });
+    } else {
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({
+        icon: 'success', title: 'REGISTRO GUARDADO',
+        html: 'No olvides la asignación oportuna.',
+        timer: 2500, showConfirmButton: false
+      });
+    }
+    await abrirVistaAsignaciones_();
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+});
+
+document.getElementById('btn-proc-add-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-asignaciones');
+});
+
+/* ── Vista VER DETALLES ─────────────────────────────────── */
+function abrirVerAsignacion_(row) {
+  const sem = calcSemaforo_(row);
+  const catIcon    = getCatIcon_(row.categoria);
+  const subcatIcon = getSubcatIcon_(row.subcategoria);
+
+  // Header
+  const header = document.getElementById('proc-ver-header');
+  header.innerHTML = '';
+  if (row.categoria) {
+    header.innerHTML += `
+      <div class="cat-pill" style="padding:8px 14px;">
+        ${catIcon ? `<img src="${catIcon}" alt="${escapeHtml_(row.categoria)}" />` : ''}
+        <span style="font-weight:700;">${escapeHtml_(row.categoria)}</span>
+      </div>`;
+  }
+  if (row.subcategoria) {
+    header.innerHTML += `
+      <div class="cat-pill" style="padding:8px 14px;">
+        ${subcatIcon ? `<img src="${subcatIcon}" alt="${escapeHtml_(row.subcategoria)}" />` : ''}
+        <span style="font-weight:700;">${escapeHtml_(row.subcategoria)}</span>
+      </div>`;
+  }
+  if (row.etapa) {
+    header.innerHTML += `
+      <div class="etapa-badge">
+        <img src="${ICONO_JURIDICO}" alt="⚖️" />
+        <span>${escapeHtml_(row.etapa)}</span>
+      </div>`;
+  }
+  header.innerHTML += `
+    <div class="proc-estado-badge ${sem.clase}" style="min-width:140px;">
+      ${escapeHtml_(row.estado || '')}
+      <span class="proc-dias-txt">${sem.texto}</span>
+    </div>`;
+
+  // Cuerpo
+  const body = document.getElementById('proc-ver-body');
+  body.innerHTML = '';
+  const addField = (label, value, esHTML) => {
+    if (!value) return;
+    const div = document.createElement('div');
+    div.className = 'proc-detalle-field';
+    div.innerHTML = `<span class="proc-detalle-label">${label}</span>
+      <span class="proc-detalle-value">${esHTML ? value : escapeHtml_(value)}</span>`;
+    body.appendChild(div);
+  };
+  addField('Asunto:',               row.descripcion);
+  addField('Consecutivo:',          row.consecutivo);
+  addField('Fecha de Recibido:',    formatFechaLarga_(row.recibido));
+  addField('Medio:',                row.medio);
+  addField('Fecha de Respuesta:',   formatFechaLarga_(row.respuesta));
+  addField('Bitácora:',             row.bitacora);
+  addField('Fecha de Cierre:',      formatFechaLarga_(row.cierre));
+  addField('Asignado:',             row.asignado);
+  addField('Asistente:',            row.asistente);
+
+  // Evidencia
+  const evWrap = document.getElementById('proc-ver-evidencia');
+  const evImg  = document.getElementById('proc-ver-evidencia-img');
+  if (row.evidencia) {
+    evImg.src = row.evidencia;
+    evWrap.style.display = '';
+    evImg.onclick = () => window.open(row.evidencia, '_blank', 'noopener');
+  } else {
+    evWrap.style.display = 'none';
+  }
+
+  // Archivos recibidos y respuestas
+  const filesWrap = document.getElementById('proc-ver-files');
+  filesWrap.innerHTML = '';
+  const addFileIcon_ = (urls, srcIcon, label) => {
+    const validUrls = urls.filter(Boolean);
+    if (!validUrls.length) return;
+    validUrls.forEach((url, idx) => {
+      if (!url) return;
+      const item = document.createElement('div');
+      item.className = 'proc-file-item';
+      item.title = `${label} ${idx + 1}`;
+      item.innerHTML = `
+        <img src="${srcIcon}" alt="${label}" />
+        ${validUrls.length > 1 ? `<span class="proc-file-counter">${idx + 1}</span>` : ''}
+        <span class="proc-file-label">${label} ${idx + 1}</span>`;
+      item.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+      filesWrap.appendChild(item);
+    });
+  };
+  addFileIcon_([row.recibido1, row.recibido2, row.recibido3], ICONO_INBOX,  'Recibido');
+  addFileIcon_([row.respuesta1, row.respuesta2, row.respuesta3], ICONO_OUTBOX, 'Respuesta');
+
+  // Creación
+  const creacionEl = document.getElementById('proc-ver-creacion');
+  if (creacionEl && row.creacion) creacionEl.textContent = `Creada: ${row.creacion}`;
+
+  // Botones acción
+  const actionsWrap = document.getElementById('proc-ver-actions');
+  actionsWrap.innerHTML = '';
+  const estado = String(row.estado || '').toUpperCase();
+
+  // Rebotar
+  if (estado === 'ASIGNADO') {
+    const btnRebotar = document.createElement('button');
+    btnRebotar.type = 'button';
+    btnRebotar.className = 'proc-action-btn proc-btn-rebotar';
+    btnRebotar.title = 'Rebotar asignación';
+    btnRebotar.innerHTML = `<img src="${ICONO_REBOTAR}" alt="Rebotar" /> REBOTAR`;
+    btnRebotar.addEventListener('click', () => {
+      document.getElementById('proc-rebote').value = '';
+      document.getElementById('modal-rebotar').classList.remove('hidden');
+    });
+    actionsWrap.appendChild(btnRebotar);
+  }
+
+  // Editar
+  const puedeEditar = currentUser.isSuper || estado !== 'FINALIZADO';
+  if (puedeEditar) {
+    const btnEditar = document.createElement('button');
+    btnEditar.type = 'button';
+    btnEditar.className = 'btn-primary proc-action-btn';
+    btnEditar.style.width = 'auto';
+    btnEditar.innerHTML = `<img src="${ICONO_EDITAR}" style="width:20px;height:20px;vertical-align:middle;" alt="Editar" /> EDITAR`;
+    btnEditar.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      abrirEditarAsignacion_(row);
+    });
+    actionsWrap.appendChild(btnEditar);
+  }
+
+  // Solicitar Finalización
+  if (estado === 'PENDIENTE DE EVIDENCIA') {
+    const btnFin = document.createElement('button');
+    btnFin.type = 'button';
+    btnFin.className = 'proc-action-btn';
+    btnFin.style.cssText = 'background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:0;width:auto;';
+    btnFin.title = 'Solicitar Finalización';
+    btnFin.innerHTML = `<img src="${ICONO_MEMORIA}" class="proc-btn-finalizar" alt="Finalizar" style="width:28px;height:28px;" /> SOLICITAR FINALIZACIÓN`;
+    btnFin.addEventListener('click', async () => {
+      const ok = await Swal.fire({
+        icon: 'success', title: 'FINALIZACIÓN DE ASIGNACIÓN',
+        html: `Antes de realizar este proceso corrobora:<br>
+          - Oficio(s) de respuesta firmado y adjuntado<br>
+          - Bitácora Editada correctamente<br>
+          - Etapa Jurídica Actualizada`,
+        showCancelButton: true, confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'
+      });
+      if (!ok.isConfirmed) return;
+      // Enviar WhatsApp al coordinador (contacto3)
+      const c3 = row.contacto3 || '';
+      const msg =
+        `Estimado *${row.coordinador || ''}*\n` +
+        `Solicito la finalización de mi asignación *${row.descripcion || ''}*\n` +
+        `Todos los soportes están correctamente cargados.\n\n` +
+        `Cordialmente,\n\n*${row.asignado || ''}*`;
+      sendProcWA_(c3, msg);
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({ icon:'success', title:'Solicitud enviada', timer:1800, showConfirmButton:false });
+      abrirVerAsignacion_(row);
+    });
+    actionsWrap.appendChild(btnFin);
+  }
+
+  // Creada al final
+  addField('Creada:', row.creacion);
+  showView('view-ver-asignacion');
+}
+
+document.getElementById('btn-ver-asignacion-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-asignaciones');
+});
+
+/* ── Modal REBOTAR ──────────────────────────────────────── */
+document.getElementById('btn-rebote-regresar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  document.getElementById('modal-rebotar').classList.add('hidden');
+});
+
+document.getElementById('btn-rebote-guardar')?.addEventListener('click', async () => {
+  const rebote = document.getElementById('proc-rebote').value.trim();
+  if (!rebote) {
+    Swal.fire({ icon:'warning', title:'Justificación requerida' });
+    return;
+  }
+  if (!currentProcesoSelected) return;
+  try {
+    await apiPost('rebotarProceso', { id_proceso: currentProcesoSelected.id_proceso, rebote });
+    // Enviar WhatsApp al coordinador
+    const c3  = currentProcesoSelected.contacto3 || '';
+    const msg =
+      `Estimado *${currentProcesoSelected.coordinador || ''}*\n` +
+      `He rebotado la asignación *${currentProcesoSelected.descripcion || ''}*\n` +
+      `*Justificación:*\n${rebote}\n\n` +
+      `Cordialmente,\n\n*${currentProcesoSelected.asignado || ''}*`;
+    sendProcWA_(c3, msg);
+    document.getElementById('modal-rebotar').classList.add('hidden');
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon:'success', title:'Asignación Rebotada', timer:1800, showConfirmButton:false });
+    // Recargar asignaciones; si no hay, ir a inicio
+    await loadAndRenderProcesos_();
+    if (__procListCache.length) showView('view-asignaciones');
+    else showView('view-inicio');
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+});
+
+/* ── Vista EDITAR ASIGNACIÓN ────────────────────────────── */
+function updateEditEtapas_(cat) {
+  const sel = document.getElementById('edit-etapa');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Selecciona —</option>';
+  const etapas = ETAPAS_POR_CAT[cat] || ETAPAS_POR_CAT[normalizeText_(cat)] ||
+    Object.entries(ETAPAS_POR_CAT).find(([k]) => normalizeText_(k) === normalizeText_(cat))?.[1] || [];
+  etapas.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e; o.textContent = e;
+    sel.appendChild(o);
+  });
+}
+
+function abrirEditarAsignacion_(row) {
+  if (!row) return;
+  currentProcesoSelected = row;
+
+  // Badge identificador
+  const badgeRow = document.getElementById('edit-badge-row');
+  if (badgeRow) {
+    badgeRow.innerHTML = `<div class="edit-badge">${escapeHtml_(row.id_proceso || '')} — ${escapeHtml_(row.consecutivo || '')}</div>`;
+  }
+
+  // Determinar si puede ver campos super
+  const esDiegoSuper = normalizeText_(currentUser?.nombre || '') === normalizeText_('DIEGO FERNANDO GARCIA');
+  const esSuper = currentUser?.isSuper || false;
+
+  // Mostrar/ocultar campos solo super
+  const superFields = document.getElementById('edit-super-fields');
+  const recibidosSuper = document.getElementById('edit-recibidos-super');
+  const cierreSuper   = document.getElementById('edit-cierre-super');
+  if (superFields)    superFields.style.display   = esSuper ? '' : 'none';
+  if (recibidosSuper) recibidosSuper.style.display = esSuper ? '' : 'none';
+  if (cierreSuper)    cierreSuper.style.display    = esSuper ? '' : 'none';
+
+  // Pre-llenar campos super
+  if (esSuper) {
+    const er = document.getElementById('edit-recibido');   if (er) er.value = row.recibido || '';
+    const ec = document.getElementById('edit-consecutivo'); if (ec) ec.value = row.consecutivo || '';
+    const ed = document.getElementById('edit-descripcion'); if (ed) ed.value = row.descripcion || '';
+    const esp = document.getElementById('edit-respuesta'); if (esp) esp.value = row.respuesta || '';
+    const em = document.getElementById('edit-medio');       if (em) em.value = row.medio || '';
+    const ea = document.getElementById('edit-asignado');    if (ea) ea.value = row.asignado || '';
+    const ecierre = document.getElementById('edit-cierre'); if (ecierre) ecierre.value = row.cierre || '';
+    autoFillAsistente_(row.asignado, 'edit-');
+    document.getElementById('edit-contacto1').value = row.contacto1 || '';
+  }
+
+  // Campos ambos roles
+  renderCatSelector_('edit-cat-selector', 'edit-categoria', row.categoria || '', 'edit-');
+  const catVal = row.categoria || '';
+  renderSubcatSelector_('edit-subcat-selector', 'edit-subcategoria', catVal, row.subcategoria || '');
+  document.getElementById('edit-asistente').value   = row.asistente   || '';
+  document.getElementById('edit-contacto2').value   = row.contacto2   || '';
+  document.getElementById('edit-coordinador').value = row.coordinador || '';
+  document.getElementById('edit-contacto3').value   = row.contacto3   || '';
+  document.getElementById('edit-bitacora').value    = row.bitacora    || '';
+
+  // Etapas
+  updateEditEtapas_(catVal);
+  const etapaSel = document.getElementById('edit-etapa');
+  if (etapaSel && row.etapa) etapaSel.value = row.etapa;
+
+  // Estados según rol
+  const estadoSel = document.getElementById('edit-estado');
+  estadoSel.innerHTML = '<option value="">— Selecciona —</option>';
+  const estadosSuper  = ['ASIGNADO','PENDIENTE DE EVIDENCIA','FINALIZADO'];
+  const estadosAsig   = ['EN PROYECCIÓN','PENDIENTE DE FIRMA'];
+  const optsEstado = (esSuper && !esDiegoSuper) ? estadosSuper : (!esSuper ? estadosAsig : [...estadosSuper, ...estadosAsig]);
+  // Diego puede ver todos
+  const finalOpts = esDiegoSuper ? [...estadosSuper, ...estadosAsig] : optsEstado;
+  finalOpts.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    estadoSel.appendChild(o);
+  });
+  if (row.estado) estadoSel.value = row.estado;
+
+  // Limpiar files
+  ['edit-recibido1','edit-recibido2','edit-recibido3','edit-respuesta1','edit-respuesta2','edit-respuesta3','edit-evidencia']
+    .forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+      const st = document.getElementById(id + '-status'); if (st) st.textContent = '';
+    });
+
+  showView('view-editar-asignacion');
+}
+
+// Cambio de asignado en editar
+document.getElementById('edit-asignado')?.addEventListener('change', () => {
+  const v = document.getElementById('edit-asignado').value;
+  autoFillAsistente_(v, 'edit-');
+  document.getElementById('edit-contacto1').value = getGrupoByAsignado_(v)?.contacto1 || '';
+});
+
+// Validación files editar (10MB pdf, 5MB imagen)
+['edit-recibido1','edit-recibido2','edit-recibido3','edit-respuesta1','edit-respuesta2','edit-respuesta3'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', () => {
+    const f = document.getElementById(id)?.files?.[0];
+    const st = document.getElementById(id + '-status');
+    if (!f) { if (st) st.textContent = ''; return; }
+    if (f.size > 10 * 1024 * 1024) {
+      document.getElementById(id).value = '';
+      if (st) st.textContent = '';
+      Swal.fire({ icon:'warning', title:'Archivo muy pesado', text:'Máximo 10 MB por PDF.' });
+      return;
+    }
+    if (st) st.textContent = `✓ ${f.name}`;
+  });
+});
+document.getElementById('edit-evidencia')?.addEventListener('change', () => {
+  const f = document.getElementById('edit-evidencia')?.files?.[0];
+  const st = document.getElementById('edit-evidencia-status');
+  if (!f) { if (st) st.textContent = ''; return; }
+  if (f.size > 5 * 1024 * 1024) {
+    document.getElementById('edit-evidencia').value = '';
+    if (st) st.textContent = '';
+    Swal.fire({ icon:'warning', title:'Imagen muy pesada', text:'Máximo 5 MB.' });
+    return;
+  }
+  if (st) st.textContent = `✓ ${f.name}`;
+});
+
+document.getElementById('btn-edit-asig-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  if (currentProcesoSelected) showView('view-ver-asignacion');
+  else showView('view-asignaciones');
+});
+
+document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', async () => {
+  if (!currentProcesoSelected) return;
+  const row = currentProcesoSelected;
+  const esSuper = currentUser?.isSuper || false;
+
+  // Recoger campos
+  const payload = {
+    id_proceso: row.id_proceso,
+    rowIndex:   row.rowIndex
+  };
+
+  if (esSuper) {
+    const er  = document.getElementById('edit-recibido')?.value.trim();
+    const ec  = document.getElementById('edit-consecutivo')?.value.trim();
+    const ed  = document.getElementById('edit-descripcion')?.value.trim();
+    const esp = document.getElementById('edit-respuesta')?.value.trim();
+    const em  = document.getElementById('edit-medio')?.value;
+    const ea  = document.getElementById('edit-asignado')?.value;
+    const eci = document.getElementById('edit-cierre')?.value.trim();
+    if (er)  payload.recibido    = er;
+    if (ec)  payload.consecutivo = ec.toUpperCase();
+    if (ed)  payload.descripcion = ed.toUpperCase();
+    if (esp) payload.respuesta   = esp;
+    if (em)  payload.medio       = em;
+    if (ea !== undefined) payload.asignado = ea;
+    if (eci) payload.cierre      = eci;
+    payload.contacto1 = document.getElementById('edit-contacto1')?.value || '';
+  }
+
+  payload.categoria    = document.getElementById('edit-categoria')?.value || '';
+  payload.subcategoria = document.getElementById('edit-subcategoria')?.value || '';
+  payload.asistente    = document.getElementById('edit-asistente')?.value || '';
+  payload.contacto2    = document.getElementById('edit-contacto2')?.value || '';
+  payload.coordinador  = document.getElementById('edit-coordinador')?.value || '';
+  payload.contacto3    = document.getElementById('edit-contacto3')?.value || '';
+  payload.bitacora     = document.getElementById('edit-bitacora')?.value.trim() || '';
+  payload.etapa        = document.getElementById('edit-etapa')?.value || '';
+  payload.estado       = document.getElementById('edit-estado')?.value || '';
+
+  // Subir archivos si los hay
+  const fileFields = [
+    { id:'edit-recibido1', key:'recibido1' },
+    { id:'edit-recibido2', key:'recibido2' },
+    { id:'edit-recibido3', key:'recibido3' },
+    { id:'edit-respuesta1', key:'respuesta1' },
+    { id:'edit-respuesta2', key:'respuesta2' },
+    { id:'edit-respuesta3', key:'respuesta3' },
+    { id:'edit-evidencia',  key:'evidencia' }
+  ];
+  for (const { id, key } of fileFields) {
+    const f = document.getElementById(id)?.files?.[0];
+    if (f) payload[key] = { filename: f.name, base64: await fileToBase64_(f) };
+  }
+
+  // Resumen dinámico
+  const resumenFields = {};
+  if (payload.recibido)    resumenFields['Recibido']    = payload.recibido;
+  if (payload.consecutivo) resumenFields['Consecutivo'] = payload.consecutivo;
+  if (payload.descripcion) resumenFields['Asunto']      = payload.descripcion;
+  if (payload.respuesta)   resumenFields['Respuesta']   = payload.respuesta;
+  if (payload.medio)       resumenFields['Medio']       = payload.medio;
+  if (payload.categoria)   resumenFields['Categoría']   = payload.categoria;
+  if (payload.subcategoria)resumenFields['Subcategoría']= payload.subcategoria;
+  if (payload.etapa)       resumenFields['Etapa']       = payload.etapa;
+  if (payload.estado)      resumenFields['Estado']      = payload.estado;
+  if (payload.bitacora)    resumenFields['Bitácora']    = payload.bitacora.substring(0,60) + (payload.bitacora.length > 60 ? '…' : '');
+  if (payload.cierre)      resumenFields['Cierre']      = payload.cierre;
+  const filesCount = fileFields.filter(f => payload[f.key]).length;
+  if (filesCount)          resumenFields['Archivos']    = filesCount + ' archivo(s)';
+
+  const ok = await Swal.fire({
+    icon:'info', title:'Confirmar Edición',
+    html: buildResumenHtml_(resumenFields),
+    showCancelButton:true, confirmButtonText:'Guardar', cancelButtonText:'Seguir editando'
+  });
+  if (!ok.isConfirmed) return;
+
+  try {
+    await apiPost('editarProceso', payload);
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({
+      icon:'success', title:'EDICIÓN EXITOSA',
+      html:'Sigue cada día tu asignación',
+      timer:2000, showConfirmButton:false
+    });
+    await abrirVistaAsignaciones_();
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  }
+});
+
+/* ── Utilidad: resumen HTML dinámico ────────────────────── */
+function buildResumenHtml_(fields) {
+  let html = '<div style="text-align:left;font-size:.9rem;">';
+  for (const [label, value] of Object.entries(fields)) {
+    if (!value && value !== 0) continue;
+    html += `<div class="proc-resumen-item"><b>${escapeHtml_(label)}:</b><span>${escapeHtml_(String(value))}</span></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ── Integrar en el login handler (pegar después del login existente) ── */
+// En la función de login, después de setear currentUser, agregar:
+// updateSemaforoBtn_();
+// Reemplazamos con un patch que detecta cambio en currentUser
+const __origLoginBtn = document.getElementById('btn-login');
+if (__origLoginBtn && !__origLoginBtn.dataset.semaforoPatch) {
+  __origLoginBtn.dataset.semaforoPatch = '1';
+  __origLoginBtn.addEventListener('click', () => {
+    // Aplazar para que el login original termine
+    setTimeout(updateSemaforoBtn_, 600);
+  });
+}
+
+// En logout
+const __origLogoutBtn = document.getElementById('btn-logout');
+if (__origLogoutBtn && !__origLogoutBtn.dataset.semaforoPatch) {
+  __origLogoutBtn.dataset.semaforoPatch = '1';
+  __origLogoutBtn.addEventListener('click', () => {
+    try {
+      const b = document.getElementById('btn-semaforo');
+      if (b) b.style.display = 'none';
+    } catch (_) {}
+  });
+}
   
 </script>
 </body>
