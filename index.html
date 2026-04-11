@@ -849,24 +849,25 @@ button:active { transform: translateY(0) scale(.98); }
 }
 @media (max-width: 600px) { .proc-view-title { font-size: 1.5rem; } }
 
- /* ── cat-pill CON icono grande + texto (todas las vistas) ── */
+/* ── cat-pill: pill con borde + icono grande + texto ─────── */
 .cat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 6px;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
   border-radius: 20px;
-  border: 1.5px solid rgba(6,64,43,.18);
-  background: rgba(255,255,255,.9);
+  border: 1.5px solid rgba(6,64,43,.22);
+  background: rgba(255,255,255,.92);
   font-weight: 600;
-  font-size: .78rem;
+  font-size: .82rem;
   color: var(--text-sub);
   cursor: default;
   transition: .15s;
+  box-shadow: 0 1px 4px rgba(6,64,43,.07);
 }
 .cat-pill img {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   flex-shrink: 0;
   display: block;
@@ -881,20 +882,19 @@ button:active { transform: translateY(0) scale(.98); }
   background: rgba(6,64,43,.10);
   color: var(--primary);
 }
-/* Quitar la clase icon-only (ya no se usa) */
 .cat-pill.icon-only {
-  padding: 6px 12px 6px 6px;
-  background: rgba(255,255,255,.9);
-  border: 1.5px solid rgba(6,64,43,.18);
+  padding: 6px 14px 6px 6px;
+  background: rgba(255,255,255,.92);
+  border: 1.5px solid rgba(6,64,43,.22);
 }
 .cat-pill.icon-only img {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
 }
 
-/* ── Etapa Jurídica: badge oscuro con icono + "Etapa Jurídica",
-      y el valor {etapa} DEBAJO en texto separado ────────── */
-.etapa-badge-wrap {
+/* ── Etapa Jurídica: badge compacto oscuro (solo "Etapa Jurídica" + icono)
+      y valor {etapa} DEBAJO, fuera del badge ──────────────── */
+.etapa-col {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
@@ -903,27 +903,29 @@ button:active { transform: translateY(0) scale(.98); }
 .etapa-badge-mini {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px 5px 5px;
+  gap: 5px;
+  padding: 4px 10px 4px 5px;
   border-radius: 20px;
   background: #1e1e2e;
   color: #fff;
   font-weight: 700;
-  font-size: .75rem;
+  font-size: .72rem;
   white-space: nowrap;
+  line-height: 1.2;
 }
 .etapa-badge-mini img {
-  width: 32px;
-  height: 32px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
   flex-shrink: 0;
 }
 .etapa-valor {
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 700;
   color: var(--text-sub);
-  padding-left: 6px;
-  white-space: nowrap;
+  padding-left: 4px;
+  white-space: normal;
+  max-width: 180px;
 }
 
 /* ── Modal Picker fechas — estilo imagen 3 ──────────────── */
@@ -4225,7 +4227,7 @@ function renderProcList_(items) {
     // Fila categorías + etapa
     const catRow = document.createElement('div');
     catRow.className = 'cat-row';
-    if (cat) catRow.innerHTML += `
+        if (cat) catRow.innerHTML += `
       <div class="cat-pill" title="${escapeHtml_(cat)}">
         ${catIcon ? `<img src="${catIcon}" alt="${escapeHtml_(cat)}" />` : ''}
         <span>${escapeHtml_(cat)}</span>
@@ -4236,9 +4238,9 @@ function renderProcList_(items) {
         <span>${escapeHtml_(subcat)}</span>
       </div>`;
     if (etapa) catRow.innerHTML += `
-      <div class="etapa-badge-wrap">
-        <div class="etapa-badge-mini" title="Etapa Jurídica">
-          <img src="${ICONO_JURIDICO}" alt="⚖️" />
+      <div class="etapa-col">
+        <div class="etapa-badge-mini">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788362/juridico_csqxdq.png" alt="⚖️" />
           <span>Etapa Jurídica</span>
         </div>
         <span class="etapa-valor">${escapeHtml_(etapa)}</span>
@@ -4545,11 +4547,11 @@ function abrirVerAsignacion_(row) {
         <span style="font-weight:700;">${escapeHtml_(row.subcategoria)}</span>
       </div>`;
   }
-     if (row.etapa) {
+      if (row.etapa) {
     header.innerHTML += `
-      <div class="etapa-badge-wrap">
-        <div class="etapa-badge-mini" title="Etapa Jurídica">
-          <img src="${ICONO_JURIDICO}" alt="⚖️" />
+      <div class="etapa-col">
+        <div class="etapa-badge-mini">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788362/juridico_csqxdq.png" alt="⚖️" />
           <span>Etapa Jurídica</span>
         </div>
         <span class="etapa-valor">${escapeHtml_(row.etapa)}</span>
