@@ -5432,14 +5432,11 @@ renderProcList_ = function(items) {
     const icons = document.createElement('div');
     icons.className = 'proc-icons';
 
-    if (currentUser?.isSuper) {
-      const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Firmar — marcar PENDIENTE DE EVIDENCIA');
-      btnFirma.addEventListener('click', async () => {
-        const ok = await Swal.fire({ icon:'info', title:'FIRMAR ASIGNACIÓN', html:`Se marcará como <b>PENDIENTE DE EVIDENCIA</b>.<br>¿Confirmar?`, showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Cancelar' });
-        if (!ok.isConfirmed) return;
-        await apiPost('firmarProceso', { id_proceso: row.id_proceso });
-        playSoundOnce(SOUNDS.success);
-        await loadAndRenderProcesos_();
+if (currentUser?.isSuper) {
+      const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
+      btnFirma.addEventListener('click', () => {
+        currentProcesoSelected = row;
+        abrirDecision_(row);
       });
       icons.appendChild(btnFirma);
 
