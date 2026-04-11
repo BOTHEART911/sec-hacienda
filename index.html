@@ -674,27 +674,6 @@ button:active { transform: translateY(0) scale(.98); }
   font-size: .72rem; font-weight: 700; opacity: .92; margin-top: 1px;
 }
 
-/* ── Iconos categoría (tipo pill horizontal) ─────────────── */
-.cat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
-
-.cat-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 10px; border-radius: 20px;
-  border: 1.5px solid rgba(6,64,43,.18);
-  background: rgba(255,255,255,.9);
-  font-weight: 600; font-size: .78rem;
-  color: var(--text-sub); cursor: default;
-  transition: .15s;
-}
-.cat-pill img { width: 26px; height: 26px; object-fit: contain; }
-.cat-pill.clickable:hover {
-  border-color: var(--primary); background: rgba(6,64,43,.06);
-  transform: translateY(-1px);
-}
-.cat-pill.selected {
-  border-color: var(--primary); background: rgba(6,64,43,.10);
-  color: var(--primary);
-}
 
 /* Selector de categoría con iconos (en formularios) */
 .cat-selector { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
@@ -1121,9 +1100,14 @@ button:active { transform: translateY(0) scale(.98); }
   box-shadow: 0 0 0 3px rgba(0,0,0,.18);
 }
 
-/* ── Badge jurídico con borde negro ──────────────────────── */
+/* ── Badge jurídico con borde negro, fondo blanco ────────── */
 .etapa-badge-mini {
   border: 2px solid #111 !important;
+  background: #ffffff !important;
+}
+.etapa-valor {
+  color: #111 !important;
+  font-weight: 800;
 }
     
   </style>
