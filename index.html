@@ -1109,6 +1109,133 @@ button:active { transform: translateY(0) scale(.98); }
   color: #111 !important;
   font-weight: 800;
 }
+
+    /* ============================================================
+   AJUSTES MÓVIL — Solo pantallas pequeñas (≤ 699px)
+   NO afecta escritorio ni tablet
+   ============================================================ */
+@media (max-width: 699px) {
+
+  /* ── 1. Cabecera de la tarjeta proc-card ──────────────────
+     Problema: el badge de estado empuja al nombre y lo rompe
+     Solución: apilar verticalmente cabecera en móvil          */
+  .proc-head {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .proc-head-right {
+    text-align: left;   /* alineado a la izquierda al apilar  */
+  }
+
+  /* El nombre nunca se parte sílaba a sílaba: solo corta
+     entre palabras (word-break) y ocupa todo el ancho         */
+  .proc-asignado {
+    font-size: .92rem;
+    word-break: break-word;   /* corta solo si no hay espacio  */
+    overflow-wrap: break-word;
+    white-space: normal;
+    max-width: 100%;
+  }
+  .proc-asistente {
+    font-size: .78rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+  /* Badge de estado: más compacto, no ocupa toda la fila      */
+  .proc-estado-badge {
+    font-size: .70rem;
+    padding: 5px 10px;
+    min-width: 0;
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+  .proc-dias-txt {
+    font-size: .65rem;
+  }
+
+  /* ── 2. Pills de categoría y subcategoría ─────────────────
+     Problema: pills anchas que salen de pantalla
+     Solución: flujo wrapping + texto más pequeño              */
+  .cat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+  }
+
+  /* cat-pill-colored: reducir tamaño y permitir wrap de texto */
+  .cat-pill-colored {
+    font-size: .72rem;        /* texto más pequeño             */
+    padding: 4px 8px 4px 4px;
+    max-width: 100%;          /* nunca más ancho que la tarjeta*/
+    white-space: normal;      /* el texto puede romper línea   */
+    word-break: break-word;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .cat-pill-colored img {
+    width: 24px;              /* icono más pequeño en móvil    */
+    height: 24px;
+  }
+
+  /* cat-pill (el estilo base también se usa en tarjetas)      */
+  .cat-pill {
+    font-size: .72rem;
+    padding: 3px 8px 3px 4px;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .cat-pill img {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ── 3. Badge etapa jurídica ──────────────────────────────*/
+  .etapa-badge-mini {
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .etapa-badge-mini img {
+    width: 18px;
+    height: 18px;
+  }
+  .etapa-valor {
+    font-size: .72rem;
+    max-width: 160px;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .etapa-col {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── 4. Descripción (proc-descripcion) ───────────────────
+     El texto del asunto no debe cortar palabras raras         */
+  .proc-descripcion {
+    font-size: .82rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  .proc-descripcion img {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ── 5. Selector de categorías en formularios ─────────────
+     (vista agregar/editar asignación)                         */
+  .cat-selector {
+    gap: 5px;
+  }
+
+}
     
   </style>
 </head>
