@@ -955,7 +955,11 @@ button:active { transform: translateY(0) scale(.98); }
                </div>
 
                 <div class="btn-row" style="margin-top:10px;">
-  <button id="btn-semaforo" class="btn-primary" style="display:none;">MI SEMÁFORO 🚦</button>
+  <button id="btn-semaforo" class="btn-primary"
+    style="background:linear-gradient(135deg,#dc2626 0%,#ea580c 40%,#d97706 70%,#16a34a 100%);
+           display:none; font-size:1rem; letter-spacing:.5px;">
+    MI SEMÁFORO 🚦
+  </button>
 </div>
         
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
@@ -2596,6 +2600,28 @@ try{
   if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
 }catch(_){}
 
+    // ── MI SEMÁFORO: visible para super usuario y para asignados del sistema ──
+try {
+  const SEMAFORO_USERS = [
+    'LEESLIE JULIET GOMEZ QUINTERO',
+    'MARIA NIDIA MENESES MARTINEZ',
+    'LUIS GILBERTO MOYA ROMERO',
+    'NICOL ESTEFANI MADRIGALES GONZALEZ',
+    'ANDREA KATERINE LAMAR RODRIGUEZ',
+    'VICTOR MANUEL FANDIÑO GIRALDO',
+    'LUIS GABRIEL RAMIREZ RAMIREZ',
+    'DIEGO FERNANDO GARCIA'
+  ].map(s => normalizeText_(s));
+
+  const bSema = document.getElementById('btn-semaforo');
+  if (bSema) {
+    const canSeeSemaforo =
+      (currentUser && currentUser.isSuper) ||
+      SEMAFORO_USERS.includes(normalizeText_(currentUser?.nombre || ''));
+    bSema.style.display = canSeeSemaforo ? '' : 'none';
+  }
+} catch(_) {}
+
     // ✅ Permisos de botones por rol (requisitos nuevos)
 try{
   const bAgregar = document.getElementById('btn-agregar');
@@ -2651,6 +2677,7 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   try{ const b = document.getElementById('btn-pendientes'); if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-atendidas-chat'); if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-atendidas-pres'); if(b) b.style.display = 'none'; }catch(_){}
+  try { const b = document.getElementById('btn-semaforo'); if(b) b.style.display = 'none'; } catch(_) {}
   showView('view-login');
 });
 
