@@ -3261,10 +3261,10 @@ document.getElementById('btn-mis-procesos')?.addEventListener('click', async () 
       Swal.fire({ icon: 'warning', title: 'Sesión inválida' });
       return;
     }
-    const res = await apiGet('getMisInformesLink', { documento: currentUser.documento });
+    const res = await apiGet('getMisProcesosLink', { documento: currentUser.documento });
     const link = String(res?.link || '').trim();
     if (!link) {
-      Swal.fire({ icon: 'info', title: 'Sin enlace', text: 'No tienes enlace de procesos configurado en la hoja USUARIOS (columna G).' });
+      Swal.fire({ icon: 'info', title: 'Sin enlace', text: 'No tienes enlace de procesos configurado en la hoja USUARIOS (columna H).' });
       return;
     }
     window.open(link, '_blank', 'noopener');
