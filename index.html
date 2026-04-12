@@ -1096,14 +1096,16 @@ button:active { transform: translateY(0) scale(.98); }
   box-shadow: 0 3px 10px rgba(0,0,0,.15);
 }
 .cat-pill-colored.selected {
-  filter: brightness(.95);
-  box-shadow: 0 0 0 3px rgba(0,0,0,.18);
+  filter: brightness(.92);
+  box-shadow: 0 0 0 4px rgba(0,0,0,.55);
+  border-width: 3px !important;
 }
 
 /* ── Badge jurídico con borde negro, fondo blanco ────────── */
 .etapa-badge-mini {
   border: 2px solid #111 !important;
   background: #ffffff !important;
+  border-radius: 16px !important;
 }
 .etapa-valor {
   color: #111 !important;
@@ -5423,6 +5425,22 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
   const row    = currentProcesoSelected;
   const esSuper = currentUser?.isSuper || false;
 
+    // Validar bitácora requerida
+  const _bitacoraVal = (document.getElementById('edit-bitacora')?.value || '').trim();
+  if (!_bitacoraVal) {
+    Swal.fire({ icon: 'warning', title: 'Bitácora requerida', text: 'Debes escribir al menos una entrada en la bitácora antes de guardar.' });
+    document.getElementById('edit-bitacora')?.focus();
+    return;
+  }
+
+  // Validar etapa jurídica requerida
+  const _etapaVal = (document.getElementById('edit-etapa')?.value || '').trim();
+  if (!_etapaVal) {
+    Swal.fire({ icon: 'warning', title: 'Etapa Jurídica requerida', text: 'Selecciona la etapa jurídica correspondiente antes de guardar.' });
+    document.getElementById('edit-etapa')?.focus();
+    return;
+  }
+
   const payload = {
     id_proceso: row.id_proceso,
     rowIndex:   row.rowIndex
@@ -6553,9 +6571,9 @@ abrirVerAsignacion_ = function(row) {
     const btnChat = document.createElement('button');
     btnChat.type = 'button';
     btnChat.className = 'proc-btn-chat proc-action-btn';
-    btnChat.innerHTML = `
-      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png"
-           alt="Chat" style="width:20px;height:20px;" />
+        btnChat.innerHTML = `
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp"
+           alt="Chat" style="width:22px;height:22px;" />
       CHAT
       <span class="chat-unread-badge" id="chat-badge-ver" style="display:none;"></span>
     `;
