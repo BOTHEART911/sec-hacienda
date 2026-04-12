@@ -1484,6 +1484,22 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .chat-empty img { width: 64px; opacity: .45; }
 .chat-empty p { font-weight: 700; font-size: .88rem; }
+
+    /* ── Botón con icono + texto centrado ── */
+.btn-icon-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1rem;
+  letter-spacing: .5px;
+}
+.btn-icon-label img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
     
   </style>
 </head>
@@ -1571,10 +1587,9 @@ button:active { transform: translateY(0) scale(.98); }
 
                 <!-- ── Categoría PREDIAL ── -->
         <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-cat-predial" class="btn-primary"
-            style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:1rem;letter-spacing:.5px;">
+          <button id="btn-cat-predial" class="btn-primary btn-icon-label">
             <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776026457/predial_fnzfh5.png"
-                 alt="Predial" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
+                 alt="Predial" />
             PREDIAL
           </button>
         </div>
@@ -1597,22 +1612,19 @@ button:active { transform: translateY(0) scale(.98); }
 
         <!-- ── DRIVE ANEXOS ── -->
         <div class="btn-row" style="margin-top:10px;">
-          <button id="btn-drive-anexos" class="btn-primary"
-            style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <button id="btn-drive-anexos" class="btn-primary btn-icon-label">
             <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1763997280/DRIVE_bycgsc.webp"
-                 alt="Drive" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
+                 alt="Drive" />
             DRIVE ANEXOS
           </button>
         </div>
 
         <!-- ── MI SEMÁFORO ── -->
                 <div class="btn-row" style="margin-top:10px;">
-          <button id="btn-semaforo" class="btn-primary"
-            style="background:linear-gradient(135deg,#f87171 0%,#fbbf24 50%,#4ade80 100%);
-                   display:none; font-size:1rem; letter-spacing:.5px;
-                   display:flex; align-items:center; justify-content:center; gap:10px;">
+          <button id="btn-semaforo" class="btn-primary btn-icon-label"
+            style="background:linear-gradient(135deg,#f87171 0%,#fbbf24 50%,#4ade80 100%);display:none;">
             <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776028801/semaforo_vdxduc.png"
-                 alt="Semáforo" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
+                 alt="Semáforo" />
             MI SEMÁFORO
           </button>
         </div>
