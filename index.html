@@ -6311,11 +6311,20 @@ async function abrirChat_(row) {
   document.getElementById('chat-header-sub').textContent =
     (row.asignado || '') + (row.asistente ? ' · ' + row.asistente : '');
 
-  // Limpiar mensajes anteriores
-  const container = document.getElementById('chat-messages');
-  container.innerHTML = '';
-  document.getElementById('chat-empty').style.display = '';
-  container.appendChild(document.getElementById('chat-empty'));
+// Limpiar mensajes anteriores
+const container = document.getElementById('chat-messages');
+container.innerHTML = '';
+__lastDateShown = '';
+
+// Re-crear el placeholder vacío en lugar de reutilizar el del DOM
+const emptyPlaceholder = document.createElement('div');
+emptyPlaceholder.id = 'chat-empty';
+emptyPlaceholder.className = 'chat-empty';
+emptyPlaceholder.innerHTML = `
+  <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png" alt="">
+  <p>Aún no hay mensajes.<br>¡Sé el primero en escribir!</p>
+`;
+container.appendChild(emptyPlaceholder);
 
   // Desuscribir listeners previos
   cerrarListeners_();
@@ -6340,16 +6349,17 @@ async function abrirChat_(row) {
 
   // Escuchar mensajes en tiempo real
   let primeraCarga = true;
-  __chatUnsubMsg = __chatRef.on('child_added', (snap) => {
-    const data = snap.val();
-    if (!data) return;
+__chatUnsubMsg = __chatRef.on('child_added', (snap) => {
+  const data = snap.val();
+  if (!data) return;
 
-    // Ocultar placeholder vacío
-    const empty = document.getElementById('chat-empty');
-    if (empty) empty.style.display = 'none';
+  // Ocultar placeholder — buscar por id de forma segura
+  const empty = container.querySelector('#chat-empty') ||
+                document.getElementById('chat-empty');
+  if (empty) empty.style.display = 'none';
 
-    const msgEl = renderChatMsg_(snap.key, data, container);
-    container.appendChild(msgEl);
+  const msgEl = renderChatMsg_(snap.key, data, container);
+  container.appendChild(msgEl);
 
     if (primeraCarga) {
       chatScrollBottom_(true);
