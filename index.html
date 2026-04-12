@@ -1569,34 +1569,45 @@ button:active { transform: translateY(0) scale(.98); }
         <h2 id="inicio-nombre" style="color:var(--primary); font-weight:1000; margin-top:6px;"></h2>
         <p id="inicio-sub" class="center muted" style="margin-top:0; font-weight:700;"></p>
 
+                <!-- ── Categoría PREDIAL ── -->
         <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-agregar" class="btn-primary">AGREGAR SOLICITUD PREDIAL</button>
-          <button id="btn-pendientes" class="btn-primary">PENDIENTES PREDIAL</button>
-        </div>
-        <div class="btn-row" style="margin-top:10px;">
-          <button id="btn-atendidas-chat" class="btn-primary">ATENDIDAS CHAT</button>
-          <button id="btn-atendidas-pres" class="btn-primary">ATENDIDAS PRESENCIAL</button>
-        </div>
-
-        <div class="btn-row" style="margin-top:10px;">
-          <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
+          <button id="btn-cat-predial" class="btn-primary"
+            style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:1rem;letter-spacing:.5px;">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776026457/predial_fnzfh5.png"
+                 alt="Predial" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
+            PREDIAL
+          </button>
         </div>
 
+        <!-- Sub-botones PREDIAL (colapsables) -->
+        <div id="predial-submenu" style="display:none;">
+          <div class="btn-row" style="margin-top:10px;">
+            <button id="btn-agregar" class="btn-primary" style="display:none;">AGREGAR SOLICITUD PREDIAL</button>
+            <button id="btn-pendientes" class="btn-primary" style="display:none;">PENDIENTES PREDIAL</button>
+          </div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button id="btn-atendidas-chat" class="btn-primary" style="display:none;">ATENDIDAS CHAT</button>
+            <button id="btn-atendidas-pres" class="btn-primary" style="display:none;">ATENDIDAS PRESENCIAL</button>
+          </div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
+            <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS</button>
+          </div>
+        </div>
+
+        <!-- ── DRIVE ANEXOS ── -->
         <div class="btn-row" style="margin-top:10px;">
           <button id="btn-drive-anexos" class="btn-primary">DRIVE ANEXOS</button>
         </div>
-        
-          <div class="btn-row" style="margin-top:10px;">
-        <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS</button>
-               </div>
 
-                <div class="btn-row" style="margin-top:10px;">
-  <button id="btn-semaforo" class="btn-primary"
-    style="background:linear-gradient(135deg,#f87171 0%,#fbbf24 50%,#4ade80 100%);
-           display:none; font-size:1rem; letter-spacing:.5px;">
-    MI SEMÁFORO 🚦
-  </button>
-</div>
+        <!-- ── MI SEMÁFORO ── -->
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="btn-semaforo" class="btn-primary"
+            style="background:linear-gradient(135deg,#f87171 0%,#fbbf24 50%,#4ade80 100%);
+                   display:none; font-size:1rem; letter-spacing:.5px;">
+            MI SEMÁFORO 🚦
+          </button>
+        </div>
         
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
@@ -1935,10 +1946,14 @@ button:active { transform: translateY(0) scale(.98); }
       <input id="proc-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
     </div>
 
-    <div class="btn-row" style="margin-bottom:14px;">
+      <div class="btn-row" style="margin-bottom:14px;">
       <button id="btn-agregar-asignacion" class="btn-primary"
         style="background:linear-gradient(135deg,#06b6d4,#0284c7);display:none;">
         AGREGAR ASIGNACIÓN
+      </button>
+      <button id="btn-mis-procesos" class="btn-primary"
+        style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+        MIS PROCESOS
       </button>
       <button id="btn-asignaciones-back" class="danger">REGRESAR</button>
     </div>
@@ -2387,6 +2402,15 @@ function stopLoading(){
     loader.classList.add('hidden');
   }
 }
+
+  /* ================== PREDIAL SUBMENU TOGGLE ================== */
+document.getElementById('btn-cat-predial')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.menu);
+  const sub = document.getElementById('predial-submenu');
+  if (!sub) return;
+  const open = sub.style.display !== 'none';
+  sub.style.display = open ? 'none' : '';
+});
 
 /* ================== API ================== */
 async function apiGet(action, params = {}){
@@ -3229,6 +3253,26 @@ document.getElementById('proc-filter')?.addEventListener('input', () => {
   renderProcList_(__procCache.filter(it => normalizeText_(JSON.stringify(it)).includes(q)));
 });
 
+  /* ================== MIS PROCESOS (semáforo) ================== */
+document.getElementById('btn-mis-procesos')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  try {
+    if (!currentUser) {
+      Swal.fire({ icon: 'warning', title: 'Sesión inválida' });
+      return;
+    }
+    const res = await apiGet('getMisInformesLink', { documento: currentUser.documento });
+    const link = String(res?.link || '').trim();
+    if (!link) {
+      Swal.fire({ icon: 'info', title: 'Sin enlace', text: 'No tienes enlace de procesos configurado en la hoja USUARIOS (columna G).' });
+      return;
+    }
+    window.open(link, '_blank', 'noopener');
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+});
+
 // Regresar
 document.getElementById('btn-asignaciones-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
@@ -3520,23 +3564,22 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   currentUser = null;
   currentCardSelected = null;
   document.getElementById('login-doc').value = '';
-  try{ const b = document.getElementById('btn-agregar'); if(b) b.style.display = 'none'; }catch(_){}
-  try{ const b = document.getElementById('btn-pendientes'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-agregar');        if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-pendientes');     if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-atendidas-chat'); if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-atendidas-pres'); if(b) b.style.display = 'none'; }catch(_){}
-  try { const b = document.getElementById('btn-semaforo'); if(b) b.style.display = 'none'; } catch(_) {}
+  try{ const b = document.getElementById('btn-mis-informes');   if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-estadisticas');   if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-semaforo');       if(b) b.style.display = 'none'; }catch(_){}
+  // Colapsar submenú predial
+  try{ const s = document.getElementById('predial-submenu');    if(s) s.style.display = 'none'; }catch(_){}
   showView('view-login');
 });
 
-  try{
-  const b = document.getElementById('btn-drive-anexos');
-  if(b) b.style.display = 'none';
-}catch(_){}
-
-  try{ 
-  const bInf = document.getElementById('btn-mis-informes'); 
-  if(bInf) bInf.style.display = 'none'; 
-}catch(_){}
+try{ const b = document.getElementById('btn-drive-anexos'); if(b) b.style.display = 'none'; }catch(_){}
+try{ const b = document.getElementById('btn-mis-informes'); if(b) b.style.display = 'none'; }catch(_){}
+try{ const b = document.getElementById('btn-estadisticas'); if(b) b.style.display = 'none'; }catch(_){}
+try{ const b = document.getElementById('btn-semaforo');     if(b) b.style.display = 'none'; }catch(_){}
 
 /* ================== INICIO: botones ================== */
 document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
