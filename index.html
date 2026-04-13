@@ -5942,6 +5942,7 @@ if (currentUser?.isSuper) {
       }
 
       const btnElim = _mkProcIconBtn_(ICONO_ELIMINAR, 'Eliminar asignación');
+  
       btnElim.addEventListener('click', async () => {
         const ok = await Swal.fire({ icon:'warning', title:'¿Eliminar asignación?', html:`<b>${escapeHtml_(row.descripcion || row.id_proceso)}</b><br>Esta acción es irreversible.`, showCancelButton:true, confirmButtonText:'Eliminar', cancelButtonText:'Cancelar' });
         if (!ok.isConfirmed) return;
@@ -6034,8 +6035,7 @@ abrirVerAsignacion_ = function(row) {
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
   addField('Fecha de Respuesta:', formatFechaLarga_(row.respuesta));
-   // Bitácora: respetar saltos de línea al mostrar
-  if (row.bitacora) {
+   if (row.bitacora) {
     const div = document.createElement('div');
     div.className = 'proc-detalle-field';
     div.innerHTML = `<span class="proc-detalle-label">Bitácora:</span>
