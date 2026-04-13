@@ -5076,12 +5076,20 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
 
   // Resumen
   const resumenHtml = buildResumenHtml_({
-    'Recibido': recibido, 'Consecutivo': consecutivo, 'Asunto': descripcion,
-    '(peticionario ? { 'Peticionario': peticionario } : {}), (expediente   ? { 'N° EXP. INTERNO': expediente } : {}),
-    'Respuesta': respuesta, 'Medio': medio, 'Categoría': categoria,
-    'Subcategoría': subcategoria, 'Asignado': asignado, 'Asistente': asistente,
+    'Recibido': recibido,
+    'Consecutivo': consecutivo,
+    'Asunto': descripcion,
+    ...(peticionario ? { 'Peticionario': peticionario } : {}),
+    ...(expediente   ? { 'N° EXP. INTERNO': expediente } : {}),
+    'Respuesta': respuesta,
+    'Medio': medio,
+    'Categoría': categoria,
+    'Subcategoría': subcategoria,
+    'Asignado': asignado,
+    'Asistente': asistente,
     'Documentos': Object.keys(files).length + ' archivo(s)'
   });
+  
   const ok = await Swal.fire({
     icon: 'info', title: 'Confirmar Asignación',
     html: resumenHtml, showCancelButton: true,
