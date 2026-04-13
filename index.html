@@ -4871,16 +4871,24 @@ function renderProcList_(items) {
     actions.className = 'proc-actions';
 
     // Consultivo (consecutivo)
-       const consWrap = document.createElement('div');
-    consWrap.style.cssText = 'display:flex;flex-direction:column;gap:1px;';
-    const consEl = document.createElement('span');
-    consEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--text-muted);';
-    consEl.textContent = row.consecutivo ? 'CONSECUTIVO: ' + row.consecutivo : '';
-    consWrap.appendChild(consEl);
+           const consWrap = document.createElement('div');
+    consWrap.style.cssText = 'display:flex;flex-direction:column;gap:2px;';
+    if (row.consecutivo) {
+      const consEl = document.createElement('span');
+      consEl.style.cssText = 'font-size:.70rem;font-weight:700;color:var(--text-muted);';
+      consEl.textContent = 'CONSEC: ' + row.consecutivo;
+      consWrap.appendChild(consEl);
+    }
+    if (row.peticionario) {
+      const petEl = document.createElement('span');
+      petEl.style.cssText = 'font-size:.68rem;font-weight:600;color:var(--text-sub);';
+      petEl.textContent = 'PET: ' + row.peticionario;
+      consWrap.appendChild(petEl);
+    }
     if (row.expediente) {
       const expEl = document.createElement('span');
-      expEl.style.cssText = 'font-size:.76rem;font-weight:700;color:var(--primary);';
-      expEl.textContent = 'N° EXP. INTERNO: ' + row.expediente;
+      expEl.style.cssText = 'font-size:.68rem;font-weight:700;color:var(--primary);';
+      expEl.textContent = 'EXP: ' + row.expediente;
       consWrap.appendChild(expEl);
     }
     actions.appendChild(consWrap);
@@ -5955,7 +5963,7 @@ abrirVerAsignacion_ = function(row) {
   };
   addField('Asunto:',             row.descripcion);
   addField('Peticionario:',       row.peticionario);
-  addField('N° EXP. INTERNO:',   row.expediente);
+  addField('N° Exp. Interno:',   row.expediente);
   addField('Consecutivo:',        row.consecutivo);
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
