@@ -6706,12 +6706,21 @@ abrirVerAsignacion_ = function(row) {
   setTimeout(() => {
     const actionsWrap = document.getElementById('proc-ver-actions');
     if (!actionsWrap) return;
-    if (actionsWrap.querySelector('.proc-btn-chat')) return; // ya existe
+
+    // ── NUEVO: eliminar botón chat anterior (si quedó de otra asignación)
+    const prevBtn = actionsWrap.querySelector('.proc-btn-chat');
+    if (prevBtn) prevBtn.remove();
+
+    // ── NUEVO: cancelar listener de badge anterior
+    if (typeof __chatBadgeCurrentUnsubscribe_ === 'function') {
+      __chatBadgeCurrentUnsubscribe_();
+      __chatBadgeCurrentUnsubscribe_ = null;
+    }
 
     const btnChat = document.createElement('button');
     btnChat.type = 'button';
     btnChat.className = 'proc-btn-chat proc-action-btn';
-        btnChat.innerHTML = `
+    btnChat.innerHTML = `
       <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp"
            alt="Chat" style="width:22px;height:22px;" />
       CHAT
@@ -6719,16 +6728,19 @@ abrirVerAsignacion_ = function(row) {
     `;
     btnChat.addEventListener('click', () => {
       playSoundOnce(SOUNDS.menu);
+      // ── NUEVO: siempre pasa el row ACTUAL (no una referencia vieja)
       abrirChat_(row);
     });
 
     // Insertar como primer botón
     actionsWrap.insertBefore(btnChat, actionsWrap.firstChild);
 
-    // Badge: mostrar conteo total de mensajes del proceso
+    // ── NUEVO: Badge ligado al id_proceso del row ACTUAL
     initFirebase_().then(db => {
       if (!db) return;
-      db.ref('chats/' + row.id_proceso + '/mensajes').on('value', snap => {
+
+      const badgeRef = db.ref('chats/' + row.id_proceso + '/mensajes');
+      const badgeHandler = badgeRef.on('value', snap => {
         const badge = document.getElementById('chat-badge-ver');
         if (!badge) return;
         const n = snap.numChildren();
@@ -6739,7 +6751,13 @@ abrirVerAsignacion_ = function(row) {
           badge.style.display = 'none';
         }
       });
+
+      // Guardar función para cancelar este listener al abrir otra asignación
+      window.__chatBadgeCurrentUnsubscribe_ = () => {
+        badgeRef.off('value', badgeHandler);
+      };
     });
+
   }, 80);
 };
   
