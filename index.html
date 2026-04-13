@@ -5515,6 +5515,21 @@ function abrirEditarAsignacion_(row) {
     if (st) st.style.display = puedeVerRespuesta ? '' : 'none';
   });
 
+  // ── NUEVO: ocultar evidencia si estado es ASIGNADO ──────────
+  const puedeVerEvidencia = esSuper || estadoActualParaEditar !== 'ASIGNADO';
+  const evidenciaInp = document.getElementById('edit-evidencia');
+  const evidenciaStatus = document.getElementById('edit-evidencia-status');
+  const evidenciaPreview = document.getElementById('edit-evidencia-preview');
+  let evidenciaLabel = null;
+  document.querySelectorAll('#view-editar-asignacion label').forEach(lbl => {
+    if (lbl.textContent.trim().startsWith('Evidencia Respuesta')) evidenciaLabel = lbl;
+  });
+  if (evidenciaLabel)  evidenciaLabel.style.display  = puedeVerEvidencia ? '' : 'none';
+  if (evidenciaInp)    evidenciaInp.style.display    = puedeVerEvidencia ? '' : 'none';
+  if (evidenciaStatus) evidenciaStatus.style.display = puedeVerEvidencia ? '' : 'none';
+  if (evidenciaPreview) evidenciaPreview.style.display = (puedeVerEvidencia && evidenciaPreview.style.display !== 'none') ? evidenciaPreview.style.display : 'none';
+  // ──────────────────────────────────────────────────────────
+
   showView('view-editar-asignacion');
 }
 
@@ -5910,12 +5925,16 @@ renderProcList_ = function(items) {
     icons.className = 'proc-icons';
 
 if (currentUser?.isSuper) {
-      const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
-      btnFirma.addEventListener('click', () => {
-        currentProcesoSelected = row;
-        abrirDecision_(row);
-      });
-      icons.appendChild(btnFirma);
+      // ── NUEVO: Decisión oculto si estado es FINALIZADO ──────
+      if (estadoUpper !== 'FINALIZADO') {
+        const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
+        btnFirma.addEventListener('click', () => {
+          currentProcesoSelected = row;
+          abrirDecision_(row);
+        });
+        icons.appendChild(btnFirma);
+      }
+      // ────────────────────────────────────────────────────────
 
       const btnElim = _mkProcIconBtn_(ICONO_ELIMINAR, 'Eliminar asignación');
       btnElim.addEventListener('click', async () => {
@@ -6010,7 +6029,14 @@ abrirVerAsignacion_ = function(row) {
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
   addField('Fecha de Respuesta:', formatFechaLarga_(row.respuesta));
-  addField('Bitácora:',           row.bitacora);
+    // Bitácora: respetar saltos de línea en la visualización
+  if (row.bitacora) {
+    const div = document.createElement('div');
+    div.className = 'proc-detalle-field';
+    div.innerHTML = `<span class="proc-detalle-label">Bitácora:</span>
+      <span class="proc-detalle-value" style="white-space:pre-wrap;">${escapeHtml_(row.bitacora)}</span>`;
+    body.appendChild(div);
+  }
   addField('Fecha de Cierre:',    formatFechaLarga_(row.cierre));
   addField('Asignado:',           row.asignado);
   addField('Asistente:',          row.asistente);
@@ -6111,8 +6137,8 @@ abrirVerAsignacion_ = function(row) {
     actionsWrap.appendChild(btnSP);
   }
 
-  // ── DECISIÓN (solo super usuario) ─────────────────────────
-  if (currentUser?.isSuper) {
+  // ── DECISIÓN (solo super usuario, oculto si FINALIZADO) ───
+  if (currentUser?.isSuper && estado !== 'FINALIZADO') {
     const btnDec = document.createElement('button');
     btnDec.type = 'button';
     btnDec.className = 'proc-action-btn';
