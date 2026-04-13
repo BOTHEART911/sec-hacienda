@@ -1159,6 +1159,23 @@ button:active { transform: translateY(0) scale(.98); }
     font-size: .65rem;
   }
 
+  /* ── Detalle value: forzar wrap en móvil ── */
+  .proc-detalle-value {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .proc-detalle-field {
+    min-width: 0;
+  }
+
+  .proc-detalle-label {
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+
   /* ── 2. Pills de categoría y subcategoría ─────────────────
      Problema: pills anchas que salen de pantalla
      Solución: flujo wrapping + texto más pequeño              */
