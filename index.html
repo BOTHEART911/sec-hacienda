@@ -2342,7 +2342,14 @@ button:active { transform: translateY(0) scale(.98); }
         <div class="chat-header-title" id="chat-header-title">Chat de Asignación</div>
         <div class="chat-header-sub"  id="chat-header-sub">Cargando...</div>
       </div>
-      <button class="chat-header-close" id="btn-chat-close" aria-label="Cerrar chat">✕</button>
+      <button id="btn-chat-reset" aria-label="Resetear chat" title="Resetear chat"
+  style="display:none; background:rgba(239,68,68,.30); border:0; color:#fff;
+         width:34px; height:34px; border-radius:50%; font-size:1rem;
+         cursor:pointer; align-items:center; justify-content:center;
+         flex-shrink:0; transition:.15s; margin-right:4px;">
+  🗑️
+</button>
+<button class="chat-header-close" id="btn-chat-close" aria-label="Cerrar chat">✕</button>
     </div>
 
     <!-- Mensajes -->
@@ -6489,6 +6496,14 @@ container.appendChild(emptyPlaceholder);
 
   // Abrir modal
   document.getElementById('modal-chat').classList.add('open');
+  // Mostrar botón reset SOLO para OSCAR
+const resetBtn = document.getElementById('btn-chat-reset');
+if (resetBtn) {
+  resetBtn.style.display =
+    normalizeText_(currentUser?.nombre || '') === normalizeText_('OSCAR MAURICIO POLANIA GUERRA')
+      ? 'flex' : 'none';
+}
+  
   document.body.style.overflow = 'hidden';
   __chatOpen = true;
 
@@ -6760,6 +6775,48 @@ abrirVerAsignacion_ = function(row) {
 
   }, 80);
 };
+
+  /* ── RESET CHAT (solo OSCAR MAURICIO POLANIA GUERRA) ────── */
+document.getElementById('btn-chat-reset')?.addEventListener('click', async () => {
+  if (!__fbDB || !__chatProcId) return;
+
+  const ok = await Swal.fire({
+    icon: 'warning',
+    title: 'Resetear Chat',
+    html: '¿Estás seguro? Se eliminarán <b>todos los mensajes</b> de este chat. Esta acción es irreversible.',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar todo',
+    cancelButtonText: 'Cancelar'
+  });
+  if (!ok.isConfirmed) return;
+
+  try {
+    // Borrar todo el nodo del chat en Firebase
+    await __fbDB.ref('chats/' + __chatProcId).remove();
+
+    // Limpiar visualmente el contenedor de mensajes
+    const container = document.getElementById('chat-messages');
+    if (container) {
+      container.innerHTML = '';
+      __lastDateShown = '';
+
+      // Re-insertar el placeholder vacío
+      const emptyEl = document.createElement('div');
+      emptyEl.id = 'chat-empty';
+      emptyEl.className = 'chat-empty';
+      emptyEl.innerHTML = `
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png" alt="">
+        <p>Aún no hay mensajes.<br>¡Sé el primero en escribir!</p>
+      `;
+      container.appendChild(emptyEl);
+    }
+
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon: 'success', title: 'Chat reiniciado', timer: 1500, showConfirmButton: false });
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+});
   
 </script>
 </body>
