@@ -2002,6 +2002,13 @@ button:active { transform: translateY(0) scale(.98); }
     <textarea id="proc-descripcion" rows="2"
       placeholder="Relaciona brevemente el asunto" required></textarea>
 
+    <!-- Solo super usuario: Peticionario y Expediente -->
+    <label>Peticionario</label>
+    <input id="proc-peticionario" type="text" placeholder="Nombre del peticionario" />
+
+    <label>N° EXP. INTERNO</label>
+    <input id="proc-expediente" type="text" placeholder="Ej: SH-0525" />
+
     <!-- Fecha Respuesta oportuna -->
     <label>Fecha de Respuesta oportuna</label>
     <p class="muted" style="margin:0 0 6px;font-size:.8rem;">
@@ -2123,6 +2130,12 @@ button:active { transform: translateY(0) scale(.98); }
 
       <label>Asunto</label>
       <textarea id="edit-descripcion" rows="2" placeholder="Relaciona brevemente el asunto"></textarea>
+
+      <label>Peticionario</label>
+      <input id="edit-peticionario" type="text" placeholder="Nombre del peticionario" />
+
+      <label>N° EXP. INTERNO</label>
+      <input id="edit-expediente" type="text" placeholder="Ej: SH-0525" />
 
       <label>Fecha de Respuesta oportuna</label>
       <input id="edit-respuesta" type="text" placeholder="dd/mm/2026" readonly
@@ -4858,10 +4871,19 @@ function renderProcList_(items) {
     actions.className = 'proc-actions';
 
     // Consultivo (consecutivo)
+       const consWrap = document.createElement('div');
+    consWrap.style.cssText = 'display:flex;flex-direction:column;gap:1px;';
     const consEl = document.createElement('span');
     consEl.style.cssText = 'font-size:.78rem;font-weight:700;color:var(--text-muted);';
-    consEl.textContent = row.consecutivo || '';
-    actions.appendChild(consEl);
+    consEl.textContent = row.consecutivo ? 'CONSECUTIVO: ' + row.consecutivo : '';
+    consWrap.appendChild(consEl);
+    if (row.expediente) {
+      const expEl = document.createElement('span');
+      expEl.style.cssText = 'font-size:.76rem;font-weight:700;color:var(--primary);';
+      expEl.textContent = 'N° EXP. INTERNO: ' + row.expediente;
+      consWrap.appendChild(expEl);
+    }
+    actions.appendChild(consWrap);
 
     const icons = document.createElement('div');
     icons.className = 'proc-icons';
@@ -4969,6 +4991,8 @@ function abrirAgregarAsignacion_() {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('proc-descripcion').value = '';
+  const procPet = document.getElementById('proc-peticionario'); if (procPet) procPet.value = '';
+  const procExp = document.getElementById('proc-expediente');   if (procExp) procExp.value = '';
   document.getElementById('proc-medio').value = '';
   document.getElementById('proc-asignado').value = '';
   document.getElementById('proc-asistente').value = '';
@@ -5022,6 +5046,8 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
   const categoria    = document.getElementById('proc-categoria').value;
   const subcategoria = document.getElementById('proc-subcategoria')?.value || '';
   const asignado     = document.getElementById('proc-asignado').value;
+  const peticionario = (document.getElementById('proc-peticionario')?.value || '').trim().toUpperCase();
+  const expediente   = (document.getElementById('proc-expediente')?.value   || '').trim().toUpperCase();
   const contacto1    = document.getElementById('proc-contacto1').value;
   const asistente    = document.getElementById('proc-asistente').value;
   const contacto2    = document.getElementById('proc-contacto2').value;
@@ -5051,6 +5077,7 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
   // Resumen
   const resumenHtml = buildResumenHtml_({
     'Recibido': recibido, 'Consecutivo': consecutivo, 'Asunto': descripcion,
+    '(peticionario ? { 'Peticionario': peticionario } : {}), (expediente   ? { 'N° EXP. INTERNO': expediente } : {}),
     'Respuesta': respuesta, 'Medio': medio, 'Categoría': categoria,
     'Subcategoría': subcategoria, 'Asignado': asignado, 'Asistente': asistente,
     'Documentos': Object.keys(files).length + ' archivo(s)'
@@ -5066,6 +5093,8 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
     const res = await apiPost('agregarProceso', {
       recibido, consecutivo: consecutivo.toUpperCase(),
       descripcion: descripcion.toUpperCase(), respuesta, medio,
+      peticionario: peticionario,
+      expediente:   expediente,
       categoria, subcategoria, asignado, contacto1, asistente,
       contacto2, coordinador, contacto3,
       recibido1: files['recibido1'] || null,
@@ -5374,6 +5403,8 @@ function abrirEditarAsignacion_(row) {
     const em = document.getElementById('edit-medio');       if (em) em.value = row.medio || '';
     const ea = document.getElementById('edit-asignado');    if (ea) ea.value = row.asignado || '';
     const ecierre = document.getElementById('edit-cierre'); if (ecierre) ecierre.value = row.cierre || '';
+    const epet = document.getElementById('edit-peticionario'); if (epet) epet.value = row.peticionario || '';
+    const eexp = document.getElementById('edit-expediente');   if (eexp) eexp.value = row.expediente   || '';
     autoFillAsistente_(row.asignado, 'edit-');
     document.getElementById('edit-contacto1').value = row.contacto1 || '';
   }
@@ -5424,6 +5455,10 @@ function abrirEditarAsignacion_(row) {
       const el = document.getElementById(id); if (el) el.value = '';
       const st = document.getElementById(id + '-status'); if (st) st.textContent = '';
     });
+
+    // Limpiar si la fila no tiene valores (protección)
+  if (!row.peticionario) { const el = document.getElementById('edit-peticionario'); if(el) el.value=''; }
+  if (!row.expediente)   { const el = document.getElementById('edit-expediente');   if(el) el.value=''; }
 
     // Mostrar/ocultar campos de respuesta según estado
   const estadoActualParaEditar = String(row.estado || '').toUpperCase();
@@ -5520,6 +5555,10 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
     if (er)               payload.recibido    = er;
     if (ec)               payload.consecutivo = ec.toUpperCase();
     if (ed)               payload.descripcion = ed.toUpperCase();
+    const _pet = (document.getElementById('edit-peticionario')?.value || '').trim().toUpperCase();
+    const _exp = (document.getElementById('edit-expediente')?.value   || '').trim().toUpperCase();
+    if (_pet) payload.peticionario = _pet;
+    if (_exp) payload.expediente   = _exp;
     if (esp)              payload.respuesta   = esp;
     if (em)               payload.medio       = em;
     if (ea !== undefined) payload.asignado    = ea;
@@ -5571,6 +5610,8 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
   if (payload.recibido)    resumenFields['Recibido']    = payload.recibido;
   if (payload.consecutivo) resumenFields['Consecutivo'] = payload.consecutivo;
   if (payload.descripcion) resumenFields['Asunto']      = payload.descripcion;
+  if (payload.peticionario) resumenFields['Peticionario']    = payload.peticionario;
+  if (payload.expediente)   resumenFields['N° EXP. INTERNO'] = payload.expediente;
   if (payload.respuesta)   resumenFields['Respuesta']   = payload.respuesta;
   if (payload.medio)       resumenFields['Medio']       = payload.medio;
   if (payload.categoria)   resumenFields['Categoría']   = payload.categoria;
@@ -5905,6 +5946,8 @@ abrirVerAsignacion_ = function(row) {
     body.appendChild(div);
   };
   addField('Asunto:',             row.descripcion);
+  addField('Peticionario:',       row.peticionario);
+  addField('N° EXP. INTERNO:',   row.expediente);
   addField('Consecutivo:',        row.consecutivo);
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
