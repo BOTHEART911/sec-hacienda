@@ -5138,9 +5138,9 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
       if (asistente && contacto2) {
         setTimeout(() => {
           const msg2 =
-            `Estimado(a) *${asistente}*\n` +
+            `Estimado(a) *${asistente}*\n\n` +
             `Se te ha asignado un apoyo para responder el oficio *${consecutivo.toUpperCase()}* recibido a través de *${medio}*.\n` +
-            `*Asunto:* ${descripcion}.\n` +
+            `*Asunto:* ${descripcion}.\n\n` +
             `Por favor, entra a la App para iniciarlo.\n\n` +
             `Cordialmente,\n\n*${coordinador}*`;
           sendProcWA_(contacto2, msg2);
