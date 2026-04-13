@@ -5864,19 +5864,19 @@ renderProcList_ = function(items) {
 
     if (row.consecutivo) {
       const el = document.createElement('span');
-      el.style.cssText = 'font-size:.70rem;font-weight:700;color:var(--text-muted);';
+      el.style.cssText = 'font-size:.64rem;font-weight:700;color:var(--text-sub);';
       el.textContent = 'Consecutivo: ' + row.consecutivo;
       consWrap.appendChild(el);
     }
     if (row.peticionario) {
       const el = document.createElement('span');
-      el.style.cssText = 'font-size:.70rem;font-weight:600;color:var(--text-sub);';
+      el.style.cssText = 'font-size:.64rem;font-weight:600;color:var(--text-sub);';
       el.textContent = 'Peticionario: ' + row.peticionario;
       consWrap.appendChild(el);
     }
     if (row.expediente) {
       const el = document.createElement('span');
-      el.style.cssText = 'font-size:.70rem;font-weight:700;color:var(--primary);';
+      el.style.cssText = 'font-size:.64rem;font-weight:700;color:var(--primary);';
       el.textContent = 'N° Exp. Interno: ' + row.expediente;
       consWrap.appendChild(el);
     }
