@@ -4630,15 +4630,18 @@ function formatFechaLarga_(str) {
 }
 
 function diasHabiles_(fechaIni, fechaFin) {
-  // Ambas dd/mm/yyyy. Retorna días hábiles INCLUYENDO el día de fechaFin.
+  // Retorna días hábiles EXCLUYENDO fechaIni e INCLUYENDO fechaFin.
+  // Así "faltan X días" no cuenta el día de hoy/creación,
+  // pero sí cuenta el día de vencimiento/cierre.
   const a = parseDDMMYYYYtoDate_(fechaIni);
   const b = parseDDMMYYYYtoDate_(fechaFin);
   if (!a || !b) return 0;
   let count = 0;
+  // Excluir fechaIni: empezamos desde el día SIGUIENTE
   const cursor = new Date(a);
-  const end    = new Date(b);
-  const dir    = end >= cursor ? 1 : -1;
-  // Incluimos fechaFin: avanzamos hasta cursor <= end (en vez de cursor < end)
+  cursor.setDate(cursor.getDate() + 1);
+  const end = new Date(b);
+  const dir = end >= cursor ? 1 : -1;
   while (dir === 1 ? cursor <= end : cursor >= end) {
     const dow  = cursor.getDay();
     const dStr = formatDDMMYYYY_(cursor);
