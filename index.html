@@ -3592,7 +3592,8 @@ try {
     'ANDREA KATERINE LAMAR RODRIGUEZ',
     'VICTOR MANUEL FANDIÑO GIRALDO',
     'LUIS GABRIEL RAMIREZ RAMIREZ',
-    'DIEGO FERNANDO GARCIA'
+    'DIEGO FERNANDO GARCIA',
+    'SOL MAR OCHOA HERNANDEZ' 
   ].map(s => normalizeText_(s));
 
   const bSema = document.getElementById('btn-semaforo');
@@ -4532,6 +4533,22 @@ const ICONO_MEMORIA    = 'https://res.cloudinary.com/dqqeavica/image/upload/v177
 const BB_PROC_ENDPOINT = 'https://app.builderbot.cloud/api/v2/ff37a123-12b0-4fdc-9866-f3e2daf389fb/messages';
 const BB_PROC_KEY      = 'bb-7f9ef630-5cfc-4ba4-9258-5e7cecbb4f65';
 
+/* ── SOL MAR: usuario especial expediente ── */
+const SOLMAR_NOMBRE  = 'SOL MAR OCHOA HERNANDEZ';
+const SOLMAR_TEL     = '3134268302';
+const SOLMAR_PREFIJO = 'SOL MAR';
+
+function getPrefijo_(nombreCompleto) {
+  // Retorna los dos primeros nombres en mayúsculas
+  const partes = String(nombreCompleto || '')
+    .replace(/\s+/g, ' ').trim().toUpperCase().split(' ').filter(Boolean);
+  return partes.slice(0, 2).join(' ');
+}
+
+function esSolMar_() {
+  return normalizeText_(currentUser?.nombre || '') === normalizeText_(SOLMAR_NOMBRE);
+}
+
 /* ── Estado global ──────────────────────────────────────── */
 let currentProcesoSelected = null;
 let __procListCache = [];
@@ -4829,17 +4846,19 @@ async function abrirVistaAsignaciones_() {
 }
 
 async function loadAndRenderProcesos_() {
-  const esSuper = currentUser?.isSuper ? 'true' : 'false';
-  // Para no super: determinar el asignado (puede ser el asignado o el asistente del grupo)
+  const esSuper  = currentUser?.isSuper ? 'true' : 'false';
+  const esSolMar = esSolMar_();
+
   let asignado = '';
-  if (!currentUser.isSuper) {
+  if (!currentUser.isSuper && !esSolMar) {
     const nombre = normalizeText_(currentUser.nombre || '');
     const grupo = GRUPOS_SEMAFORO.find(g =>
       normalizeText_(g.asignado) === nombre || normalizeText_(g.asistente) === nombre
     );
-    // Siempre filtrar por el campo "asignado" del grupo (columna K)
     asignado = grupo ? grupo.asignado : (currentUser.nombre || '');
   }
+  // Si es super o SOL MAR → asignado='' → trae todas las asignaciones
+
   const data = await apiGet('listProcesos', { asignado, esSuper });
   __procListCache = Array.isArray(data) ? data : [];
   renderProcList_(__procListCache);
@@ -6916,21 +6935,39 @@ document.getElementById('btn-expediente-cancelar')?.addEventListener('click', ()
 document.getElementById('btn-expediente-guardar')?.addEventListener('click', async () => {
   if (!__expedienteRowActual) return;
 
-  const texto = document.getElementById('modal-expediente-texto')?.value ?? '';
-  // No requerimos contenido mínimo — puede enviarse vacío para borrar
+  const row        = __expedienteRowActual;
+  const textoRaw   = document.getElementById('modal-expediente-texto')?.value ?? '';
+  const esSolMar   = esSolMar_();
+  const prefijo    = esSolMar
+    ? SOLMAR_PREFIJO
+    : getPrefijo_(currentUser?.nombre || '');
+
+  // Texto con prefijo: "NOMBRE1 NOMBRE2: texto"
+  const textoFinal = textoRaw.trim()
+    ? prefijo + ': ' + textoRaw.trim()
+    : '';
+
   try {
     await apiPost('guardarExpediente', {
-      id_proceso:          __expedienteRowActual.id_proceso,
-      rowIndex:            __expedienteRowActual.rowIndex,
-      solicitudExpediente: texto   // preserva saltos de línea
+      id_proceso:          row.id_proceso,
+      rowIndex:            row.rowIndex,
+      solicitudExpediente: textoFinal
     });
 
-    // Actualizar caché local para que el modal refleje el nuevo valor
-    __expedienteRowActual.solicitudExpediente = texto;
+    // Actualizar caché local
+    row.solicitudExpediente = textoFinal;
+    const cached = __procListCache.find(r => r.id_proceso === row.id_proceso);
+    if (cached) cached.solicitudExpediente = textoFinal;
 
-    // Actualizar también en __procListCache si la fila existe
-    const cached = __procListCache.find(r => r.id_proceso === __expedienteRowActual.id_proceso);
-    if (cached) cached.solicitudExpediente = texto;
+    // WA a SOL MAR solo si quien guarda NO es SOL MAR
+    if (!esSolMar && textoFinal) {
+      const msg =
+        `Estimada *Sol Mar*\n` +
+        `Tienes una solicitud de *${currentUser?.nombre || ''}*\n` +
+        `*N° Exp. Interno:* ${row.expediente || row.id_proceso}\n` +
+        `> Revisa la App`;
+      sendProcWA_(SOLMAR_TEL, msg);
+    }
 
     cerrarExpedienteModal_();
     playSoundOnce(SOUNDS.success);
@@ -6940,16 +6977,17 @@ document.getElementById('btn-expediente-guardar')?.addEventListener('click', asy
   }
 });
 
-/* ── PATCH renderProcList_: añadir botón expediente como primer icono ── */
+/* ── PATCH renderProcList_: botón expediente + restricción SOL MAR ── */
 const __origRenderProcListFinal = renderProcList_;
 renderProcList_ = function(items) {
   __origRenderProcListFinal(items);
 
-  // Después del render base, insertar el botón expediente en cada tarjeta
   const wrap = document.getElementById('proc-list');
   if (!wrap) return;
 
   const cards = wrap.querySelectorAll('.proc-card');
+  const esSolMar = esSolMar_();
+
   cards.forEach((card, idx) => {
     const row = items[idx];
     if (!row) return;
@@ -6957,15 +6995,20 @@ renderProcList_ = function(items) {
     const iconsWrap = card.querySelector('.proc-icons');
     if (!iconsWrap) return;
 
-    // Evitar duplicados si la función se llama varias veces
+    // Si es SOL MAR: ocultar TODOS los botones excepto el de expediente
+    if (esSolMar) {
+      iconsWrap.querySelectorAll('.proc-icon-btn').forEach(b => { b.style.display = 'none'; });
+    }
+
+    // Evitar duplicados
     if (iconsWrap.querySelector('.proc-btn-expediente-wrap')) return;
 
     const btnExp = document.createElement('button');
     btnExp.type = 'button';
+    // ← Sin style especial: hereda proc-icon-btn igual que los demás
     btnExp.className = 'proc-icon-btn proc-btn-expediente-wrap';
     btnExp.title = 'Solicitud Expediente con SOLMAR';
     btnExp.setAttribute('aria-label', 'Solicitud Expediente');
-    btnExp.style.cssText = 'background:linear-gradient(135deg,#0369a1,#075985);border:0;box-shadow:0 3px 10px rgba(3,105,161,.30);';
     btnExp.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp"
       alt="Expediente" style="width:24px;height:24px;object-fit:contain;" />`;
 
@@ -6974,11 +7017,9 @@ renderProcList_ = function(items) {
       abrirExpedienteModal_(row);
     });
 
-    // Insertar como PRIMER icono (posición izquierda = leftmost)
     iconsWrap.insertBefore(btnExp, iconsWrap.firstChild);
   });
-};
-  
+};  
 </script>
 </body>
 </html>
