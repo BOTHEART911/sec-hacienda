@@ -1277,6 +1277,21 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .proc-btn-chat img { width: 22px; height: 22px; }
 
+    /* ── Botón Expediente ─────────────────────────────────────── */
+.proc-btn-expediente {
+  background: linear-gradient(135deg, #0369a1, #075985);
+  color: #fff; border: 0; width: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0; border-radius: 10px;
+  cursor: pointer; transition: .18s;
+  box-shadow: 0 3px 10px rgba(3,105,161,.30);
+}
+.proc-btn-expediente:hover {
+  background: linear-gradient(135deg, #0284c7, #0c4a6e);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(3,105,161,.45);
+}
+
 /* Badge de mensajes no leídos en el botón */
 .chat-unread-badge {
   position: absolute; top: -6px; right: -6px;
@@ -2406,6 +2421,25 @@ button:active { transform: translateY(0) scale(.98); }
 
 <!-- Toast mensaje nuevo -->
 <div id="chat-toast">💬 Nuevo mensaje</div>
+
+    <!-- Modal SOLICITUD EXPEDIENTE CON SOLMAR -->
+<div id="modal-expediente" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card narrow" style="margin:0;width:min(560px,100%);">
+    <h2 style="color:var(--primary);">SOLICITUD EXPEDIENTE CON SOLMAR</h2>
+    <textarea
+      id="modal-expediente-texto"
+      rows="5"
+      placeholder="Redacta tu solicitud con base al expediente."
+      style="white-space:pre-wrap;"
+    ></textarea>
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="btn-expediente-guardar" class="btn-primary">Enviar</button>
+      <button id="btn-expediente-cancelar" class="danger">Cancelar</button>
+    </div>
+  </div>
+</div>
 
   <!-- Cierre del Container -->
   </div> 
@@ -6850,6 +6884,100 @@ document.getElementById('btn-chat-reset')?.addEventListener('click', async () =>
     Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
   }
 });
+
+  /* ============================================================
+   SOLICITUD EXPEDIENTE CON SOLMAR
+   ============================================================ */
+
+let __expedienteRowActual = null;
+
+/* Abre el modal cargando el valor actual de columna AD (body.solicitudExpediente) */
+function abrirExpedienteModal_(row) {
+  __expedienteRowActual = row;
+  const textarea = document.getElementById('modal-expediente-texto');
+  if (textarea) {
+    // Cargar valor actual (columna AD) respetando saltos de línea
+    textarea.value = String(row.solicitudExpediente || '').trim();
+  }
+  document.getElementById('modal-expediente').classList.remove('hidden');
+  setTimeout(() => textarea?.focus(), 60);
+}
+
+function cerrarExpedienteModal_() {
+  document.getElementById('modal-expediente').classList.add('hidden');
+  __expedienteRowActual = null;
+}
+
+document.getElementById('btn-expediente-cancelar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  cerrarExpedienteModal_();
+});
+
+document.getElementById('btn-expediente-guardar')?.addEventListener('click', async () => {
+  if (!__expedienteRowActual) return;
+
+  const texto = document.getElementById('modal-expediente-texto')?.value ?? '';
+  // No requerimos contenido mínimo — puede enviarse vacío para borrar
+  try {
+    await apiPost('guardarExpediente', {
+      id_proceso:          __expedienteRowActual.id_proceso,
+      rowIndex:            __expedienteRowActual.rowIndex,
+      solicitudExpediente: texto   // preserva saltos de línea
+    });
+
+    // Actualizar caché local para que el modal refleje el nuevo valor
+    __expedienteRowActual.solicitudExpediente = texto;
+
+    // Actualizar también en __procListCache si la fila existe
+    const cached = __procListCache.find(r => r.id_proceso === __expedienteRowActual.id_proceso);
+    if (cached) cached.solicitudExpediente = texto;
+
+    cerrarExpedienteModal_();
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon: 'success', title: 'Guardado', timer: 1400, showConfirmButton: false });
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+});
+
+/* ── PATCH renderProcList_: añadir botón expediente como primer icono ── */
+const __origRenderProcListFinal = renderProcList_;
+renderProcList_ = function(items) {
+  __origRenderProcListFinal(items);
+
+  // Después del render base, insertar el botón expediente en cada tarjeta
+  const wrap = document.getElementById('proc-list');
+  if (!wrap) return;
+
+  const cards = wrap.querySelectorAll('.proc-card');
+  cards.forEach((card, idx) => {
+    const row = items[idx];
+    if (!row) return;
+
+    const iconsWrap = card.querySelector('.proc-icons');
+    if (!iconsWrap) return;
+
+    // Evitar duplicados si la función se llama varias veces
+    if (iconsWrap.querySelector('.proc-btn-expediente-wrap')) return;
+
+    const btnExp = document.createElement('button');
+    btnExp.type = 'button';
+    btnExp.className = 'proc-icon-btn proc-btn-expediente-wrap';
+    btnExp.title = 'Solicitud Expediente con SOLMAR';
+    btnExp.setAttribute('aria-label', 'Solicitud Expediente');
+    btnExp.style.cssText = 'background:linear-gradient(135deg,#0369a1,#075985);border:0;box-shadow:0 3px 10px rgba(3,105,161,.30);';
+    btnExp.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp"
+      alt="Expediente" style="width:24px;height:24px;object-fit:contain;" />`;
+
+    btnExp.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      abrirExpedienteModal_(row);
+    });
+
+    // Insertar como PRIMER icono (posición izquierda = leftmost)
+    iconsWrap.insertBefore(btnExp, iconsWrap.firstChild);
+  });
+};
   
 </script>
 </body>
