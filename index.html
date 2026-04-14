@@ -4917,11 +4917,12 @@ function renderProcList_(items) {
     }
     actions.appendChild(consWrap);
 
-    const icons = document.createElement('div');
+     const icons = document.createElement('div');
     icons.className = 'proc-icons';
 
-    // Firmar (solo super)
-    if (currentUser?.isSuper) {
+    const estadoUpper = String(row.estado || '').toUpperCase();
+
+if (currentUser?.isSuper && estadoUpper !== 'FINALIZADO') {
       const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
       btnFirma.addEventListener('click', () => {
         currentProcesoSelected = row;
@@ -5500,10 +5501,9 @@ function abrirEditarAsignacion_(row) {
   if (!row.peticionario) { const el = document.getElementById('edit-peticionario'); if(el) el.value=''; }
   if (!row.expediente)   { const el = document.getElementById('edit-expediente');   if(el) el.value=''; }
 
-  // Mostrar/ocultar campos de respuesta y evidencia según estado
+     // Mostrar/ocultar campos de respuesta según estado
   const estadoActualParaEditar = String(row.estado || '').toUpperCase();
   const puedeVerRespuesta = esSuper || estadoActualParaEditar === 'EN PROYECCIÓN';
-  const puedeVerEvidencia = esSuper || estadoActualParaEditar !== 'ASIGNADO';
   ['edit-respuesta1','edit-respuesta2','edit-respuesta3'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -5516,20 +5516,20 @@ function abrirEditarAsignacion_(row) {
     if (st) st.style.display = puedeVerRespuesta ? '' : 'none';
   });
 
-  // Ocultar evidencia si el estado es ASIGNADO (a menos que sea super)
-  (['edit-evidencia']).forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    let prev = el.previousElementSibling;
-    while (prev && prev.tagName !== 'LABEL') prev = prev.previousElementSibling;
-    if (prev) prev.style.display = puedeVerEvidencia ? '' : 'none';
-    el.style.display = puedeVerEvidencia ? '' : 'none';
-    const st = document.getElementById(id + '-status');
-    if (st) st.style.display = puedeVerEvidencia ? '' : 'none';
-    // También ocultar el preview si ya tenía imagen cargada
-    const preview = document.getElementById('edit-evidencia-preview');
-    if (preview) preview.style.display = puedeVerEvidencia ? preview.style.display : 'none';
-  });
+  // Mostrar/ocultar campo evidencia según estado (oculto si ASIGNADO)
+  const puedeVerEvidencia = esSuper || estadoActualParaEditar !== 'ASIGNADO';
+  (() => {
+    const evInp = document.getElementById('edit-evidencia');
+    if (!evInp) return;
+    let evLabel = evInp.previousElementSibling;
+    while (evLabel && evLabel.tagName !== 'LABEL') evLabel = evLabel.previousElementSibling;
+    if (evLabel) evLabel.style.display = puedeVerEvidencia ? '' : 'none';
+    evInp.style.display = puedeVerEvidencia ? '' : 'none';
+    const evSt = document.getElementById('edit-evidencia-status');
+    if (evSt) evSt.style.display = puedeVerEvidencia ? '' : 'none';
+    const evPrev = document.getElementById('edit-evidencia-preview');
+    if (evPrev && !puedeVerEvidencia) evPrev.style.display = 'none';
+  })();
 
   showView('view-editar-asignacion');
 }
@@ -5925,7 +5925,7 @@ renderProcList_ = function(items) {
     const icons = document.createElement('div');
     icons.className = 'proc-icons';
 
-if (currentUser?.isSuper) {
+if (currentUser?.isSuper && estadoUpper !== 'FINALIZADO') {
       const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
       btnFirma.addEventListener('click', () => {
         currentProcesoSelected = row;
@@ -5942,24 +5942,12 @@ if (currentUser?.isSuper) {
         await loadAndRenderProcesos_();
       });
       icons.appendChild(btnElim);
-    } else {
-      // Asignado: botón Decisión solo si el estado requiere acción del asignado
-      const estadoParaDecision = String(row.estado || '').toUpperCase();
-      if (estadoParaDecision === 'EN PROYECCIÓN' || estadoParaDecision === 'PENDIENTE EVIDENCIA') {
-        const btnSolicitar = _mkProcIconBtn_(ICONO_MEMORIA, 'Solicitar Proceso');
-        btnSolicitar.addEventListener('click', () => {
-          currentProcesoSelected = row;
-          abrirSolicitarProceso_(row);
-        });
-        icons.appendChild(btnSolicitar);
-      }
     }
 
     const btnVer = _mkProcIconBtn_(ICONO_VER, 'Ver detalles');
     btnVer.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirVerAsignacion_(row); });
     icons.appendChild(btnVer);
 
-    const estadoUpper = String(row.estado || '').toUpperCase();
     if (currentUser?.isSuper || estadoUpper !== 'FINALIZADO') {
       const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
       btnEdit.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirEditarAsignacion_(row); });
@@ -6037,19 +6025,9 @@ abrirVerAsignacion_ = function(row) {
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
   addField('Fecha de Respuesta:', formatFechaLarga_(row.respuesta));
-  // Bitácora: renderizar con saltos de línea preservados
-  if (row.bitacora) {
-    const div = document.createElement('div');
-    div.className = 'proc-detalle-field';
-    div.style.alignItems = 'flex-start';
-    div.innerHTML = `<span class="proc-detalle-label">Bitácora:</span>`;
-    const val = document.createElement('span');
-    val.className = 'proc-detalle-value';
-    val.style.whiteSpace = 'pre-wrap';
-    val.textContent = row.bitacora; // textContent es seguro (no inyección) y preserva \n con pre-wrap
-    div.appendChild(val);
-    body.appendChild(div);
-  }
+    addField('Bitácora:', row.bitacora
+    ? row.bitacora.replace(/\n/g, '<br>')
+    : '', true);
   addField('Fecha de Cierre:',    formatFechaLarga_(row.cierre));
   addField('Asignado:',           row.asignado);
   addField('Asistente:',          row.asistente);
@@ -6150,8 +6128,8 @@ abrirVerAsignacion_ = function(row) {
     actionsWrap.appendChild(btnSP);
   }
 
-  // ── DECISIÓN (solo super usuario) ─────────────────────────
-  if (currentUser?.isSuper) {
+  // ── DECISIÓN (solo super usuario, no visible si FINALIZADO) ──
+  if (currentUser?.isSuper && estado !== 'FINALIZADO') {
     const btnDec = document.createElement('button');
     btnDec.type = 'button';
     btnDec.className = 'proc-action-btn';
