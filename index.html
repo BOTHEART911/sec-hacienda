@@ -598,9 +598,9 @@ button:active { transform: translateY(0) scale(.98); }
 .swal2-timer-progress-bar-container { border-radius: 0 0 22px 22px !important; overflow: hidden !important; }
  
 .swal2-backdrop-show {
-  background: rgba(6,64,43,.20) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
+  background: rgba(255,255,255,.18) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
 }
 
     /* ============================================================
@@ -1516,6 +1516,29 @@ button:active { transform: translateY(0) scale(.98); }
   height: 30px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+    /* ── Overlay modales inline — fondo claro ────────────────── */
+#modal-respuesta-limpia,
+#modal-rebotar,
+#modal-solicitar-proceso,
+#modal-decision,
+#modal-expediente {
+  background: rgba(255,255,255,.30) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* ── Card dentro de esos modales — más blanco y nítido ────── */
+#modal-respuesta-limpia .card,
+#modal-rebotar .card,
+#modal-solicitar-proceso .card,
+#modal-decision .card,
+#modal-expediente .card {
+  background: rgba(255,255,255,.98) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 20px 60px rgba(6,64,43,.22), 0 1px 0 rgba(255,255,255,.95) inset !important;
 }
     
   </style>
@@ -3609,7 +3632,9 @@ try {
     'VICTOR MANUEL FANDIÑO GIRALDO',
     'LUIS GABRIEL RAMIREZ RAMIREZ',
     'DIEGO FERNANDO GARCIA',
-    'SOL MAR OCHOA HERNANDEZ' 
+    'SOL MAR OCHOA HERNANDEZ',
+    'ROSALBA ABADIA ARAGON',
+    'AMANDA VANESSA TAMAYO BEJARANO'
   ].map(s => normalizeText_(s));
 
   const bSema = document.getElementById('btn-semaforo');
@@ -4412,7 +4437,8 @@ const GRUPOS_SEMAFORO = [
   { asignado:'LUIS GILBERTO MOYA ROMERO',        contacto1:'3208858086', asistente:'NICOL ESTEFANI MADRIGALES GONZALEZ', contacto2:'3212331684' },
   { asignado:'ANDREA KATERINE LAMAR RODRIGUEZ',  contacto1:'3163170769', asistente:'VICTOR MANUEL FANDIÑO GIRALDO',      contacto2:'3203811201' },
   { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3183200977', asistente:'',                                   contacto2:'' },
-  { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3166139232', asistente:'',                                   contacto2:'' }
+  { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3166139232', asistente:'',                                   contacto2:'' },
+  { asignado:'ROSALBA ABADIA ARAGON',            contacto1:'3202028939', asistente:'AMANDA VANESSA TAMAYO BEJARANO',     contacto2:'3209661591' }
 ];
 
 /* ── Tabla coordinadores (contacto3) ───────────────────── */
