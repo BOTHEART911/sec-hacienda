@@ -4917,12 +4917,11 @@ function renderProcList_(items) {
     }
     actions.appendChild(consWrap);
 
-     const icons = document.createElement('div');
+    const icons = document.createElement('div');
     icons.className = 'proc-icons';
 
-    const estadoUpper = String(row.estado || '').toUpperCase();
-
-if (currentUser?.isSuper && estadoUpper !== 'FINALIZADO') {
+    // Firmar (solo super)
+    if (currentUser?.isSuper) {
       const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
       btnFirma.addEventListener('click', () => {
         currentProcesoSelected = row;
@@ -5232,12 +5231,13 @@ function abrirVerAsignacion_(row) {
   // Cuerpo
   const body = document.getElementById('proc-ver-body');
   body.innerHTML = '';
-  const addField = (label, value, esHTML) => {
+   const addField = (label, value, esHTML) => {
     if (!value) return;
     const div = document.createElement('div');
     div.className = 'proc-detalle-field';
+    const rendered = esHTML ? value : escapeHtml_(value).replace(/\n/g, '<br>');
     div.innerHTML = `<span class="proc-detalle-label">${label}</span>
-      <span class="proc-detalle-value">${esHTML ? value : escapeHtml_(value)}</span>`;
+      <span class="proc-detalle-value">${rendered}</span>`;
     body.appendChild(div);
   };
   addField('Asunto:',               row.descripcion);
@@ -5245,7 +5245,7 @@ function abrirVerAsignacion_(row) {
   addField('Fecha de Recibido:',    formatFechaLarga_(row.recibido));
   addField('Medio:',                row.medio);
   addField('Fecha de Respuesta:',   formatFechaLarga_(row.respuesta));
-  addField('Bitácora:',             row.bitacora);
+  addField('Bitácora:', row.bitacora ? escapeHtml_(row.bitacora).replace(/\n/g, '<br>') : '', true);
   addField('Fecha de Cierre:',      formatFechaLarga_(row.cierre));
   addField('Asignado:',             row.asignado);
   addField('Asistente:',            row.asistente);
@@ -5501,7 +5501,7 @@ function abrirEditarAsignacion_(row) {
   if (!row.peticionario) { const el = document.getElementById('edit-peticionario'); if(el) el.value=''; }
   if (!row.expediente)   { const el = document.getElementById('edit-expediente');   if(el) el.value=''; }
 
-     // Mostrar/ocultar campos de respuesta según estado
+    // Mostrar/ocultar campos de respuesta según estado
   const estadoActualParaEditar = String(row.estado || '').toUpperCase();
   const puedeVerRespuesta = esSuper || estadoActualParaEditar === 'EN PROYECCIÓN';
   ['edit-respuesta1','edit-respuesta2','edit-respuesta3'].forEach(id => {
@@ -5516,20 +5516,19 @@ function abrirEditarAsignacion_(row) {
     if (st) st.style.display = puedeVerRespuesta ? '' : 'none';
   });
 
-  // Mostrar/ocultar campo evidencia según estado (oculto si ASIGNADO)
+    // Ocultar campo evidencia si estado es ASIGNADO (solo puede subirse desde EN PROYECCIÓN o super)
   const puedeVerEvidencia = esSuper || estadoActualParaEditar !== 'ASIGNADO';
-  (() => {
-    const evInp = document.getElementById('edit-evidencia');
-    if (!evInp) return;
-    let evLabel = evInp.previousElementSibling;
+  const editEvInput = document.getElementById('edit-evidencia');
+  if (editEvInput) {
+    let evLabel = editEvInput.previousElementSibling;
     while (evLabel && evLabel.tagName !== 'LABEL') evLabel = evLabel.previousElementSibling;
     if (evLabel) evLabel.style.display = puedeVerEvidencia ? '' : 'none';
-    evInp.style.display = puedeVerEvidencia ? '' : 'none';
+    editEvInput.style.display = puedeVerEvidencia ? '' : 'none';
     const evSt = document.getElementById('edit-evidencia-status');
     if (evSt) evSt.style.display = puedeVerEvidencia ? '' : 'none';
     const evPrev = document.getElementById('edit-evidencia-preview');
     if (evPrev && !puedeVerEvidencia) evPrev.style.display = 'none';
-  })();
+  }
 
   showView('view-editar-asignacion');
 }
@@ -5639,7 +5638,7 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
   payload.contacto2    = document.getElementById('edit-contacto2')?.value    || '';
   payload.coordinador  = document.getElementById('edit-coordinador')?.value  || '';
   payload.contacto3    = document.getElementById('edit-contacto3')?.value    || '';
-  payload.bitacora     = document.getElementById('edit-bitacora')?.value?.trim() || '';
+    payload.bitacora     = (document.getElementById('edit-bitacora')?.value || '').trim() || '';
   payload.etapa        = document.getElementById('edit-etapa')?.value        || '';
 
   // Archivos de respuesta: solo permitidos si estado es EN PROYECCIÓN o super
@@ -5925,7 +5924,7 @@ renderProcList_ = function(items) {
     const icons = document.createElement('div');
     icons.className = 'proc-icons';
 
-if (currentUser?.isSuper && estadoUpper !== 'FINALIZADO') {
+if (currentUser?.isSuper && String(row.estado || '').toUpperCase() !== 'FINALIZADO') {
       const btnFirma = _mkProcIconBtn_(ICONO_FIRMA, 'Decisión');
       btnFirma.addEventListener('click', () => {
         currentProcesoSelected = row;
@@ -5948,6 +5947,7 @@ if (currentUser?.isSuper && estadoUpper !== 'FINALIZADO') {
     btnVer.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirVerAsignacion_(row); });
     icons.appendChild(btnVer);
 
+    const estadoUpper = String(row.estado || '').toUpperCase();
     if (currentUser?.isSuper || estadoUpper !== 'FINALIZADO') {
       const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
       btnEdit.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirEditarAsignacion_(row); });
@@ -6025,9 +6025,7 @@ abrirVerAsignacion_ = function(row) {
   addField('Fecha de Recibido:',  formatFechaLarga_(row.recibido));
   addField('Medio:',              row.medio);
   addField('Fecha de Respuesta:', formatFechaLarga_(row.respuesta));
-    addField('Bitácora:', row.bitacora
-    ? row.bitacora.replace(/\n/g, '<br>')
-    : '', true);
+  addField('Bitácora:',           row.bitacora);
   addField('Fecha de Cierre:',    formatFechaLarga_(row.cierre));
   addField('Asignado:',           row.asignado);
   addField('Asistente:',          row.asistente);
@@ -6128,7 +6126,7 @@ abrirVerAsignacion_ = function(row) {
     actionsWrap.appendChild(btnSP);
   }
 
-  // ── DECISIÓN (solo super usuario, no visible si FINALIZADO) ──
+    // ── DECISIÓN (solo super usuario, no visible si FINALIZADO) ──
   if (currentUser?.isSuper && estado !== 'FINALIZADO') {
     const btnDec = document.createElement('button');
     btnDec.type = 'button';
