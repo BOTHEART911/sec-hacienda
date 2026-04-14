@@ -1277,21 +1277,6 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .proc-btn-chat img { width: 22px; height: 22px; }
 
-    /* ── Botón Expediente ─────────────────────────────────────── */
-.proc-btn-expediente {
-  background: linear-gradient(135deg, #0369a1, #075985);
-  color: #fff; border: 0; width: auto;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 0; border-radius: 10px;
-  cursor: pointer; transition: .18s;
-  box-shadow: 0 3px 10px rgba(3,105,161,.30);
-}
-.proc-btn-expediente:hover {
-  background: linear-gradient(135deg, #0284c7, #0c4a6e);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(3,105,161,.45);
-}
-
 /* Badge de mensajes no leídos en el botón */
 .chat-unread-badge {
   position: absolute; top: -6px; right: -6px;
@@ -2422,19 +2407,50 @@ button:active { transform: translateY(0) scale(.98); }
 <!-- Toast mensaje nuevo -->
 <div id="chat-toast">💬 Nuevo mensaje</div>
 
-    <!-- Modal SOLICITUD EXPEDIENTE CON SOLMAR -->
+<!-- Modal SOLICITUD EXPEDIENTE CON SOLMAR -->
 <div id="modal-expediente" class="hidden"
   style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
          display:flex;align-items:center;justify-content:center;padding:16px;">
-  <div class="card narrow" style="margin:0;width:min(560px,100%);">
+  <div class="card narrow" style="margin:0;width:min(560px,100%);display:flex;flex-direction:column;gap:10px;">
     <h2 style="color:var(--primary);">SOLICITUD EXPEDIENTE CON SOLMAR</h2>
+
+    <!-- Historial: solo lectura -->
+    <div id="modal-expediente-historial"
+      style="
+        background:rgba(6,64,43,.04);
+        border:1.5px solid rgba(6,64,43,.14);
+        border-radius:var(--radius-md);
+        padding:12px 14px;
+        font-size:.88rem;
+        font-weight:500;
+        color:var(--text-main);
+        white-space:pre-wrap;
+        word-break:break-word;
+        min-height:60px;
+        max-height:220px;
+        overflow-y:auto;
+        line-height:1.6;
+        display:none;
+      ">
+    </div>
+
+    <!-- Sin historial aún -->
+    <p id="modal-expediente-vacio"
+      style="margin:0;font-size:.82rem;font-weight:600;color:var(--text-muted);
+             text-align:center;display:none;">
+      Aún no hay mensajes en este expediente.
+    </p>
+
+    <!-- Campo nuevo mensaje -->
+    <label style="margin:4px 0 2px;">Nuevo mensaje</label>
     <textarea
-      id="modal-expediente-texto"
-      rows="5"
-      placeholder="Redacta tu solicitud con base al expediente."
+      id="modal-expediente-nuevo"
+      rows="3"
+      placeholder="Escribe tu mensaje aquí…"
       style="white-space:pre-wrap;"
     ></textarea>
-    <div class="btn-row" style="margin-top:14px;">
+
+    <div class="btn-row" style="margin-top:6px;">
       <button id="btn-expediente-guardar" class="btn-primary">Enviar</button>
       <button id="btn-expediente-cancelar" class="danger">Cancelar</button>
     </div>
@@ -6913,13 +6929,29 @@ let __expedienteRowActual = null;
 /* Abre el modal cargando el valor actual de columna AD (body.solicitudExpediente) */
 function abrirExpedienteModal_(row) {
   __expedienteRowActual = row;
-  const textarea = document.getElementById('modal-expediente-texto');
-  if (textarea) {
-    // Cargar valor actual (columna AD) respetando saltos de línea
-    textarea.value = String(row.solicitudExpediente || '').trim();
+
+  // Historial previo
+  const historial = String(row.solicitudExpediente || '').trim();
+  const histEl    = document.getElementById('modal-expediente-historial');
+  const vacioEl   = document.getElementById('modal-expediente-vacio');
+  const nuevoEl   = document.getElementById('modal-expediente-nuevo');
+
+  if (historial) {
+    histEl.textContent  = historial;
+    histEl.style.display = '';
+    vacioEl.style.display = 'none';
+    // Scroll al fondo del historial
+    requestAnimationFrame(() => { histEl.scrollTop = histEl.scrollHeight; });
+  } else {
+    histEl.style.display  = 'none';
+    vacioEl.style.display = '';
   }
+
+  // Limpiar campo nuevo mensaje
+  if (nuevoEl) { nuevoEl.value = ''; }
+
   document.getElementById('modal-expediente').classList.remove('hidden');
-  setTimeout(() => textarea?.focus(), 60);
+  setTimeout(() => nuevoEl?.focus(), 60);
 }
 
 function cerrarExpedienteModal_() {
@@ -6935,17 +6967,24 @@ document.getElementById('btn-expediente-cancelar')?.addEventListener('click', ()
 document.getElementById('btn-expediente-guardar')?.addEventListener('click', async () => {
   if (!__expedienteRowActual) return;
 
-  const row        = __expedienteRowActual;
-  const textoRaw   = document.getElementById('modal-expediente-texto')?.value ?? '';
-  const esSolMar   = esSolMar_();
-  const prefijo    = esSolMar
+  const row      = __expedienteRowActual;
+  // Leer SOLO el campo nuevo mensaje
+  const textoNew = (document.getElementById('modal-expediente-nuevo')?.value ?? '').trim();
+  const esSolMar = esSolMar_();
+  const prefijo  = esSolMar
     ? SOLMAR_PREFIJO
     : getPrefijo_(currentUser?.nombre || '');
 
-  // Texto con prefijo: "NOMBRE1 NOMBRE2: texto"
-  const textoFinal = textoRaw.trim()
-    ? prefijo + ': ' + textoRaw.trim()
-    : '';
+  if (!textoNew) {
+    Swal.fire({ icon: 'warning', title: 'Escribe algo antes de enviar' });
+    return;
+  }
+
+  const historialPrevio = String(row.solicitudExpediente || '').trim();
+  const lineaNueva      = prefijo + ': ' + textoNew;
+  const textoFinal      = historialPrevio
+    ? historialPrevio + '\n\n' + lineaNueva
+    : lineaNueva;
 
   try {
     await apiPost('guardarExpediente', {
@@ -6960,7 +6999,7 @@ document.getElementById('btn-expediente-guardar')?.addEventListener('click', asy
     if (cached) cached.solicitudExpediente = textoFinal;
 
     // WA a SOL MAR solo si quien guarda NO es SOL MAR
-    if (!esSolMar && textoFinal) {
+    if (!esSolMar) {
       const msg =
         `Estimada *Sol Mar*\n` +
         `Tienes una solicitud de *${currentUser?.nombre || ''}*\n` +
