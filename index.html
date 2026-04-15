@@ -5464,7 +5464,7 @@ function abrirVerAsignacion_(row) {
       const c3 = row.contacto3 || '';
       const msg =
         `Estimado *${row.coordinador || ''}*\n` +
-        `Solicito la finalización de mi asignación *${row.descripcion || ''}*\n` +
+        `Solicito la finalización de mi asignación *${row.descripcion || ''}*\n\n` +
         `Todos los soportes están correctamente cargados.\n\n` +
         `Cordialmente,\n\n*${row.asignado || ''}*`;
       sendProcWA_(c3, msg);
@@ -5503,7 +5503,7 @@ document.getElementById('btn-rebote-guardar')?.addEventListener('click', async (
     // Enviar WhatsApp al coordinador
     const c3  = currentProcesoSelected.contacto3 || '';
     const msg =
-      `Estimado *${currentProcesoSelected.coordinador || ''}*\n` +
+      `Estimado *${currentProcesoSelected.coordinador || ''}*\n\n` +
       `He rebotado la asignación *${currentProcesoSelected.descripcion || ''}*\n` +
       `*Justificación:*\n${rebote}\n\n` +
       `Cordialmente,\n\n*${currentProcesoSelected.asignado || ''}*`;
@@ -6362,9 +6362,8 @@ document.getElementById('btn-sp-guardar')?.addEventListener('click', async () =>
 
   const c3 = row.contacto3 || getContacto3ByCoordinador_(row.coordinador);
   const msg =
-    `Estimado *${row.coordinador || ''}*\n` +
-    `Solicito la *${tipo}* de mi asignación *${row.descripcion || ''}*\n` +
-    `Todos los soportes están correctamente cargados.\n` +
+    `Estimado *${row.coordinador || ''}*\n\n` +
+    `Solicito la *${tipo}* de mi asignación *${row.descripcion || ''}*\n\n` +
     (solicitud ? solicitud + '\n\n' : '\n') +
     `Cordialmente,\n\n*${row.asignado || ''}*`;
 
