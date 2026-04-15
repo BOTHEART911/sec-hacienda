@@ -1543,6 +1543,536 @@ button:active { transform: translateY(0) scale(.98); }
   -webkit-backdrop-filter: none !important;
   box-shadow: 0 20px 60px rgba(6,64,43,.22), 0 1px 0 rgba(255,255,255,.95) inset !important;
 }
+
+    /* ============================================================
+   PANEL DASHBOARD — Estilos
+   ============================================================ */
+
+/* ── Vista Panel ─────────────────────────────────────────── */
+#view-panel {
+  padding: 8px;
+}
+
+.panel-card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 14px 20px;
+}
+
+/* ── Header panel ────────────────────────────────────────── */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.panel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title-wrap img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(6,64,43,.25));
+}
+.panel-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.35rem;
+  color: var(--primary);
+  letter-spacing: -.4px;
+  margin: 0;
+}
+.panel-subtitle {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+/* ── Toolbar vistas ───────────────��──────────────────────── */
+.panel-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.panel-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--input-border);
+  background: rgba(255,255,255,.80);
+  color: var(--text-sub);
+  font-weight: 700;
+  font-size: .82rem;
+  cursor: pointer;
+  transition: .18s;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.panel-tab img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+.panel-tab:hover {
+  background: #fff;
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.panel-tab.active {
+  background: linear-gradient(135deg, #0a7a46, #06402B);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(6,64,43,.30);
+}
+.panel-tab.active:hover {
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+/* ── KPI Cards ───────────────────────────────────────────── */
+.panel-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.kpi-card {
+  background: rgba(255,255,255,.90);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-md);
+  padding: 14px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(6,64,43,.08);
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--kpi-color, var(--primary));
+  border-radius: 4px 4px 0 0;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(6,64,43,.14);
+}
+.kpi-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 2px 4px rgba(6,64,43,.15));
+}
+.kpi-value {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.9rem;
+  color: var(--primary);
+  line-height: 1;
+}
+.kpi-label {
+  font-size: .70rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.kpi-sub {
+  font-size: .65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 1px;
+}
+
+/* ── Semáforo KPI ────────────────────────────────────────── */
+.kpi-card.kpi-verde  { --kpi-color: #16a34a; }
+.kpi-card.kpi-naranja{ --kpi-color: #f97316; }
+.kpi-card.kpi-rojo   { --kpi-color: #dc2626; }
+.kpi-card.kpi-gris   { --kpi-color: #6b7280; }
+.kpi-card.kpi-blue   { --kpi-color: #2563eb; }
+
+/* ── Secciones de contenido ──────────────────────────────── */
+.panel-section {
+  margin-bottom: 18px;
+}
+.panel-section-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: .88rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-section-title img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* ── Barras de progreso ──────────────────────────────────── */
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bar-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.bar-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.bar-label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar-track {
+  height: 8px;
+  background: rgba(6,64,43,.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0a7a46, #06402B);
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  min-width: 4px;
+}
+.bar-value {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: .88rem;
+  color: var(--primary);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* ── Grid 2 columnas para barras ─────────────────────────── */
+.panel-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 700px) {
+  .panel-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ── Tabla ranking personas ──────────────────────────────── */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,.88);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  box-shadow: 0 2px 8px rgba(6,64,43,.06);
+  transition: transform .14s, box-shadow .14s;
+}
+.ranking-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(6,64,43,.12);
+}
+.ranking-pos {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--text-muted);
+  min-width: 22px;
+  text-align: center;
+}
+.ranking-pos.gold   { color: #d97706; }
+.ranking-pos.silver { color: #6b7280; }
+.ranking-pos.bronze { color: #92400e; }
+.ranking-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0a7a46, #06402B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: .88rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.ranking-info {
+  flex: 1;
+  min-width: 0;
+}
+.ranking-name {
+  font-weight: 700;
+  font-size: .82rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ranking-detail {
+  font-size: .70rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.ranking-count {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+/* ── Semáforo visual (resumen) ───────────────────────────── */
+.semaforo-resumen {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sem-card {
+  flex: 1;
+  min-width: 100px;
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  transition: transform .15s;
+}
+.sem-card:hover { transform: translateY(-2px); }
+.sem-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.35);
+  border: 3px solid rgba(255,255,255,.70);
+  flex-shrink: 0;
+}
+.sem-value {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: #fff;
+  line-height: 1;
+}
+.sem-label {
+  font-size: .68rem;
+  font-weight: 800;
+  color: rgba(255,255,255,.92);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* ── Timeline de vencimientos ────────────────────────────── */
+.timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.timeline-list::-webkit-scrollbar { width: 4px; }
+.timeline-list::-webkit-scrollbar-thumb {
+  background: rgba(6,64,43,.20);
+  border-radius: 4px;
+}
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,.88);
+  border-left: 4px solid #16a34a;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 8px 12px;
+  box-shadow: 0 2px 6px rgba(6,64,43,.06);
+  transition: transform .14s;
+}
+.timeline-item:hover { transform: translateX(2px); }
+.timeline-item.tl-rojo       { border-left-color: #dc2626; }
+.timeline-item.tl-rojo-claro { border-left-color: #ef4444; }
+.timeline-item.tl-naranja     { border-left-color: #f97316; }
+.timeline-item.tl-gris        { border-left-color: #6b7280; }
+.timeline-date {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: .72rem;
+  color: var(--primary);
+  min-width: 56px;
+  text-align: center;
+  line-height: 1.3;
+}
+.timeline-info {
+  flex: 1;
+  min-width: 0;
+}
+.timeline-name {
+  font-weight: 700;
+  font-size: .78rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.timeline-desc {
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.timeline-badge {
+  font-size: .62rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.timeline-badge.bg-rojo   { background: #dc2626; }
+.timeline-badge.bg-naranja{ background: #f97316; }
+.timeline-badge.bg-verde  { background: #16a34a; }
+.timeline-badge.bg-gris   { background: #6b7280; }
+
+/* ── Categoría donut (visual) ────────────────────────────── */
+.cat-donut-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cat-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.88);
+  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(6,64,43,.08);
+  box-shadow: 0 2px 6px rgba(6,64,43,.06);
+}
+.cat-stat-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.cat-stat-info {
+  flex: 1;
+  min-width: 0;
+}
+.cat-stat-name {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-stat-bar-track {
+  height: 5px;
+  background: rgba(6,64,43,.08);
+  border-radius: 999px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.cat-stat-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.cat-stat-count {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: .95rem;
+  color: var(--primary);
+}
+
+/* ── Chart.js canvas para panel ─────────────────────────── */
+.panel-chart-wrap {
+  background: rgba(255,255,255,.88);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(6,64,43,.06);
+  position: relative;
+}
+.panel-chart-wrap canvas {
+  width: 100% !important;
+  display: block;
+}
+
+/* ── Animación entrada ───────────────────────────────────── */
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.panel-animate {
+  animation: panelFadeIn .35s ease both;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.panel-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+/* ── Responsive ajustes ──────────────────────────────────── */
+@media (max-width: 500px) {
+  .panel-kpis { grid-template-columns: repeat(2, 1fr); }
+  .kpi-value  { font-size: 1.5rem; }
+  .sem-value  { font-size: 1.4rem; }
+  .panel-title { font-size: 1.1rem; }
+}
     
   </style>
 </head>
@@ -2486,6 +3016,147 @@ button:active { transform: translateY(0) scale(.98); }
     </div>
   </div>
 </div>
+
+    <!-- VISTA PANEL DASHBOARD -->
+<section id="view-panel" class="view">
+  <div class="panel-card">
+
+    <!-- Header -->
+    <div class="panel-header">
+      <div class="panel-title-wrap">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="Panel" />
+        <div>
+          <h2 class="panel-title">PANEL 📊</h2>
+          <div class="panel-subtitle" id="panel-subtitle">Cargando datos...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="panel-toolbar">
+      <button class="panel-tab active" id="panel-tab-resumen" onclick="panelShowTab_('resumen')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+        RESUMEN
+      </button>
+      <button class="panel-tab" id="panel-tab-equipo" onclick="panelShowTab_('equipo')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp" alt="" />
+        EQUIPO
+      </button>
+      <button class="panel-tab" id="panel-tab-tiempo" onclick="panelShowTab_('tiempo')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287528/reloj_mnsqmb.png" alt="" />
+        TIEMPOS
+      </button>
+      <button class="panel-tab" id="panel-tab-cats" onclick="panelShowTab_('cats')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+        CATEGORÍAS
+      </button>
+      <button class="danger panel-tab" id="panel-back-btn" onclick="panelGoBack_()">
+        ← REGRESAR
+      </button>
+    </div>
+
+    <!-- ── TAB: RESUMEN ── -->
+    <div id="panel-view-resumen" class="panel-animate">
+
+      <!-- KPIs principales -->
+      <div class="panel-kpis" id="panel-kpis-main"></div>
+
+      <!-- Semáforo visual -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+          SEMÁFORO DE ASIGNACIONES
+        </div>
+        <div class="semaforo-resumen" id="panel-semaforo"></div>
+      </div>
+
+      <!-- Estados -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+          DISTRIBUCIÓN POR ESTADO
+        </div>
+        <div class="panel-chart-wrap" style="height:240px;">
+          <canvas id="panel-chart-estados"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: EQUIPO ── -->
+    <div id="panel-view-equipo" class="panel-animate" style="display:none;">
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp" alt="" />
+          RANKING POR ASIGNADO
+        </div>
+        <div class="ranking-list" id="panel-ranking"></div>
+      </div>
+
+      <div class="panel-section" style="margin-top:18px;">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+          CARGA DE TRABAJO
+        </div>
+        <div class="panel-chart-wrap" style="height:280px;">
+          <canvas id="panel-chart-equipo"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: TIEMPOS ── -->
+    <div id="panel-view-tiempo" class="panel-animate" style="display:none;">
+
+      <!-- KPIs de tiempo -->
+      <div class="panel-kpis" id="panel-kpis-tiempo"></div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287528/reloj_mnsqmb.png" alt="" />
+          PRÓXIMOS VENCIMIENTOS
+        </div>
+        <div class="timeline-list" id="panel-timeline"></div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: CATEGORÍAS ── -->
+    <div id="panel-view-cats" class="panel-animate" style="display:none;">
+
+      <div class="panel-grid-2">
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+            POR CATEGORÍA
+          </div>
+          <div class="cat-donut-wrap" id="panel-cats"></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+            POR SUBCATEGORÍA
+          </div>
+          <div class="cat-donut-wrap" id="panel-subcats"></div>
+        </div>
+      </div>
+
+      <div class="panel-section" style="margin-top:14px;">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+          GRÁFICO POR CATEGORÍA
+        </div>
+        <div class="panel-chart-wrap" style="height:260px;">
+          <canvas id="panel-chart-cats"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
 
   <!-- Cierre del Container -->
   </div> 
@@ -7211,6 +7882,610 @@ renderProcList_ = function(items) {
     }
   });
 };
+
+  /* ============================================================
+   PANEL DASHBOARD — Lógica
+   ============================================================ */
+
+/* ── Iconos panel ───────────────────────────────────────── */
+const PANEL_ICON_BARRAS  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png';
+const PANEL_ICON_USUARIOS= 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp';
+const PANEL_ICON_RELOJ   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287528/reloj_mnsqmb.png';
+const PANEL_ICON_TARGET  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp';
+
+/* ── Estado panel ───────────────────────────────────────── */
+let __panelTabActual  = 'resumen';
+let __panelCharts     = {};   // instancias Chart.js activas
+
+/* ── Colores estados ─────────────────────────────────────── */
+const PANEL_ESTADO_COLORS = {
+  'ASIGNADO':              '#2563eb',
+  'EN PROYECCIÓN':         '#7c3aed',
+  'PENDIENTE EVIDENCIA':   '#f97316',
+  'PENDIENTE ASIGNACION':  '#d97706',
+  'FINALIZADO':            '#16a34a',
+  'REBOTADO':              '#dc2626'
+};
+
+/* ── Colores categoría ──────────────────────────────────── */
+const PANEL_CAT_COLORS_LIST = ['#1e40af','#15803d','#6d28d9','#c2410c'];
+
+/* ── Destruir chart panel ───────────────────────────────── */
+function panelDestroyChart_(key) {
+  try {
+    if (__panelCharts[key]) {
+      __panelCharts[key].destroy();
+      delete __panelCharts[key];
+    }
+  } catch(_) {}
+}
+
+/* ── Cambiar tab ─────────────────────────────────────────── */
+function panelShowTab_(tab) {
+  __panelTabActual = tab;
+  const tabs   = ['resumen','equipo','tiempo','cats'];
+  const tabIds = { resumen:'panel-tab-resumen', equipo:'panel-tab-equipo',
+                   tiempo:'panel-tab-tiempo',   cats:'panel-tab-cats' };
+  tabs.forEach(t => {
+    const viewEl = document.getElementById('panel-view-' + t);
+    const tabEl  = document.getElementById(tabIds[t]);
+    if (!viewEl || !tabEl) return;
+    const isActive = (t === tab);
+    viewEl.style.display = isActive ? '' : 'none';
+    tabEl.classList.toggle('active', isActive);
+    if (isActive) {
+      viewEl.classList.remove('panel-animate');
+      void viewEl.offsetWidth; // reflow para reiniciar animación
+      viewEl.classList.add('panel-animate');
+    }
+  });
+
+  // Renderizar el tab seleccionado con los datos actuales
+  if (!window.__panelData) return;
+  switch(tab) {
+    case 'resumen': panelRenderResumen_(__panelData); break;
+    case 'equipo':  panelRenderEquipo_(__panelData);  break;
+    case 'tiempo':  panelRenderTiempo_(__panelData);  break;
+    case 'cats':    panelRenderCats_(__panelData);    break;
+  }
+}
+
+/* ── Regresar ────────────────────────────────────────────── */
+function panelGoBack_() {
+  playSoundOnce(SOUNDS.back);
+  // Destruir todos los charts para liberar memoria
+  Object.keys(__panelCharts).forEach(k => panelDestroyChart_(k));
+  showView('view-asignaciones');
+}
+
+/* ── Abrir panel ─────────────────────────────────────────── */
+async function abrirPanel_() {
+  if (!currentUser?.isSuper) {
+    Swal.fire({ icon: 'warning', title: 'Solo SUPER USUARIO' });
+    return;
+  }
+  playSoundOnce(SOUNDS.menu);
+  showView('view-panel');
+  panelShowTab_('resumen');
+
+  try {
+    // Reutilizar caché si ya está cargada
+    const data = await apiGet('listProcesos', { asignado: '', esSuper: 'true' });
+    const rows  = Array.isArray(data) ? data : [];
+    window.__panelData = rows;
+
+    const subtitle = document.getElementById('panel-subtitle');
+    if (subtitle) {
+      const ts = new Date();
+      subtitle.textContent =
+        `${rows.length} asignaciones · Actualizado ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
+    }
+
+    panelRenderResumen_(rows);
+  } catch(e) {
+    Swal.fire({ icon: 'error', title: 'Error al cargar datos', text: String(e.message || e) });
+  }
+}
+
+/* ── Helpers estadísticas ────────────────────────────────── */
+function panelCountByKey_(rows, key) {
+  const map = {};
+  rows.forEach(r => {
+    const v = String(r[key] || '').trim().toUpperCase() || 'SIN DATO';
+    map[v] = (map[v] || 0) + 1;
+  });
+  return map;
+}
+
+function panelSemaforoDistrib_(rows) {
+  const dist = { verde: 0, naranja: 0, rojo: 0, 'rojo-claro': 0, gris: 0 };
+  rows.forEach(r => {
+    const sem = calcSemaforo_(r);
+    const cls = sem.clase.replace('semaforo-', '');
+    if (dist[cls] !== undefined) dist[cls]++;
+    else dist.gris++;
+  });
+  return dist;
+}
+
+/* ── TAB: RESUMEN ────────────────────────────────────────── */
+function panelRenderResumen_(rows) {
+  const total     = rows.length;
+  const pendAsig  = rows.filter(r => normalizeText_(r.estado||'') === 'PENDIENTE ASIGNACION').length;
+  const asignados = rows.filter(r => normalizeText_(r.estado||'') === 'ASIGNADO').length;
+  const enProy    = rows.filter(r => normalizeText_(r.estado||'') === 'EN PROYECCION').length;
+  const pendEv    = rows.filter(r => normalizeText_(r.estado||'').includes('EVIDENCIA')).length;
+  const finaliz   = rows.filter(r => normalizeText_(r.estado||'') === 'FINALIZADO').length;
+  const activos   = total - finaliz;
+
+  // ── KPIs ────────────────────────────────────────────────
+  const kpiWrap = document.getElementById('panel-kpis-main');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    const kpis = [
+      { icon: PANEL_ICON_BARRAS,   value: total,    label: 'Total',          sub: 'asignaciones',       cls: '' },
+      { icon: PANEL_ICON_TARGET,   value: activos,  label: 'Activas',        sub: 'en seguimiento',     cls: 'kpi-blue' },
+      { icon: PANEL_ICON_USUARIOS, value: asignados,label: 'Asignadas',      sub: 'esperando respuesta',cls: 'kpi-blue' },
+      { icon: PANEL_ICON_RELOJ,    value: enProy,   label: 'En Proyección',  sub: 'trabajando en ello', cls: 'kpi-naranja' },
+      { icon: PANEL_ICON_TARGET,   value: pendEv,   label: 'Pend. Evidencia',sub: 'falta soporte',      cls: 'kpi-naranja' },
+      { icon: PANEL_ICON_BARRAS,   value: finaliz,  label: 'Finalizadas',    sub: 'completadas',        cls: 'kpi-verde' }
+    ];
+    kpis.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  // ── Semáforo visual ──────────────────────────────────────
+  const semDist = panelSemaforoDistrib_(rows);
+  const semWrap = document.getElementById('panel-semaforo');
+  if (semWrap) {
+    semWrap.innerHTML = '';
+    const semConfig = [
+      { key: 'verde',      label: 'A TIEMPO',         cls: 'semaforo-verde' },
+      { key: 'naranja',    label: 'MITAD DE PLAZO',   cls: 'semaforo-naranja' },
+      { key: 'rojo-claro', label: '≤ 3 DÍAS',         cls: 'semaforo-rojo-claro' },
+      { key: 'rojo',       label: 'VENCIDO',          cls: 'semaforo-rojo' },
+      { key: 'gris',       label: 'FINALIZADO',       cls: 'semaforo-gris' }
+    ];
+    semConfig.forEach(s => {
+      const sc = document.createElement('div');
+      sc.className = 'sem-card ' + s.cls;
+      sc.innerHTML = `
+        <div class="sem-dot"></div>
+        <div class="sem-value">${semDist[s.key] || 0}</div>
+        <div class="sem-label">${s.label}</div>
+      `;
+      semWrap.appendChild(sc);
+    });
+  }
+
+  // ── Chart estados ────────────────────────────────────────
+  panelDestroyChart_('estados');
+  const ctxEstados = document.getElementById('panel-chart-estados');
+  if (ctxEstados) {
+    const estadosMap = panelCountByKey_(rows, 'estado');
+    const labels  = Object.keys(estadosMap);
+    const values  = labels.map(l => estadosMap[l]);
+    const colors  = labels.map(l =>
+      PANEL_ESTADO_COLORS[l.toUpperCase()] ||
+      Object.entries(PANEL_ESTADO_COLORS)
+        .find(([k]) => normalizeText_(k) === normalizeText_(l))?.[1] ||
+      '#94a3b8'
+    );
+    __panelCharts['estados'] = new Chart(ctxEstados, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderRadius: 10,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 14 },
+            anchor: 'center', align: 'center',
+            formatter: v => v > 0 ? v : '',
+            textStrokeColor: 'rgba(0,0,0,.3)',
+            textStrokeWidth: 3
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#3d5248', font: { weight: '700', size: 10 },
+              maxRotation: 30, minRotation: 0
+            },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true, ticks: { precision: 0, color: '#6b7c74', font: { weight: '600' } },
+            grid: { color: 'rgba(6,64,43,.07)' }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ── TAB: EQUIPO ─────────────────────────────────────────── */
+function panelRenderEquipo_(rows) {
+  // Ranking por asignado
+  const byAsignado = {};
+  rows.forEach(r => {
+    const n = (r.asignado || '').trim().toUpperCase() || 'SIN ASIGNAR';
+    if (!byAsignado[n]) byAsignado[n] = { total: 0, activos: 0, finaliz: 0 };
+    byAsignado[n].total++;
+    if (normalizeText_(r.estado||'') === 'FINALIZADO') byAsignado[n].finaliz++;
+    else byAsignado[n].activos++;
+  });
+
+  const sorted = Object.entries(byAsignado)
+    .sort((a,b) => b[1].total - a[1].total);
+
+  // Ranking
+  const rankWrap = document.getElementById('panel-ranking');
+  if (rankWrap) {
+    rankWrap.innerHTML = '';
+    if (!sorted.length) {
+      rankWrap.innerHTML = '<div class="panel-empty">Sin datos de equipo.</div>';
+    } else {
+      sorted.forEach(([nombre, stats], idx) => {
+        const initials = nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('');
+        const posCls   = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+        const medals   = ['🥇','🥈','🥉'];
+        const posSymbol= idx < 3 ? medals[idx] : (idx + 1);
+
+        const item = document.createElement('div');
+        item.className = 'ranking-item';
+        item.innerHTML = `
+          <div class="ranking-pos ${posCls}">${posSymbol}</div>
+          <div class="ranking-avatar">${initials}</div>
+          <div class="ranking-info">
+            <div class="ranking-name">${escapeHtml_(nombre)}</div>
+            <div class="ranking-detail">
+              Activos: ${stats.activos} · Finalizados: ${stats.finaliz}
+            </div>
+          </div>
+          <div class="ranking-count">${stats.total}</div>
+        `;
+        rankWrap.appendChild(item);
+      });
+    }
+  }
+
+  // Chart carga de trabajo (barras horizontales)
+  panelDestroyChart_('equipo');
+  const ctxEq = document.getElementById('panel-chart-equipo');
+  if (ctxEq && sorted.length) {
+    const topN   = sorted.slice(0, 8);
+    const labels = topN.map(([n]) => {
+      const parts = n.split(' ');
+      return parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1] : n;
+    });
+    const actData = topN.map(([,s]) => s.activos);
+    const finData = topN.map(([,s]) => s.finaliz);
+
+    __panelCharts['equipo'] = new Chart(ctxEq, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Activos',
+            data: actData,
+            backgroundColor: '#2563eb',
+            borderRadius: 6,
+            stack: 'stack'
+          },
+          {
+            label: 'Finalizados',
+            data: finData,
+            backgroundColor: '#16a34a',
+            borderRadius: 6,
+            stack: 'stack'
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { weight: '700', size: 12 }, color: '#3d5248', boxWidth: 12 }
+          },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 12 },
+            anchor: 'center', align: 'center',
+            formatter: v => v > 0 ? v : '',
+            textStrokeColor: 'rgba(0,0,0,.3)',
+            textStrokeWidth: 3
+          }
+        },
+        scales: {
+          x: {
+            stacked: true, beginAtZero: true,
+            ticks: { precision: 0, color: '#6b7c74', font: { weight: '600' } },
+            grid: { color: 'rgba(6,64,43,.07)' }
+          },
+          y: {
+            stacked: true,
+            ticks: { color: '#3d5248', font: { weight: '700', size: 11 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ── TAB: TIEMPOS ────────────────────────────────────────── */
+function panelRenderTiempo_(rows) {
+  // Solo activos (no finalizados)
+  const activos = rows.filter(r => normalizeText_(r.estado||'') !== 'FINALIZADO');
+  const hoy = formatDDMMYYYY_(new Date());
+
+  // Calcular días restantes
+  const conDias = activos.map(r => {
+    const faltan = diasHabiles_(hoy, r.respuesta);
+    const sem    = calcSemaforo_(r);
+    return { ...r, _faltan: faltan, _semClase: sem.clase, _semTxt: sem.texto };
+  });
+
+  // Ordenar: vencidos primero, luego por días asc
+  conDias.sort((a,b) => a._faltan - b._faltan);
+
+  // KPIs de tiempo
+  const vencidos  = conDias.filter(r => r._faltan < 0).length;
+  const hoyVence  = conDias.filter(r => r._faltan === 0).length;
+  const tresDias  = conDias.filter(r => r._faltan > 0 && r._faltan <= 3).length;
+  const enPlazo   = conDias.filter(r => r._faltan > 3).length;
+  const promDias  = activos.length
+    ? Math.round(conDias.filter(r=>r._faltan>0).reduce((a,b)=>a+b._faltan,0) /
+        Math.max(conDias.filter(r=>r._faltan>0).length, 1))
+    : 0;
+
+  const kpiTiempoWrap = document.getElementById('panel-kpis-tiempo');
+  if (kpiTiempoWrap) {
+    kpiTiempoWrap.innerHTML = '';
+    const kpis = [
+      { icon: PANEL_ICON_RELOJ,   value: vencidos, label: 'Vencidos',     sub: 'requieren atención urgente', cls: 'kpi-rojo' },
+      { icon: PANEL_ICON_RELOJ,   value: hoyVence, label: 'Vencen Hoy',   sub: 'vencimiento inmediato',      cls: 'kpi-rojo' },
+      { icon: PANEL_ICON_TARGET,  value: tresDias, label: '≤ 3 Días',     sub: 'plazo muy corto',            cls: 'kpi-naranja' },
+      { icon: PANEL_ICON_BARRAS,  value: enPlazo,  label: 'A Tiempo',     sub: 'más de 3 días hábiles',      cls: 'kpi-verde' },
+      { icon: PANEL_ICON_RELOJ,   value: promDias, label: 'Días Prom.',   sub: 'promedio hábiles restantes', cls: '' }
+    ];
+    kpis.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiTiempoWrap.appendChild(el);
+    });
+  }
+
+  // Timeline
+  const tlWrap = document.getElementById('panel-timeline');
+  if (tlWrap) {
+    tlWrap.innerHTML = '';
+    if (!conDias.length) {
+      tlWrap.innerHTML = '<div class="panel-empty">Sin asignaciones activas.</div>';
+    } else {
+      conDias.slice(0, 30).forEach(r => {
+        const cls   = r._semClase.replace('semaforo-', 'tl-');
+        const bgCls = r._faltan < 0  ? 'bg-rojo'
+                    : r._faltan <= 3 ? 'bg-naranja'
+                    : 'bg-verde';
+
+        const item = document.createElement('div');
+        item.className = `timeline-item ${cls}`;
+
+        const fechaParts = String(r.respuesta || '').split('/');
+        const fechaCorta = fechaParts.length === 3
+          ? fechaParts[0] + '/' + fechaParts[1]
+          : (r.respuesta || '—');
+
+        item.innerHTML = `
+          <div class="timeline-date">${escapeHtml_(fechaCorta)}<br><span style="font-size:.60rem;color:var(--text-muted);">${escapeHtml_(fechaParts[2]||'')}</span></div>
+          <div class="timeline-info">
+            <div class="timeline-name">${escapeHtml_((r.asignado||'').split(' ').slice(0,2).join(' '))}</div>
+            <div class="timeline-desc">${escapeHtml_(r.descripcion||'')}</div>
+          </div>
+          <span class="timeline-badge ${bgCls}">${escapeHtml_(r._semTxt)}</span>
+        `;
+        tlWrap.appendChild(item);
+      });
+    }
+  }
+}
+
+/* ── TAB: CATEGORÍAS ─────────────────────────────────────── */
+function panelRenderCats_(rows) {
+  const total = rows.length || 1;
+
+  // Categorías
+  const catMap  = panelCountByKey_(rows, 'categoria');
+  const sortedCats = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+  const maxCat  = Math.max(...sortedCats.map(([,v])=>v), 1);
+
+  const catsWrap = document.getElementById('panel-cats');
+  if (catsWrap) {
+    catsWrap.innerHTML = '';
+    sortedCats.forEach(([cat, count], idx) => {
+      const iconUrl = getCatIcon_(cat);
+      const color   = PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
+      const pct     = Math.round((count / maxCat) * 100);
+      const item = document.createElement('div');
+      item.className = 'cat-stat-item';
+      item.innerHTML = `
+        ${iconUrl ? `<img class="cat-stat-icon" src="${iconUrl}" alt="${cat}" />` : ''}
+        <div class="cat-stat-info">
+          <div class="cat-stat-name" title="${escapeHtml_(cat)}">${escapeHtml_(cat)}</div>
+          <div class="cat-stat-bar-track">
+            <div class="cat-stat-bar-fill" style="width:${pct}%;background:${color};"></div>
+          </div>
+        </div>
+        <div class="cat-stat-count">${count}</div>
+      `;
+      catsWrap.appendChild(item);
+    });
+    if (!sortedCats.length) catsWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
+  }
+
+  // Subcategorías
+  const subcatMap   = panelCountByKey_(rows, 'subcategoria');
+  const sortedSubs  = Object.entries(subcatMap).sort((a,b) => b[1]-a[1]);
+  const maxSub      = Math.max(...sortedSubs.map(([,v])=>v), 1);
+
+  const subcatsWrap = document.getElementById('panel-subcats');
+  if (subcatsWrap) {
+    subcatsWrap.innerHTML = '';
+    sortedSubs.slice(0, 10).forEach(([sub, count], idx) => {
+      const iconUrl = getSubcatIcon_(sub);
+      const color   = PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
+      const pct     = Math.round((count / maxSub) * 100);
+      const item = document.createElement('div');
+      item.className = 'cat-stat-item';
+      item.innerHTML = `
+        ${iconUrl ? `<img class="cat-stat-icon" src="${iconUrl}" alt="${sub}" />` : ''}
+        <div class="cat-stat-info">
+          <div class="cat-stat-name" title="${escapeHtml_(sub)}">${escapeHtml_(sub)}</div>
+          <div class="cat-stat-bar-track">
+            <div class="cat-stat-bar-fill" style="width:${pct}%;background:${color};"></div>
+          </div>
+        </div>
+        <div class="cat-stat-count">${count}</div>
+      `;
+      subcatsWrap.appendChild(item);
+    });
+    if (!sortedSubs.length) subcatsWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
+  }
+
+  // Chart de categorías (dona)
+  panelDestroyChart_('cats');
+  const ctxCats = document.getElementById('panel-chart-cats');
+  if (ctxCats && sortedCats.length) {
+    const labels = sortedCats.map(([k]) => {
+      // Acortar nombre para el gráfico
+      const words = k.split(' ');
+      return words.length > 3 ? words.slice(0,3).join(' ') + '…' : k;
+    });
+    const values = sortedCats.map(([,v]) => v);
+    const colors = sortedCats.map((_,i) => PANEL_CAT_COLORS_LIST[i % PANEL_CAT_COLORS_LIST.length]);
+
+    __panelCharts['cats'] = new Chart(ctxCats, {
+      type: 'doughnut',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderWidth: 3,
+          borderColor: '#fff',
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { weight: '700', size: 11 }, color: '#3d5248', boxWidth: 12, padding: 10 }
+          },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 13 },
+            formatter: (v, ctx) => {
+              const pctVal = Math.round(v / (ctx.dataset.data.reduce((a,b)=>a+b,0)||1) * 100);
+              return pctVal >= 5 ? pctVal + '%' : '';
+            },
+            textStrokeColor: 'rgba(0,0,0,.4)',
+            textStrokeWidth: 3
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ── Botón PANEL en vista asignaciones ──────────────────── */
+(function addPanelBtn_() {
+  const btnRow = document.querySelector('#view-asignaciones .btn-row');
+  if (!btnRow) return;
+
+  const btnPanel = document.createElement('button');
+  btnPanel.id = 'btn-panel-dashboard';
+  btnPanel.className = 'btn-primary';
+  btnPanel.style.cssText =
+    'background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);display:none;';
+  btnPanel.innerHTML = `
+    <span style="display:inline-flex;align-items:center;gap:8px;">
+      <img src="${PANEL_ICON_BARRAS}" style="width:22px;height:22px;object-fit:contain;" alt="Panel" />
+      PANEL 📊
+    </span>
+  `;
+  btnPanel.addEventListener('click', async () => {
+    await abrirPanel_();
+  });
+
+  // Insertar como PRIMER botón en el btn-row
+  btnRow.insertBefore(btnPanel, btnRow.firstChild);
+})();
+
+/* ── Mostrar/ocultar botón panel tras login/logout ──────── */
+(function patchLoginLogoutForPanel_() {
+  const loginBtn  = document.getElementById('btn-login');
+  const logoutBtn = document.getElementById('btn-logout');
+
+  if (loginBtn && !loginBtn.dataset.panelPatch) {
+    loginBtn.dataset.panelPatch = '1';
+    loginBtn.addEventListener('click', () => {
+      setTimeout(() => {
+        const btn = document.getElementById('btn-panel-dashboard');
+        if (btn) btn.style.display = (currentUser?.isSuper) ? '' : 'none';
+      }, 700);
+    });
+  }
+
+  if (logoutBtn && !logoutBtn.dataset.panelPatch) {
+    logoutBtn.dataset.panelPatch = '1';
+    logoutBtn.addEventListener('click', () => {
+      const btn = document.getElementById('btn-panel-dashboard');
+      if (btn) btn.style.display = 'none';
+      // Destruir charts al cerrar sesión
+      Object.keys(__panelCharts).forEach(k => panelDestroyChart_(k));
+      window.__panelData = null;
+    });
+  }
+})();
+                              
 </script>
 </body>
 </html>
