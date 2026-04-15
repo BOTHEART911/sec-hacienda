@@ -3701,6 +3701,7 @@ try{
 /* ================== LOGOUT ================== */
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   stopPendientesAutoRefresh_();
+  stopAsignacionesAutoRefresh_();
   playSoundOnce(SOUNDS.logout);
   currentUser = null;
   currentCardSelected = null;
@@ -3896,6 +3897,45 @@ function stopPendientesAutoRefresh_(){
   if(__pendientesIntervalId){
     clearInterval(__pendientesIntervalId);
     __pendientesIntervalId = null;
+  }
+}
+
+  /* ================== AUTO REFRESH ASIGNACIONES ================== */
+let __asignacionesIntervalId = null;
+const ASIGNACIONES_REFRESH_MS = 60000; // 60 segundos
+
+function startAsignacionesAutoRefresh_() {
+  // Evita duplicar intervalos
+  stopAsignacionesAutoRefresh_();
+
+  __asignacionesIntervalId = setInterval(async () => {
+    try {
+      // Solo refrescar si la vista asignaciones está activa
+      const vistaActiva = document.getElementById('view-asignaciones')?.classList.contains('active');
+      if (!vistaActiva) return;
+
+      // Respeta el filtro actual (si el usuario está buscando algo)
+      const q = String(document.getElementById('proc-filter')?.value || '').trim();
+
+      // Carga lista actualizada desde backend
+      await loadAndRenderProcesos_();
+
+      // Si había filtro, lo reaplicamos
+      if (q) {
+        document.getElementById('proc-filter').value = q;
+        const evt = new Event('input', { bubbles: true });
+        document.getElementById('proc-filter').dispatchEvent(evt);
+      }
+    } catch (_) {
+      // Silencioso: no interrumpir al usuario
+    }
+  }, ASIGNACIONES_REFRESH_MS);
+}
+
+function stopAsignacionesAutoRefresh_() {
+  if (__asignacionesIntervalId) {
+    clearInterval(__asignacionesIntervalId);
+    __asignacionesIntervalId = null;
   }
 }
   
@@ -4911,6 +4951,7 @@ async function abrirVistaAsignaciones_() {
   if (btnAgregar) btnAgregar.style.display = currentUser.isSuper ? '' : 'none';
 
   await loadAndRenderProcesos_();
+  startAsignacionesAutoRefresh_(); // ← AGREGA ESTA LÍNEA
 }
 
 async function loadAndRenderProcesos_() {
@@ -5129,6 +5170,7 @@ document.getElementById('btn-agregar-asignacion')?.addEventListener('click', () 
 });
 document.getElementById('btn-asignaciones-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
+  stopAsignacionesAutoRefresh_();
   showView('view-inicio');
 });
 document.getElementById('btn-semaforo')?.addEventListener('click', async () => {
