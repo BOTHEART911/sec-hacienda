@@ -7067,7 +7067,7 @@ document.getElementById('btn-expediente-guardar')?.addEventListener('click', asy
   }
 });
 
-/* ── PATCH renderProcList_: botón expediente + restricción SOL MAR ── */
+/* ── PATCH renderProcList_: botón expediente + chat en tarjeta ── */
 const __origRenderProcListFinal = renderProcList_;
 renderProcList_ = function(items) {
   __origRenderProcListFinal(items);
@@ -7077,6 +7077,12 @@ renderProcList_ = function(items) {
 
   const cards = wrap.querySelectorAll('.proc-card');
   const esSolMar = esSolMar_();
+
+  // Cancelar listeners de badge anteriores para evitar fugas de memoria
+  if (window.__chatCardBadgeUnsubs) {
+    window.__chatCardBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
+  }
+  window.__chatCardBadgeUnsubs = [];
 
   cards.forEach((card, idx) => {
     const row = items[idx];
@@ -7090,26 +7096,79 @@ renderProcList_ = function(items) {
       iconsWrap.querySelectorAll('.proc-icon-btn').forEach(b => { b.style.display = 'none'; });
     }
 
+    // ── 1. BOTÓN EXPEDIENTE (primera posición) ───────────────
     // Evitar duplicados
-    if (iconsWrap.querySelector('.proc-btn-expediente-wrap')) return;
+    if (!iconsWrap.querySelector('.proc-btn-expediente-wrap')) {
+      const btnExp = document.createElement('button');
+      btnExp.type = 'button';
+      btnExp.className = 'proc-icon-btn proc-btn-expediente-wrap';
+      btnExp.title = 'Solicitud Expediente con SOLMAR';
+      btnExp.setAttribute('aria-label', 'Solicitud Expediente');
+      btnExp.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp"
+        alt="Expediente" style="width:24px;height:24px;object-fit:contain;" />`;
+      btnExp.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.menu);
+        abrirExpedienteModal_(row);
+      });
+      iconsWrap.insertBefore(btnExp, iconsWrap.firstChild);
+    }
 
-    const btnExp = document.createElement('button');
-    btnExp.type = 'button';
-    // ← Sin style especial: hereda proc-icon-btn igual que los demás
-    btnExp.className = 'proc-icon-btn proc-btn-expediente-wrap';
-    btnExp.title = 'Solicitud Expediente con SOLMAR';
-    btnExp.setAttribute('aria-label', 'Solicitud Expediente');
-    btnExp.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp"
-      alt="Expediente" style="width:24px;height:24px;object-fit:contain;" />`;
+    // ── 2. BOTÓN CHAT (segunda posición, después de expediente) ─
+    // SOL MAR no tiene acceso al chat en tarjetas
+    if (!esSolMar && !iconsWrap.querySelector('.proc-btn-chat-card')) {
 
-    btnExp.addEventListener('click', () => {
-      playSoundOnce(SOUNDS.menu);
-      abrirExpedienteModal_(row);
-    });
+      const btnChat = document.createElement('button');
+      btnChat.type = 'button';
+      btnChat.className = 'proc-icon-btn proc-btn-chat-card';
+      btnChat.title = 'Chat de asignación';
+      btnChat.setAttribute('aria-label', 'Chat');
+      btnChat.style.position = 'relative'; // necesario para el badge absoluto
+      btnChat.innerHTML = `
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp"
+             alt="Chat" style="width:24px;height:24px;object-fit:contain;" />
+        <span class="chat-unread-badge" id="chat-card-badge-${row.id_proceso}"
+              style="display:none;"></span>
+      `;
+      btnChat.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.menu);
+        abrirChat_(row);
+      });
 
-    iconsWrap.insertBefore(btnExp, iconsWrap.firstChild);
+      // Insertar en segunda posición (después del botón expediente)
+      const expBtn = iconsWrap.querySelector('.proc-btn-expediente-wrap');
+      if (expBtn && expBtn.nextSibling) {
+        iconsWrap.insertBefore(btnChat, expBtn.nextSibling);
+      } else if (expBtn) {
+        iconsWrap.appendChild(btnChat);
+      } else {
+        iconsWrap.insertBefore(btnChat, iconsWrap.firstChild);
+      }
+
+      // Badge en tiempo real con Firebase (independiente por tarjeta)
+      initFirebase_().then(db => {
+        if (!db) return;
+
+        const badgeRef = db.ref('chats/' + row.id_proceso + '/mensajes');
+        const badgeHandler = badgeRef.on('value', snap => {
+          const badge = document.getElementById('chat-card-badge-' + row.id_proceso);
+          if (!badge) return;
+          const n = snap.numChildren();
+          if (n > 0) {
+            badge.textContent = n > 99 ? '99+' : String(n);
+            badge.style.display = '';
+          } else {
+            badge.style.display = 'none';
+          }
+        });
+
+        // Guardar función de limpieza
+        window.__chatCardBadgeUnsubs.push(() => {
+          badgeRef.off('value', badgeHandler);
+        });
+      });
+    }
   });
-};  
+};
 </script>
 </body>
 </html>
