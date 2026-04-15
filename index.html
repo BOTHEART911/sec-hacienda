@@ -610,10 +610,13 @@ button:active { transform: translateY(0) scale(.98); }
 
 /* ── Colores semáforo ─────────────────────────────────────── */
 .semaforo-verde    { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; }
-.semaforo-amarillo { background: linear-gradient(135deg,#d97706,#b45309); color:#fff; }
-.semaforo-naranja  { background: linear-gradient(135deg,#ea580c,#c2410c); color:#fff; }
+.semaforo-naranja  { background: linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
 .semaforo-rojo     { background: linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; }
+.semaforo-rojo-claro { background: linear-gradient(135deg,#f87171,#ef4444); color:#fff; }
 .semaforo-gris     { background: linear-gradient(135deg,#6b7280,#4b5563); color:#fff; }
+.proc-card.color-naranja  { border-left-color: #f97316; }
+.proc-card.color-rojo     { border-left-color: #dc2626; }
+.proc-card.color-rojo-claro { border-left-color: #ef4444; }
 
 /* ── Tarjeta proceso ─────────────────────────────────────── */
 .proc-card {
@@ -4655,24 +4658,40 @@ function calcSemaforo_(row) {
     const dias = diasHabiles_(row.recibido, row.cierre);
     return { clase: 'semaforo-gris', texto: `Resp. en ${Math.abs(dias)} días`, cardClass: 'color-gris' };
   }
-  const hoy = formatDDMMYYYY_(new Date());
+  const hoy    = formatDDMMYYYY_(new Date());
   const total  = diasHabiles_(row.recibido, row.respuesta);
   const faltan = diasHabiles_(hoy, row.respuesta);
-  let clase, texto, cardClass;
+
   if (faltan <= 0) {
-    clase = 'semaforo-rojo'; cardClass = 'color-rojo';
-    texto = faltan === 0 ? 'Vence hoy' : `Venció hace ${Math.abs(faltan)} días`;
-  } else if (faltan <= 3) {
-    clase = 'semaforo-naranja'; cardClass = 'color-naranja';
-    texto = `Faltan ${faltan} días`;
-  } else if (total > 0 && (faltan / total) < 0.5) {
-    clase = 'semaforo-amarillo'; cardClass = 'color-amarillo';
-    texto = `Faltan ${faltan} días`;
-  } else {
-    clase = 'semaforo-verde'; cardClass = '';
-    texto = `Faltan ${faltan} días`;
+    // Vencido → rojo oscuro
+    return {
+      clase: 'semaforo-rojo',
+      cardClass: 'color-rojo',
+      texto: faltan === 0 ? 'Vence hoy' : `Venció hace ${Math.abs(faltan)} días`
+    };
   }
-  return { clase, texto, cardClass };
+  if (faltan <= 3) {
+    // ≤ 3 días → rojo claro
+    return {
+      clase: 'semaforo-rojo-claro',
+      cardClass: 'color-rojo-claro',
+      texto: `Faltan ${faltan} días`
+    };
+  }
+  if (total > 0 && (faltan / total) < 0.5) {
+    // Menos de la mitad del plazo → naranja
+    return {
+      clase: 'semaforo-naranja',
+      cardClass: 'color-naranja',
+      texto: `Faltan ${faltan} días`
+    };
+  }
+  // Más de la mitad del plazo → verde
+  return {
+    clase: 'semaforo-verde',
+    cardClass: '',
+    texto: `Faltan ${faltan} días`
+  };
 }
 
 /* ── Visibilidad botón semáforo ─────────────────────────── */
