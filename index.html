@@ -8605,7 +8605,7 @@ function estadRenderZonas_() {
       { icon: ESTAD_ICON.mapa,       value: topZona,     label: 'Zona Top',    sub: `${topVal} atendidas`,      cls: 'kpi-blue' },
       { icon: ESTAD_ICON.calendario, value: totC,        label: 'CHAT',        sub: 'en todas las zonas',       cls: 'kpi-naranja' },
       { icon: ESTAD_ICON.calendario, value: totP,        label: 'PRESENCIAL',  sub: 'en todas las zonas',       cls: 'kpi-verde' },
-      { icon: ESTAD_ICON.barras,     value: totC + totP, label: 'Total Zonas', sub: 'atenciones acumuladas',    cls: '' }
+      { icon: ESTAD_ICON.barras,     value: totC + totP, label: 'Total Registros', sub: 'atenciones acumuladas', cls: '' }
     ].forEach(k => {
       const vs     = String(k.value);
       const isLong = vs.length > 8;
@@ -8712,17 +8712,17 @@ function estadRenderZonasPagina_(pageIdx) {
           padding: 12, cornerRadius: 12,
           titleFont: { weight: '800' }, bodyFont: { weight: '600' }
         },
-        datalabels: dl ? {
-          color: '#0f1f16',
-          anchor: 'center', align: 'center', clamp: true,
-          font: {
-            weight: '800',
-            size: isSmall ? 11 : 14,
-            family: "'IBM Plex Sans',sans-serif"
-          },
-          formatter: v => (v && v > 0) ? String(v) : '',
-          textStrokeColor: 'rgba(255,255,255,.55)', textStrokeWidth: 3
-        } : { display: false }
+                 datalabels: dl ? {
+            color: '#fff',
+            anchor: 'center', align: 'center', clamp: true,
+            font: {
+              weight: '900',
+              size: isSmall ? 12 : 15,
+              family: "'IBM Plex Sans',sans-serif"
+            },
+            formatter: v => (v && v > 0) ? String(v) : '',
+            textStrokeColor: 'rgba(0,0,0,.55)', textStrokeWidth: 4
+          } : { display: false }
       },
       scales: {
         x: {
@@ -9062,9 +9062,22 @@ async function loadEstadisticasData_() {
 
 /* 5. Helper parser que devuelve {yyyy, mm, dd} — usado en tendencia */
 function parseFechaObj_(str) {
-  const m = String(str || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) return null;
-  return { dd: parseInt(m[1],10), mm: parseInt(m[2],10), yyyy: parseInt(m[3],10) };
+  const s = String(str || '').trim();
+  if (!s) return null;
+
+  // dd/mm/yyyy  o  d/m/yyyy  (acepta hora al final: "16/04/2026 10:30:00")
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return { dd: parseInt(m[1],10), mm: parseInt(m[2],10), yyyy: parseInt(m[3],10) };
+
+  // ISO: yyyy-mm-dd
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return { dd: parseInt(m[3],10), mm: parseInt(m[2],10), yyyy: parseInt(m[1],10) };
+
+  // dd-mm-yyyy
+  m = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})/);
+  if (m) return { dd: parseInt(m[1],10), mm: parseInt(m[2],10), yyyy: parseInt(m[3],10) };
+
+  return null;
 }
 
 /* 6. buildDataTiempo2026_ */
