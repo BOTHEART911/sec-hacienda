@@ -8792,10 +8792,9 @@ function estadRenderTendencia_() {
   const byMonth = {};
   rows.forEach(r => {
     const est   = normalizeText_(r.estado || '');
-    const fecha = parseDDMMYYYY_(r.fecha || '');
-    if (!fecha) return;
-    if (fecha.yyyy !== 2026) return;
-    const key = String(fecha.mm).padStart(2, '0');
+    const fecha = parseFechaObj_(r.fecha || '');
+if (!fecha || fecha.yyyy !== 2026) return;
+const key = String(fecha.mm).padStart(2, '0');
     if (!byMonth[key]) byMonth[key] = { chat: 0, pres: 0 };
     if (est === 'ATENDIDA CHAT')       byMonth[key].chat++;
     if (est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
@@ -9030,6 +9029,109 @@ function estadRenderTendencia_() {
     });
   }
 })();
+
+  /* ============================================================
+   ESTADÍSTICAS — Variables y helpers faltantes
+   ============================================================ */
+
+/* 1. Caché de datos */
+let __estadCache = [];
+
+/* 2. Nombres de meses */
+const MONTHS_ES = [
+  'Ene','Feb','Mar','Abr','May','Jun',
+  'Jul','Ago','Sep','Oct','Nov','Dic'
+];
+
+/* 3. destroyEstadChart_ (alias que faltaba) */
+function destroyEstadChart_() {
+  Object.keys(__estadChartsDash).forEach(k => estadDestroyChart_(k));
+}
+
+/* 4. Cargar datos del backend */
+async function loadEstadisticasData_() {
+  const [chat, pres] = await Promise.all([
+    apiGet('listSolicitudes', { estado: 'ATENDIDA CHAT' }),
+    apiGet('listSolicitudes', { estado: 'ATENDIDA PRESENCIAL' })
+  ]);
+  __estadCache = [
+    ...(Array.isArray(chat) ? chat.map(r => ({ ...r, estado: 'ATENDIDA CHAT' }))        : []),
+    ...(Array.isArray(pres) ? pres.map(r => ({ ...r, estado: 'ATENDIDA PRESENCIAL' })) : [])
+  ];
+}
+
+/* 5. Helper parser que devuelve {yyyy, mm, dd} — usado en tendencia */
+function parseFechaObj_(str) {
+  const m = String(str || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  return { dd: parseInt(m[1],10), mm: parseInt(m[2],10), yyyy: parseInt(m[3],10) };
+}
+
+/* 6. buildDataTiempo2026_ */
+function buildDataTiempo2026_(rows) {
+  const byMonth = {};
+  let totalChat = 0, totalPres = 0;
+
+  rows.forEach(r => {
+    const est = normalizeText_(r.estado || '');
+    const f   = parseFechaObj_(r.fecha || '');
+    if (!f || f.yyyy !== 2026) return;
+    const key = String(f.mm).padStart(2,'0');
+    if (!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
+    if (est === 'ATENDIDA CHAT')       { byMonth[key].chat++; totalChat++; }
+    if (est === 'ATENDIDA PRESENCIAL') { byMonth[key].pres++; totalPres++; }
+  });
+
+  const sorted = Object.keys(byMonth).sort();
+  return {
+    labels:   sorted.map(k => MONTHS_ES[parseInt(k,10) - 1]),
+    datasets: [
+      { label:'CHAT',       data: sorted.map(k => byMonth[k].chat),
+        backgroundColor:'#f97316', borderRadius:8, stack:'stack' },
+      { label:'PRESENCIAL', data: sorted.map(k => byMonth[k].pres),
+        backgroundColor:'#16a34a', borderRadius:8, stack:'stack' }
+    ],
+    totals: { chat: totalChat, pres: totalPres }
+  };
+}
+
+/* 7. buildDataZonasChunks_ */
+function buildDataZonasChunks_(rows) {
+  const byZona = {};
+  let totalChat = 0, totalPres = 0;
+
+  rows.forEach(r => {
+    const est  = normalizeText_(r.estado || '');
+    const zona = String(r.barrio || '').trim().toUpperCase();
+    if (!zona) return;
+    if (!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
+    if (est === 'ATENDIDA CHAT')       { byZona[zona].chat++; totalChat++; }
+    if (est === 'ATENDIDA PRESENCIAL') { byZona[zona].pres++; totalPres++; }
+  });
+
+  const sorted = Object.entries(byZona)
+    .sort((a,b) => (b[1].chat + b[1].pres) - (a[1].chat + a[1].pres));
+
+  const PAGE_SIZE = 15;
+  const pages = [];
+  for (let i = 0; i < sorted.length; i += PAGE_SIZE) {
+    const chunk = sorted.slice(i, i + PAGE_SIZE);
+    pages.push({
+      labels: chunk.map(([z]) => z),
+      datasets: [
+        { label:'CHAT',       data: chunk.map(([,v]) => v.chat),
+          backgroundColor:'#f97316', borderRadius:6, stack:'stack' },
+        { label:'PRESENCIAL', data: chunk.map(([,v]) => v.pres),
+          backgroundColor:'#16a34a', borderRadius:6, stack:'stack' }
+      ]
+    });
+  }
+
+  return {
+    pages:  pages.length ? pages : [{ labels:[], datasets:[] }],
+    totals: { chat: totalChat, pres: totalPres }
+  };
+}
                               
 </script>
 </body>
