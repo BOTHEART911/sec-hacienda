@@ -2345,20 +2345,19 @@ button:active { transform: translateY(0) scale(.98); }
         </div>
 
         <!-- Sub-botones PREDIAL (colapsables) -->
-        <div id="predial-submenu" style="display:none;">
-          <div class="btn-row" style="margin-top:10px;">
-            <button id="btn-agregar" class="btn-primary" style="display:none;">AGREGAR SOLICITUD PREDIAL</button>
-            <button id="btn-pendientes" class="btn-primary" style="display:none;">PENDIENTES PREDIAL</button>
-          </div>
-          <div class="btn-row" style="margin-top:10px;">
-            <button id="btn-atendidas-chat" class="btn-primary" style="display:none;">ATENDIDAS CHAT</button>
-            <button id="btn-atendidas-pres" class="btn-primary" style="display:none;">ATENDIDAS PRESENCIAL</button>
-          </div>
-          <div class="btn-row" style="margin-top:10px;">
-            <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
-            <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS</button>
-          </div>
-        </div>
+<div id="predial-submenu" style="display:none;">
+  <div class="btn-row" style="margin-top:10px;">
+    <button id="btn-agregar" class="btn-primary" style="display:none;">AGREGAR ATENCIÓN PREDIAL</button>
+    <button id="btn-pendientes" class="btn-primary" style="display:none;">PENDIENTES PREDIAL</button>
+  </div>
+  <div class="btn-row" style="margin-top:10px;">
+    <button id="btn-atenciones-registradas" class="btn-primary" style="display:none;">ATENCIONES REGISTRADAS</button>
+  </div>
+  <div class="btn-row" style="margin-top:10px;">
+    <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
+    <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS 📊</button>
+  </div>
+</div>
 
         <!-- ── DRIVE ANEXOS ── -->
         <div class="btn-row" style="margin-top:10px;">
@@ -2392,11 +2391,6 @@ button:active { transform: translateY(0) scale(.98); }
         <div class="count-row">
           <span class="count-pill">TOTAL: <span id="lista-count">0</span></span>
           <input id="lista-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
-        </div>
-
-        <!-- Botón AGREGAR SOLICITUD (solo para ATENDIDAS PRESENCIAL) -->
-        <div class="btn-row" id="lista-add-row" style="margin-top:10px; display:none;">
-          <button id="btn-agregar-desde-lista" class="btn-primary">AGREGAR SOLICITUD PREDIAL</button>
         </div>
 
         <!-- (Cambio #2) botón regresar ANTES de las tarjetas -->
@@ -3449,6 +3443,37 @@ button:active { transform: translateY(0) scale(.98); }
   </div>
 </section>
 
+    <!-- VISTA ATENCIONES REGISTRADAS -->
+<section id="view-atenciones" class="view">
+  <div class="card">
+    <h2 style="color:var(--primary);">ATENCIONES REGISTRADAS</h2>
+
+    <!-- Pestañas Chat / Presencial -->
+    <div class="panel-toolbar" style="margin-bottom:14px;">
+      <button class="panel-tab active" id="tab-atenc-chat"
+        onclick="atencionesShowTab_('chat')">
+        CHAT
+      </button>
+      <button class="panel-tab" id="tab-atenc-pres"
+        onclick="atencionesShowTab_('pres')" style="display:none;">
+        PRESENCIAL
+      </button>
+    </div>
+
+    <div class="count-row">
+      <span class="count-pill">TOTAL: <span id="atenc-count">0</span></span>
+      <input id="atenc-filter" class="filter-input" type="text"
+        placeholder="Filtrar por cualquier dato…" />
+    </div>
+
+    <div class="btn-row" style="margin-top:10px;">
+      <button id="atenc-back" class="danger">Regresar</button>
+    </div>
+
+    <div id="atenc-wrap" class="sol-list"></div>
+  </div>
+</section>
+
   <!-- Cierre del Container -->
   </div> 
  
@@ -4249,15 +4274,10 @@ try{
   if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
 }catch(_){}
 
-// ✅ Solo superusuarios y algunos usuarios con permiso pueden ver ATENDIDAS (CHAT / PRESENCIAL)
+// ATENCIONES REGISTRADAS: visible para super usuario y usuarios con permiso de chat
 try{
-  const bChat = document.getElementById('btn-atendidas-chat');
-  if(bChat) bChat.style.display = canSeeAtendidasChat_() ? '' : 'none';
-}catch(_){}
-
-try{
-  const bPres = document.getElementById('btn-atendidas-pres');
-  if(bPres) bPres.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+  const bAtenc = document.getElementById('btn-atenciones-registradas');
+  if(bAtenc) bAtenc.style.display = canSeeAtendidasChat_() ? '' : 'none';
 }catch(_){}
 
     // Mostrar/ocultar botón DRIVE ANEXOS según usuario
@@ -4286,8 +4306,7 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   document.getElementById('login-doc').value = '';
   try{ const b = document.getElementById('btn-agregar');        if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-pendientes');     if(b) b.style.display = 'none'; }catch(_){}
-  try{ const b = document.getElementById('btn-atendidas-chat'); if(b) b.style.display = 'none'; }catch(_){}
-  try{ const b = document.getElementById('btn-atendidas-pres'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-atenciones-registradas'); if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-mis-informes');   if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-estadisticas');   if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-semaforo');       if(b) b.style.display = 'none'; }catch(_){}
@@ -4344,58 +4363,6 @@ document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
   }catch(e){
     Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
   }
-});
-
-document.getElementById('btn-atendidas-chat')?.addEventListener('click', async ()=>{
-  playSoundOnce(SOUNDS.back);
-
-  if(!currentUser || !canSeeAtendidasChat_()){
-  Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
-  return;
-}
-
-  currentListMode = 'ATENDIDA CHAT';
-  await openListView_('ATENDIDAS CHAT', 'ATENDIDA CHAT');
-});
-
-document.getElementById('btn-atendidas-pres')?.addEventListener('click', async ()=>{
-  playSoundOnce(SOUNDS.back);
-
-  if(!currentUser || !currentUser.isSuper){
-    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
-    return;
-  }
-
-  currentListMode = 'ATENDIDA PRESENCIAL';
-  await openListView_('ATENDIDAS PRESENCIAL', 'ATENDIDA PRESENCIAL');
-});
-
-  // Mostrar/ocultar el botón extra según el modo de lista (solo ATENDIDA PRESENCIAL)
-function updateListaAddButtonVisibility_(){
-  const row = document.getElementById('lista-add-row');
-  if(!row) return;
-  row.style.display = (currentListMode === 'ATENDIDA PRESENCIAL') ? '' : 'none';
-}
-
-// Hook: cada vez que se abre la vista lista, ajustar visibilidad
-const __openListView_Original = openListView_;
-openListView_ = async function(title, estado){
-  await __openListView_Original(title, estado);
-  updateListaAddButtonVisibility_();
-};
-
-// Botón duplicado con la MISMA función que el de inicio
-document.getElementById('btn-agregar-desde-lista')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-
-  if(!canSeeAgregarSolicitud_()){
-    Swal.fire({ icon:'warning', title:'No tienes permiso para AGREGAR SOLICITUD' });
-    return;
-  }
-
-  initResidenciaChoices_();
-  resetAgregarSolicitudForm_();
-  showView('view-agregar');
 });
 
 document.getElementById('btn-agregar')?.addEventListener('click', ()=>{
@@ -4533,18 +4500,6 @@ function normalizeText_(s){
     timer: 3200,
     showConfirmButton: false
   });
-}
-
-
-async function openListView_(title, estado){
-  if(!currentUser) { Swal.fire({icon:'warning', title:'Sesión inválida'}); return; }
-  document.getElementById('lista-title').textContent = title;
-  document.getElementById('lista-filter').value = '';
-  __listCache = [];
-  document.getElementById('lista-wrap').innerHTML = '';
-  document.getElementById('lista-count').textContent = '0';
-  showView('view-lista');
-  await loadAndRenderList_(estado);
 }
 
 async function loadAndRenderList_(estado){
@@ -8353,6 +8308,124 @@ function panelRenderCats_(rows) {
     });
   }
 }
+
+  /* ================== ATENCIONES REGISTRADAS ================== */
+let __atencionesTabActual = 'chat';
+let __atencionesChatCache = [];
+let __atencionesPresCache = [];
+
+async function abrirAtenciones_() {
+  if (!currentUser || !canSeeAtendidasChat_()) {
+    Swal.fire({ icon: 'warning', title: 'Sin permiso' });
+    return;
+  }
+  __atencionesTabActual = 'chat';
+  document.getElementById('atenc-filter').value = '';
+
+  // La pestaña Presencial solo es visible para super usuario
+  const tabPres = document.getElementById('tab-atenc-pres');
+  if (tabPres) tabPres.style.display = currentUser?.isSuper ? '' : 'none';
+
+  atencionesShowTabUI_('chat');
+  showView('view-atenciones');
+  await atencionesLoadAll_();
+}
+
+async function atencionesLoadAll_() {
+  const isSuper = currentUser?.isSuper;
+  const [chatData, presData] = await Promise.all([
+    apiGet('listSolicitudes', { estado: 'ATENDIDA CHAT' }),
+    isSuper
+      ? apiGet('listSolicitudes', { estado: 'ATENDIDA PRESENCIAL' })
+      : Promise.resolve([])
+  ]);
+  __atencionesChatCache = Array.isArray(chatData) ? chatData : [];
+  __atencionesPresCache = Array.isArray(presData) ? presData : [];
+  renderAtenciones_(
+    __atencionesTabActual === 'chat' ? __atencionesChatCache : __atencionesPresCache
+  );
+}
+
+function atencionesShowTab_(tab) {
+  __atencionesTabActual = tab;
+  atencionesShowTabUI_(tab);
+  document.getElementById('atenc-filter').value = '';
+  renderAtenciones_(tab === 'chat' ? __atencionesChatCache : __atencionesPresCache);
+}
+
+function atencionesShowTabUI_(tab) {
+  const tabChat = document.getElementById('tab-atenc-chat');
+  const tabPres = document.getElementById('tab-atenc-pres');
+  if (tabChat) tabChat.classList.toggle('active', tab === 'chat');
+  if (tabPres) tabPres.classList.toggle('active', tab === 'pres');
+}
+
+function renderAtenciones_(items) {
+  const wrap = document.getElementById('atenc-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  document.getElementById('atenc-count').textContent = String(items.length);
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="muted center" style="margin-top:20px;">No hay registros.</p>';
+    return;
+  }
+
+  for (const it of items) {
+    const card = document.createElement('div');
+    card.className = 'sol-card';
+
+    const head = document.createElement('div');
+    head.className = 'sol-head';
+    const titleEl = document.createElement('p');
+    titleEl.className = 'sol-title';
+    titleEl.innerHTML = `Usuario: <b>${escapeHtml_(it.nombre || '')}</b>`;
+    head.appendChild(titleEl);
+
+    const meta = document.createElement('div');
+    meta.className = 'sol-meta';
+    const respondedExtra = (it.respondida && String(it.respondida).trim())
+      ? `<p><span style="color:#16a34a;font-weight:1000;">RESPONDIDA:</span> ${escapeHtml_(it.respondida)}</p>`
+      : '';
+    meta.innerHTML = `
+      <p>Documento / NIT: ${escapeHtml_(it.documento || '')}</p>
+      <p>Residencia: ${escapeHtml_(it.barrio || '')}</p>
+      <p>Código Catastral: ${escapeHtml_(it.codigo || '')}</p>
+      <p>Solicitud: ${escapeHtml_(it.solicitud || '')}</p>
+      <p><span style="color:#dc2626;font-weight:1000;">Fecha:</span> ${escapeHtml_(it.fecha || '')}</p>
+      ${respondedExtra}
+    `;
+
+    card.appendChild(head);
+    card.appendChild(meta);
+    wrap.appendChild(card);
+  }
+}
+
+document.getElementById('btn-atenciones-registradas')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  await abrirAtenciones_();
+});
+
+document.getElementById('atenc-filter')?.addEventListener('input', () => {
+  const q = normalizeText_(document.getElementById('atenc-filter').value || '');
+  const source = __atencionesTabActual === 'chat'
+    ? __atencionesChatCache
+    : __atencionesPresCache;
+  if (!q) { renderAtenciones_(source); return; }
+  renderAtenciones_(source.filter(it => {
+    const blob = normalizeText_([
+      it.id_predial, it.nombre, it.documento, it.barrio,
+      it.codigo, it.solicitud, it.fecha, it.respondida
+    ].join(' '));
+    return blob.includes(q);
+  }));
+});
+
+document.getElementById('atenc-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-inicio');
+});
 
   /* ============================================================
    ESTADÍSTICAS DASHBOARD v2 — Lógica completa
