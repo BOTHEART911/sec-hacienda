@@ -2066,6 +2066,60 @@ button:active { transform: translateY(0) scale(.98); }
   font-size: .9rem;
 }
 
+    /* ── Panel Categorías: fix desbordamiento en móvil ── */
+@media (max-width: 699px) {
+
+  /* El grid de 2 columnas pasa a 1 columna en móvil */
+  .panel-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Cada ítem de categoría/subcategoría: contener bien */
+  .cat-stat-item {
+    min-width: 0;          /* evita que el flex-child se expanda */
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  /* El icono no se achica, solo limitamos su flex */
+  .cat-stat-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+  }
+
+  /* El bloque de información central: ocupa el espacio disponible sin desbordarse */
+  .cat-stat-info {
+    flex: 1 1 0;
+    min-width: 0;          /* clave para que el texto no expanda el flex */
+    overflow: hidden;
+  }
+
+  /* El nombre de categoría/subcategoría: permitir wrap y corte */
+  .cat-stat-name {
+    white-space: normal;          /* permite salto de línea */
+    word-break: break-word;
+    overflow-wrap: break-word;
+    font-size: .68rem;            /* un poco más pequeño en móvil */
+    line-height: 1.35;
+  }
+
+  /* El número al final no se achica */
+  .cat-stat-count {
+    flex-shrink: 0;
+    font-size: .85rem;
+    min-width: 22px;
+    text-align: right;
+  }
+
+  /* La barra de progreso tampoco se desborda */
+  .cat-stat-bar-track {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 /* ── Responsive ajustes ──────────────────────────────────── */
 @media (max-width: 500px) {
   .panel-kpis { grid-template-columns: repeat(2, 1fr); }
