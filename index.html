@@ -449,60 +449,183 @@ button:active { transform: translateY(0) scale(.98); }
   max-width: 100%; text-align: center;
 }
  
-/* ── Estadísticas ────────────────────────────────────────── */
-.card.estad-card {
-  max-width: 1080px; padding: 14px;
-  height: auto; max-height: calc(100vh - 32px);
-  overflow: visible;
-  display: flex; flex-direction: column; gap: 12px;
-}
-@media (min-width:1400px) { .card.estad-card { max-width: 2200px; } }
- 
-.estad-head { text-align: center; }
-.estad-title {
-  margin: 0; font-family: 'Sora', sans-serif;
-  color: var(--primary); font-weight: 800; font-size: 1.2rem;
-}
-.estad-sub { margin-top: 2px; font-weight: 500; color: var(--text-muted); font-size: .88rem; }
- 
-.estad-toolbar { display: flex; gap: 10px; }
-@media (max-width:700px) { .estad-toolbar { flex-direction: column; } }
- 
-.estad-chart-wrap {
-  flex: 1; min-height: 0;
-  background: rgba(255,255,255,.75);
-  border: 1.5px solid rgba(6,64,43,.12);
+/* ============================================================
+   ESTADÍSTICAS DASHBOARD v2 — Estilos Premium
+   ============================================================ */
+
+/* ── Card contenedor ─────────────────────────────────────── */
+.estad-dash-card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1.5px solid var(--card-border);
   border-radius: var(--radius-lg);
-  padding: 10px 12px;
-  box-shadow: 0 4px 16px rgba(6,64,43,.08);
+  box-shadow: var(--shadow-card);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 14px 20px;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.estad-dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--card-border);
+}
+.estad-dash-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.estad-dash-title-wrap img {
+  width: 40px; height: 40px; object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(6,64,43,.25));
+}
+.estad-dash-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900; font-size: 1.35rem;
+  color: var(--primary); letter-spacing: -.4px; margin: 0;
+}
+.estad-dash-subtitle {
+  font-size: .78rem; font-weight: 600;
+  color: var(--text-muted); margin: 2px 0 0;
+}
+
+/* ── KPI Row estadísticas ────────────────────────────────── */
+.estad-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+/* ── Variación KPI ───────────────────────────────────────── */
+.kpi-change {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: .68rem; font-weight: 800;
+  padding: 2px 7px; border-radius: 999px; margin-top: 3px;
+}
+.kpi-change.up   { background: rgba(22,163,74,.15); color: #15803d; }
+.kpi-change.down { background: rgba(220,38,38,.12); color: #b91c1c; }
+.kpi-change.flat { background: rgba(107,114,128,.12); color: #6b7280; }
+
+/* ── Tab content animado ─────────────────────────────────── */
+.estad-tab-content { animation: panelFadeIn .35s ease both; }
+
+/* ── Chart wrap premium ──────────────────────────────────── */
+.estad-chart-premium {
+  background: rgba(255,255,255,.88);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px 16px;
+  box-shadow: 0 4px 18px rgba(6,64,43,.08);
   backdrop-filter: blur(8px);
-  display: flex; flex-direction: column; gap: 10px;
-  overflow: auto; overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 14px;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
 }
- 
-#estadChart {
-  flex: 1; min-height: 0;
-  width: 100% !important; height: 100% !important; display: block;
+.estad-chart-premium::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg,#0a7a46,#06402B);
+  border-radius: 4px 4px 0 0;
 }
- 
-.estad-totals { flex: 0 0 auto; margin-top: 2px; font-weight: 700; color: var(--primary); }
- 
-.estad-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(6,64,43,.06);
-  border: 1.5px solid rgba(6,64,43,.15);
-  border-radius: var(--radius-xl);
-  padding: 6px 12px; margin: 0 6px 6px 6px; font-size: .85rem;
-  color: var(--text-sub);
+.estad-chart-label {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800; font-size: .82rem;
+  color: var(--primary);
+  text-transform: uppercase; letter-spacing: .5px;
+  margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
 }
-.estad-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
- 
-#estadCharts { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
-.estad-chart-box { height: 640px; min-height: 520px; }
-@media (max-width:700px) { .estad-chart-box { height: 400px; min-height: 400px; } }
-.estad-chart-box canvas { width: 100% !important; height: 100% !important; display: block; }
+.estad-chart-label img { width: 20px; height: 20px; object-fit: contain; }
+
+/* ── Paginador zonas ─────────────────────────────────────── */
+.estad-pager {
+  display: flex; align-items: center;
+  justify-content: center; gap: 8px;
+  margin-top: 12px; flex-wrap: wrap;
+}
+.estad-pager-btn {
+  padding: 8px 16px; border-radius: var(--radius-xl);
+  border: 1.5px solid var(--input-border);
+  background: rgba(255,255,255,.85);
+  color: var(--text-sub); font-weight: 700; font-size: .82rem;
+  cursor: pointer; transition: .18s;
+}
+.estad-pager-btn:hover {
+  background: #fff; border-color: var(--primary);
+  color: var(--primary); transform: translateY(-1px);
+}
+.estad-pager-btn:disabled { opacity: .38; cursor: default; transform: none; }
+.estad-pager-btn.active {
+  background: linear-gradient(135deg,#0a7a46,#06402B);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(6,64,43,.28);
+}
+
+/* ── Top zonas lista ─────────────────────────────────────── */
+.estad-top-list  { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+.estad-top-item  {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.90);
+  border: 1.5px solid rgba(6,64,43,.08);
+  border-radius: var(--radius-md); padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(6,64,43,.06);
+  transition: transform .14s, box-shadow .14s;
+}
+.estad-top-item:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(6,64,43,.12); }
+.estad-top-pos { font-family:'Sora',sans-serif; font-weight:900; font-size:.9rem; min-width:24px; text-align:center; color:var(--text-muted); }
+.estad-top-pos.gold   { color: #d97706; }
+.estad-top-pos.silver { color: #6b7280; }
+.estad-top-pos.bronze { color: #92400e; }
+.estad-top-info  { flex:1; min-width:0; }
+.estad-top-name  { font-weight:700; font-size:.80rem; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.estad-top-bar-track { height:4px; background:rgba(6,64,43,.08); border-radius:999px; margin-top:4px; overflow:hidden; }
+.estad-top-bar-fill  { height:100%; border-radius:999px; background:linear-gradient(90deg,#0a7a46,#06402B); transition:width .6s cubic-bezier(.4,0,.2,1); }
+.estad-top-count { font-family:'Sora',sans-serif; font-weight:900; font-size:.95rem; color:var(--primary); flex-shrink:0; }
+
+/* ── Pills resumen tendencia ─────────────────────────────── */
+.estad-tend-pills { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; justify-content:center; }
+.estad-tend-pill  {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:rgba(255,255,255,.90); border:1.5px solid rgba(6,64,43,.10);
+  border-radius:var(--radius-md); padding:12px 18px; min-width:110px;
+  box-shadow:0 3px 12px rgba(6,64,43,.07); transition:transform .15s;
+}
+.estad-tend-pill:hover { transform:translateY(-2px); }
+.estad-tend-pill-icon  { font-size:1.5rem; }
+.estad-tend-pill-value { font-family:'Sora',sans-serif; font-weight:900; font-size:1.5rem; color:var(--primary); line-height:1; }
+.estad-tend-pill-label { font-size:.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; text-align:center; }
+
+/* ── Tabla mensual ───────────────────────────────────────── */
+.estad-month-table { width:100%; border-collapse:collapse; font-size:.82rem; border-radius:var(--radius-md); overflow:hidden; }
+.estad-month-table th {
+  background: linear-gradient(135deg,#0a7a46,#06402B);
+  color:#fff; font-family:'Sora',sans-serif; font-weight:800;
+  font-size:.72rem; letter-spacing:.5px; padding:9px 12px; text-align:left;
+}
+.estad-month-table td { padding:8px 12px; border-bottom:1px solid rgba(6,64,43,.06); font-weight:600; color:var(--text-main); background:rgba(255,255,255,.88); }
+.estad-month-table tr:last-child td { border-bottom:none; }
+.estad-month-table tr:hover td { background:rgba(6,64,43,.04); }
+.estad-month-table .td-chat  { color:#f97316; font-weight:800; }
+.estad-month-table .td-pres  { color:#06402B; font-weight:800; }
+.estad-month-table .td-total { color:var(--primary); font-weight:900; font-family:'Sora',sans-serif; }
+.estad-month-table .td-mes   { font-weight:800; color:var(--text-sub); }
+.estad-month-table .td-foot  { font-weight:900; color:var(--primary); font-family:'Sora',sans-serif; background:rgba(6,64,43,.05)!important; }
+
+/* ── Section view ────────────────────────────────────────── */
+#view-estadisticas { padding: 8px; }
+
+@media (max-width: 500px) {
+  .estad-dash-title { font-size: 1.1rem; }
+  .estad-kpi-row    { grid-template-columns: repeat(2, 1fr); }
+  .estad-tend-pill  { min-width: 80px; padding: 10px 12px; }
+}
  
 /* ── SweetAlert2 — Tema Hacienda Claro ──────────────────── */
  
@@ -2543,38 +2666,144 @@ button:active { transform: translateY(0) scale(.98); }
   </div>
 </section>
 
-    <!-- VISTA ESTADISTICAS -->
-  <section id="view-estadisticas" class="view">
-  <div class="card estad-card">
-    <div class="estad-head">
-      <div>
-        <h2 class="estad-title">ESTADÍSTICAS</h2>
-        <div class="estad-sub">Solo SUPER USUARIO</div>
+   <!-- VISTA ESTADÍSTICAS DASHBOARD v2 -->
+<section id="view-estadisticas" class="view">
+  <div class="estad-dash-card">
+
+    <!-- ── Header ── -->
+    <div class="estad-dash-header">
+      <div class="estad-dash-title-wrap">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/tendencia_cpy1nw.png" alt="Estadísticas" />
+        <div>
+          <h2 class="estad-dash-title">ESTADÍSTICAS 📊</h2>
+          <div class="estad-dash-subtitle" id="estad-dash-subtitle">Solo SUPER USUARIO</div>
+        </div>
       </div>
     </div>
 
-    <div class="estad-toolbar">
-      <button id="btn-estad-tiempo" class="btn-primary">TIEMPO 2026</button>
-      <button id="btn-estad-zonas" class="btn-primary">ZONAS</button>
-      <button id="btn-estad-back" class="danger">Regresar</button>
+    <!-- ── Toolbar tabs ── -->
+    <div class="panel-toolbar" style="margin-bottom:18px;">
+      <button class="panel-tab active" id="estad-tab-btn-tiempo"
+        onclick="estadShowTab_('tiempo')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301265/calendario_tbjeas.webp" alt="" />
+        TIEMPO 2026
+      </button>
+      <button class="panel-tab" id="estad-tab-btn-zonas"
+        onclick="estadShowTab_('zonas')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/mapa_o7izhb.png" alt="" />
+        ZONAS
+      </button>
+      <button class="panel-tab" id="estad-tab-btn-tendencia"
+        onclick="estadShowTab_('tendencia')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/tendencia_cpy1nw.png" alt="" />
+        TENDENCIA
+      </button>
+      <button class="danger panel-tab" onclick="estadGoBack_()">
+        ← REGRESAR
+      </button>
     </div>
 
-    <div class="estad-chart-wrap">
-  <!-- contenedor de charts (múltiples canvases) -->
-  <div id="estadCharts"></div>
+    <!-- ══════════════════════════════════════════
+         TAB: TIEMPO 2026
+    ══════════════════════════════════════════ -->
+    <div id="estad-view-tiempo" class="estad-tab-content">
 
-  <!-- Totales: se muestran SOLO en el último gráfico -->
-  <div id="estadTotals" class="estad-totals center">
-    <span class="estad-pill">
-      <span id="dotChat" class="estad-dot"></span>
-      CHAT: <span id="totChat">0</span>
-    </span>
-    <span class="estad-pill">
-      <span id="dotPres" class="estad-dot"></span>
-      PRESENCIAL: <span id="totPres">0</span>
-    </span>
+      <!-- KPIs -->
+      <div class="estad-kpi-row" id="estad-kpis-tiempo"></div>
+
+      <!-- Pills totales -->
+      <div class="estad-tend-pills" id="estad-totals-tiempo"></div>
+
+      <!-- Gráfico barras tiempo -->
+      <div class="estad-chart-premium">
+        <div class="estad-chart-label">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301265/calendario_tbjeas.webp" alt="" />
+          ATENCIÓN PREDIAL — TIEMPO 2026
+        </div>
+        <div style="height:420px; position:relative;">
+          <canvas id="estad-canvas-tiempo"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB: ZONAS
+    ══════════════════════════════════════════ -->
+    <div id="estad-view-zonas" class="estad-tab-content" style="display:none;">
+
+      <!-- KPIs zonas -->
+      <div class="estad-kpi-row" id="estad-kpis-zonas"></div>
+
+      <!-- Top zonas -->
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/mapa_o7izhb.png" alt="" />
+          TOP ZONAS
+        </div>
+        <div class="estad-top-list" id="estad-top-zonas"></div>
+      </div>
+
+      <!-- Gráfico paginado -->
+      <div class="estad-chart-premium" style="margin-top:14px;">
+        <div class="estad-chart-label">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/mapa_o7izhb.png" alt="" />
+          DISTRIBUCIÓN POR ZONA
+          <span id="estad-zonas-page-label"
+            style="margin-left:auto;font-size:.72rem;color:var(--text-muted);font-family:'IBM Plex Sans',sans-serif;font-weight:600;"></span>
+        </div>
+        <div style="height:440px; position:relative;">
+          <canvas id="estad-canvas-zonas"></canvas>
+        </div>
+        <div class="estad-pager" id="estad-pager-zonas"></div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         TAB: TENDENCIA
+    ══════════════════════════════════════════ -->
+    <div id="estad-view-tendencia" class="estad-tab-content" style="display:none;">
+
+      <!-- KPIs tendencia -->
+      <div class="estad-kpi-row" id="estad-kpis-tendencia"></div>
+
+      <!-- Gráfico de línea -->
+      <div class="estad-chart-premium">
+        <div class="estad-chart-label">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/tendencia_cpy1nw.png" alt="" />
+          EVOLUCIÓN MENSUAL 2026
+        </div>
+        <div style="height:320px; position:relative;">
+          <canvas id="estad-canvas-tendencia"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabla comparación mensual -->
+      <div class="estad-chart-premium">
+        <div class="estad-chart-label">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776301265/calendario_tbjeas.webp" alt="" />
+          DETALLE MENSUAL
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="estad-month-table">
+            <thead>
+              <tr>
+                <th>MES</th>
+                <th>CHAT</th>
+                <th>PRESENCIAL</th>
+                <th>TOTAL</th>
+                <th>VAR.</th>
+              </tr>
+            </thead>
+            <tbody id="estad-month-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </div>
-</div>
 </section>
 
      <!-- ============================================================
@@ -3627,395 +3856,6 @@ function canSeePendientes_(){
   return ALLOW_PENDIENTES.includes(n);
 }
 
-/* ================== ESTADISTICAS ================== */
-let __estadCache = [];      // rows no-pendientes
-let __estadMode = 'TIEMPO'; // TIEMPO | ZONAS
-let __estadChart = null;
-
-const MONTHS_ES = [
-  'ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
-  'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'
-];
-
-function parseDDMMYYYY_(s){
-  const m = String(s||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(!m) return null;
-  const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yyyy = parseInt(m[3],10);
-  if(!yyyy || mm<1 || mm>12 || dd<1 || dd>31) return null;
-  return { dd, mm, yyyy };
-}
-
-/* ✅ Destruye el chart actual (evita errores y “pegotes” al cambiar de gráfico) */
-let __estadCharts = []; // <-- NUEVO: lista de instancias Chart.js
-
-function destroyEstadChart_(){
-  try{
-    for(const c of (__estadCharts || [])){
-      try{ c.destroy(); }catch(_){}
-    }
-  }catch(_){}
-  __estadCharts = [];
-  try{
-    const host = document.getElementById('estadCharts');
-    if(host) host.innerHTML = '';
-  }catch(_){}
-}
-  
-function estadFilterNotPendiente_(rows){
-  const out = [];
-  for(const r of (Array.isArray(rows) ? rows : [])){
-    const est = normalizeText_(r.estado || '');
-    if(!est || est === 'PENDIENTE') continue;
-    out.push(r);
-  }
-  return out;
-}
-
-/* API: trae SOLO no-pendientes */
-async function loadEstadisticasData_(){
-  // Backend: doGet action=listsolicitudesnopendientes
-  const rows = await apiGet('listSolicitudesNoPendientes');
-  __estadCache = estadFilterNotPendiente_(rows);
-}
-
-/* Paletas separadas (TIEMPO vs ZONAS) */
-const ESTAD_COLORS = {
-  tiempo: {
-    chat:  '#f97316',   // naranja vivo  → CHAT
-    pres:  '#06402B',   // verde oscuro   → PRESENCIAL
-    chatB: '#ea6200',   // borde naranja
-    presB: '#04281C'    // borde verde muy oscuro
-  },
-  zonas: {
-    chat:  '#22c55e',   // verde medio    → CHAT
-    pres:  '#06402B',   // verde oscuro   → PRESENCIAL
-    chatB: '#16a34a',   // borde verde
-    presB: '#04281C'    // borde verde muy oscuro
-  }
-};
-
-/* ✅ Cambia el color de los punticos del total según modo */
-function setTotalsPalette_(mode){
-  const pal = (mode === 'ZONAS') ? ESTAD_COLORS.zonas : ESTAD_COLORS.tiempo;
-  const dotChat = document.getElementById('dotChat');
-  const dotPres = document.getElementById('dotPres');
-  if(dotChat) dotChat.style.background = pal.chat;
-  if(dotPres) dotPres.style.background = pal.pres;
-}
-
-function buildDataTiempo2026_(rows){
-  // Categorías: meses existentes en 2026 según fecha (dd/mm/yyyy)
-  // Series: CHAT / PRESENCIAL
-  const byMonth = {}; // "01".."12" -> { chat, pres }
-
-  for(const r of rows){
-    const est = normalizeText_(r.estado || '');
-    const fecha = parseDDMMYYYY_(r.fecha || '');
-    if(!fecha) continue;
-    if(fecha.yyyy !== 2026) continue;
-
-    const key = String(fecha.mm).padStart(2,'0');
-    if(!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
-
-    if(est === 'ATENDIDA CHAT') byMonth[key].chat++;
-    if(est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
-  }
-
-  const monthsSorted = Object.keys(byMonth).sort();
-  const labels = monthsSorted.map(k => MONTHS_ES[parseInt(k,10)-1]);
-  const chat = monthsSorted.map(k => byMonth[k].chat);
-  const pres = monthsSorted.map(k => byMonth[k].pres);
-
-  const pal = ESTAD_COLORS.tiempo;
-
-  const datasets = [];
-  const hasChat = chat.some(n=>n>0);
-  const hasPres = pres.some(n=>n>0);
-
-  if(hasChat){
-    datasets.push({
-      label: 'CHAT',
-      data: chat,
-      backgroundColor: pal.chat,
-      borderColor: pal.chatB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
-  if(hasPres){
-    datasets.push({
-      label: 'PRESENCIAL',
-      data: pres,
-      backgroundColor: pal.pres,
-      borderColor: pal.presB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
-
-  return {
-    labels,
-    datasets,
-    totals: {
-      chat: chat.reduce((a,b)=>a+b,0),
-      pres: pres.reduce((a,b)=>a+b,0)
-    }
-  };
-}
-
-function chunk_(arr, size){
-  const out = [];
-  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
-  return out;
-}
-
-function buildDataZonasChunks_(rows){
-  const byZona = {}; // zona -> { chat, pres }
-
-  for(const r of rows){
-    const est = normalizeText_(r.estado || '');
-    const zona = String(r.barrio || '').trim().toUpperCase();
-    if(!zona) continue;
-
-    if(!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
-    if(est === 'ATENDIDA CHAT') byZona[zona].chat++;
-    if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
-  }
-
-  const zonas = Object.keys(byZona).sort((a,b)=>{
-    const ta = byZona[a].chat + byZona[a].pres;
-    const tb = byZona[b].chat + byZona[b].pres;
-    return tb - ta;
-  });
-
-  const isSmall = window.matchMedia('(max-width: 700px)').matches;
-  const MAX = isSmall ? 15 : 30;  // ✅ PC: 30 barras
-
-  const pal = ESTAD_COLORS.zonas;
-
-  const totals = zonas.reduce((acc, z)=>{
-    acc.chat += byZona[z].chat;
-    acc.pres += byZona[z].pres;
-    return acc;
-  }, { chat:0, pres:0 });
-
-  const pages = chunk_(zonas, MAX).map(pageZonas=>{
-    const chatArr = pageZonas.map(z => byZona[z].chat);
-    const presArr = pageZonas.map(z => byZona[z].pres);
-
-    const datasets = [];
-    if(chatArr.some(n=>n>0)){
-      datasets.push({
-        label: 'CHAT',
-        data: chatArr,
-        backgroundColor: pal.chat,
-        borderColor: pal.chatB,
-        borderWidth: 1.5,
-        stack: 's1',
-        borderRadius: 10
-      });
-    }
-    if(presArr.some(n=>n>0)){
-      datasets.push({
-        label: 'PRESENCIAL',
-        data: presArr,
-        backgroundColor: pal.pres,
-        borderColor: pal.presB,
-        borderWidth: 1.5,
-        stack: 's1',
-        borderRadius: 10
-      });
-    }
-
-    return {
-      labels: pageZonas,     // ✅ SIN trucos de ['', z] que descentraban
-      datasets
-    };
-  });
-
-  return { pages, totals };
-}
-
-function renderEstadCharts_(titleText, pagesData, totals, mode){
-  const host = document.getElementById('estadCharts');
-  if(!host) return;
-
-  const isSmall = window.matchMedia('(max-width: 700px)').matches;
-
-  setTotalsPalette_(mode);
-
-  // ✅ FIX: vuelve a escribir los totales y asegúrate de que el bloque NO quede vacío/oculto
-  const totChatEl = document.getElementById('totChat');
-  const totPresEl = document.getElementById('totPres');
-  const totalsWrap = document.getElementById('estadTotals');
-
-  if(totChatEl) totChatEl.textContent = String((totals && typeof totals.chat === 'number') ? totals.chat : 0);
-  if(totPresEl) totPresEl.textContent = String((totals && typeof totals.pres === 'number') ? totals.pres : 0);
-
-  if(totalsWrap){
-    totalsWrap.style.display = ''; // por si quedó oculto por algún css/estado anterior
-  }
-
-  destroyEstadChart_();
-  host.innerHTML = '';
-
-  const dl = window.ChartDataLabels;
-  const isZonas = (mode === 'ZONAS');
-
-  const any = (pagesData || []).some(p => (p.datasets||[]).some(ds => (ds.data||[]).some(v=>v>0)));
-  if(!any){
-    // ✅ Aunque no haya datos, dejamos los totales visibles
-    if(totalsWrap) host.appendChild(totalsWrap);
-    return;
-  }
-
-  pagesData.forEach((page, idx)=>{
-    const box = document.createElement('div');
-    box.className = 'estad-chart-box';
-
-    const count = (page.labels || []).length;
-    if(isSmall && count <= 3){
-      box.style.height = '220px';
-      box.style.minHeight = '220px';
-    }
-
-    const canvas = document.createElement('canvas');
-    box.appendChild(canvas);
-    host.appendChild(box);
-
-    const pageTitleBase = (pagesData.length > 1)
-  ? `${titleText} (${idx+1}/${pagesData.length})`
-  : titleText;
-
-// ✅ total general (CHAT + PRES) para mostrar bajo el título
-const totalGeneral =
-  ((totals && typeof totals.chat === 'number') ? totals.chat : 0) +
-  ((totals && typeof totals.pres === 'number') ? totals.pres : 0);
-
-// ✅ 2 líneas en el título (no afecta datalabels)
-const pageTitle = [pageTitleBase, `TOTAL: ${totalGeneral}`];
-
-    // ✅ Totales por serie para mostrar en la leyenda (solo texto)
-const totalChatSerie = (page.datasets || [])
-  .find(d => String(d.label || '').toUpperCase() === 'CHAT')
-  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
-
-const totalPresSerie = (page.datasets || [])
-  .find(d => String(d.label || '').toUpperCase() === 'PRESENCIAL')
-  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
-
-// ✅ Clonar datasets para NO dañar el dataset original
-const datasetsWithTotals = (page.datasets || []).map(ds=>{
-  const lbl = String(ds.label || '').toUpperCase();
-  let t = 0;
-  if(lbl === 'CHAT') t = totalChatSerie;
-  if(lbl === 'PRESENCIAL') t = totalPresSerie;
-  return { ...ds, label: `${ds.label} (Total: ${t})` };
-});
-
-    const c = new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: { labels: page.labels, datasets: datasetsWithTotals },
-      plugins: [dl],
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 6, left: 6, right: 6, bottom: 0 } },
-         plugins: {
-    title: {
-      display: true,
-      text: pageTitle,
-      color: '#06402B',                          // ← verde marca
-      font: { size: 17, weight: '800', family: "'Sora', sans-serif" },
-      padding: { bottom: 12 }
-    },
-    legend: {
-      position: 'bottom',
-      labels: {
-        boxWidth: 12, boxHeight: 12,
-        color: '#3d5248',                        // ← verde-gris
-        font: { weight: '700', size: 13 }
-      }
-    },
-    tooltip: { enabled: true },
-    datalabels: {
-      color: '#0f1f16',                          // ← verde muy oscuro, legible en cualquier barra
-      anchor: 'center',
-      align: 'center',
-      clamp: true,
-      font: { weight: '800', size: 16, family: "'IBM Plex Sans', sans-serif" },
-      formatter: (v) => (v && v > 0) ? String(v) : '',
-      textStrokeColor: 'rgba(255,255,255,.55)',  // ← halo blanco suave detrás del número
-      textStrokeWidth: 3
-    }
-  },
-  scales: {
-    x: {
-      stacked: true,
-      ticks: {
-        color: '#06402B',                        // ← verde oscuro
-        font: { weight: '700', size: isSmall ? 10 : 11 },
-        autoSkip: false,
-        minRotation: isZonas ? 90 : 0,
-        maxRotation: isZonas ? 90 : 0,
-        padding: isZonas ? (isSmall ? 6 : 10) : 0
-      },
-      grid: { display: false }
-    },
-    y: {
-      stacked: true,
-      beginAtZero: true,
-      suggestedMax: isZonas ? 4 : undefined,
-      ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
-      grid: { color: 'rgba(6,64,43,.08)' }      // ← grilla verde muy suave
-    }
-  }   
-      }
-    });
-
-    __estadCharts.push(c);
-  });
-
-  // ✅ Totales debajo del último gráfico (siempre)
-  if(totalsWrap) host.appendChild(totalsWrap);
-}
-  
-/* ===== Botones: siempre visibles ===== */
-async function showEstadTiempo_(){
-  __estadMode = 'TIEMPO';
-  const data = buildDataTiempo2026_(__estadCache);
-  renderEstadCharts_(
-    'ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026',
-    [{ labels: data.labels, datasets: data.datasets }],
-    data.totals,
-    'TIEMPO'
-  );
-}
-
-async function showEstadZonas_(){
-  __estadMode = 'ZONAS';
-  const built = buildDataZonasChunks_(__estadCache);
-  renderEstadCharts_('ATENCIÓN IMPUESTO PREDIAL ZONAS', built.pages, built.totals, 'ZONAS');
-}
-
-/* Inicia en TIEMPO 2026 y carga una sola vez */
-async function openEstadisticas_(){
-  if(!currentUser || !currentUser.isSuper){
-    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
-    return;
-  }
-
-  showView('view-estadisticas');
-
-  try{
-    await loadEstadisticasData_();  // cache no-pendientes
-    await showEstadTiempo_();       // inicia en TIEMPO 2026
-  }catch(e){
-    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
-  }
-}
 
   /* ================== MI SEMÁFORO ================== */
 
@@ -8513,6 +8353,683 @@ function panelRenderCats_(rows) {
     });
   }
 }
+
+  /* ============================================================
+   ESTADÍSTICAS DASHBOARD v2 — Lógica completa
+   ============================================================ */
+
+const ESTAD_ICON = {
+  calendario: 'https://res.cloudinary.com/dqqeavica/image/upload/v1776301265/calendario_tbjeas.webp',
+  mapa:       'https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/mapa_o7izhb.png',
+  tendencia:  'https://res.cloudinary.com/dqqeavica/image/upload/v1776301266/tendencia_cpy1nw.png',
+  barras:     'https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png'
+};
+
+let __estadTabActual      = 'tiempo';
+let __estadChartsDash     = {};
+let __estadZonasPages     = [];
+let __estadZonasPagActual = 0;
+
+/* ── Destruir chart por clave ────────────────────────────── */
+function estadDestroyChart_(key) {
+  try {
+    if (__estadChartsDash[key]) {
+      __estadChartsDash[key].destroy();
+      delete __estadChartsDash[key];
+    }
+  } catch(_) {}
+}
+
+/* ── Cambiar tab ─────────────────────────────────────────── */
+function estadShowTab_(tab) {
+  __estadTabActual = tab;
+  ['tiempo','zonas','tendencia'].forEach(t => {
+    const view = document.getElementById('estad-view-' + t);
+    const btn  = document.getElementById('estad-tab-btn-' + t);
+    if (!view || !btn) return;
+    const active = (t === tab);
+    view.style.display = active ? '' : 'none';
+    btn.classList.toggle('active', active);
+    if (active) {
+      view.classList.remove('estad-tab-content');
+      void view.offsetWidth;
+      view.classList.add('estad-tab-content');
+    }
+  });
+
+  if (!__estadCache || !__estadCache.length) return;
+
+  switch (tab) {
+    case 'tiempo':    estadRenderTiempo_();    break;
+    case 'zonas':     estadRenderZonas_();     break;
+    case 'tendencia': estadRenderTendencia_(); break;
+  }
+}
+
+/* ── Regresar ────────────────────────────────────────────── */
+function estadGoBack_() {
+  playSoundOnce(SOUNDS.back);
+  Object.keys(__estadChartsDash).forEach(k => estadDestroyChart_(k));
+  destroyEstadChart_();
+  showView('view-inicio');
+}
+
+/* ── OVERRIDE openEstadisticas_ ─────────────────────────── */
+openEstadisticas_ = async function() {
+  if (!currentUser || !currentUser.isSuper) {
+    Swal.fire({ icon: 'warning', title: 'Solo SUPER USUARIO' });
+    return;
+  }
+
+  showView('view-estadisticas');
+  estadShowTab_('tiempo');
+
+  try {
+    await loadEstadisticasData_();
+
+    const sub = document.getElementById('estad-dash-subtitle');
+    if (sub) {
+      const ts = new Date();
+      sub.textContent =
+        `${__estadCache.length} atendidas · Actualizado ` +
+        `${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
+    }
+
+    estadRenderTiempo_();
+  } catch(e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+};
+
+/* ══════════════════════════════════════════════════════════
+   TAB: TIEMPO 2026
+══════════════════════════════════════════════════════════ */
+function estadRenderTiempo_() {
+  const rows = __estadCache;
+  const data = buildDataTiempo2026_(rows);
+
+  const totalChat = data.totals.chat;
+  const totalPres = data.totals.pres;
+  const totalAll  = totalChat + totalPres;
+
+  /* Mes más activo */
+  let bestLabel = '—';
+  let bestVal   = 0;
+  if (data.labels.length) {
+    data.labels.forEach((lbl, i) => {
+      const combined = data.datasets.reduce((s, ds) => s + (ds.data[i] || 0), 0);
+      if (combined > bestVal) { bestVal = combined; bestLabel = lbl; }
+    });
+  }
+  const promMensual = data.labels.length
+    ? Math.round(totalAll / data.labels.length)
+    : 0;
+
+  /* ── KPIs ── */
+  const kpiWrap = document.getElementById('estad-kpis-tiempo');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { icon: ESTAD_ICON.barras,     value: totalAll,    label: 'Total 2026',  sub: 'solicitudes atendidas', cls: '' },
+      { icon: ESTAD_ICON.calendario, value: totalChat,   label: 'CHAT',        sub: 'atendidas por chat',    cls: 'kpi-naranja' },
+      { icon: ESTAD_ICON.calendario, value: totalPres,   label: 'PRESENCIAL',  sub: 'atendidas presencial',  cls: 'kpi-verde' },
+      { icon: ESTAD_ICON.tendencia,  value: promMensual, label: 'Prom./Mes',   sub: 'atenciones promedio',   cls: '' },
+      { icon: ESTAD_ICON.barras,     value: bestLabel,   label: 'Mejor Mes',   sub: `${bestVal} atendidas`,  cls: 'kpi-blue' }
+    ].forEach(k => {
+      const vs     = String(k.value);
+      const isLong = vs.length > 5;
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="kpi-value" style="${isLong ? 'font-size:1rem;line-height:1.2;text-align:center;' : ''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* ── Pills totales ── */
+  const pillWrap = document.getElementById('estad-totals-tiempo');
+  if (pillWrap) {
+    pillWrap.innerHTML = `
+      <div class="estad-tend-pill">
+        <span class="estad-tend-pill-icon">🟠</span>
+        <span class="estad-tend-pill-value">${totalChat}</span>
+        <span class="estad-tend-pill-label">CHAT</span>
+      </div>
+      <div class="estad-tend-pill">
+        <span class="estad-tend-pill-icon">🟢</span>
+        <span class="estad-tend-pill-value">${totalPres}</span>
+        <span class="estad-tend-pill-label">PRESENCIAL</span>
+      </div>
+      <div class="estad-tend-pill">
+        <span class="estad-tend-pill-icon">📊</span>
+        <span class="estad-tend-pill-value">${totalAll}</span>
+        <span class="estad-tend-pill-label">TOTAL</span>
+      </div>
+    `;
+  }
+
+  /* ── Gráfico barras ── */
+  estadDestroyChart_('tiempo');
+  const canvas = document.getElementById('estad-canvas-tiempo');
+  if (!canvas) return;
+
+  const dl = window.ChartDataLabels;
+
+  __estadChartsDash['tiempo'] = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels: data.labels, datasets: data.datasets },
+    plugins: dl ? [dl] : [],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 14, boxHeight: 14,
+            color: '#3d5248', font: { weight: '700', size: 13 }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,.97)',
+          titleColor: '#06402B', bodyColor: '#3d5248',
+          borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+          titleFont: { weight: '800', size: 13 },
+          bodyFont: { weight: '600', size: 12 },
+          padding: 12, cornerRadius: 12
+        },
+        datalabels: dl ? {
+          color: '#fff',
+          anchor: 'center', align: 'center', clamp: true,
+          font: { weight: '900', size: 15, family: "'IBM Plex Sans',sans-serif" },
+          formatter: v => (v && v > 0) ? String(v) : '',
+          textStrokeColor: 'rgba(0,0,0,.28)', textStrokeWidth: 3
+        } : { display: false }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: '#06402B', font: { weight: '700', size: 13 }, maxRotation: 0 },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true, beginAtZero: true,
+          ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
+          grid: { color: 'rgba(6,64,43,.08)' }
+        }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   TAB: ZONAS
+══════════════════════════════════════════════════════════ */
+function estadRenderZonas_() {
+  const rows  = __estadCache;
+  const built = buildDataZonasChunks_(rows);
+  __estadZonasPages     = built.pages;
+  __estadZonasPagActual = 0;
+
+  /* Mapa de zonas para KPIs y top */
+  const byZona = {};
+  rows.forEach(r => {
+    const est  = normalizeText_(r.estado || '');
+    const zona = String(r.barrio || '').trim().toUpperCase();
+    if (!zona) return;
+    if (!byZona[zona]) byZona[zona] = { chat: 0, pres: 0 };
+    if (est === 'ATENDIDA CHAT')       byZona[zona].chat++;
+    if (est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
+  });
+
+  const zonasSorted = Object.entries(byZona)
+    .map(([z, v]) => ({ zona: z, chat: v.chat, pres: v.pres, total: v.chat + v.pres }))
+    .sort((a, b) => b.total - a.total);
+
+  const topZona  = zonasSorted[0]?.zona  || '—';
+  const topVal   = zonasSorted[0]?.total || 0;
+  const numZonas = zonasSorted.length;
+  const totC     = built.totals.chat;
+  const totP     = built.totals.pres;
+
+  /* ── KPIs ── */
+  const kpiWrap = document.getElementById('estad-kpis-zonas');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { icon: ESTAD_ICON.mapa,       value: numZonas,    label: 'Zonas',       sub: 'con actividad registrada', cls: '' },
+      { icon: ESTAD_ICON.mapa,       value: topZona,     label: 'Zona Top',    sub: `${topVal} atendidas`,      cls: 'kpi-blue' },
+      { icon: ESTAD_ICON.calendario, value: totC,        label: 'CHAT',        sub: 'en todas las zonas',       cls: 'kpi-naranja' },
+      { icon: ESTAD_ICON.calendario, value: totP,        label: 'PRESENCIAL',  sub: 'en todas las zonas',       cls: 'kpi-verde' },
+      { icon: ESTAD_ICON.barras,     value: totC + totP, label: 'Total Zonas', sub: 'atenciones acumuladas',    cls: '' }
+    ].forEach(k => {
+      const vs     = String(k.value);
+      const isLong = vs.length > 8;
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="kpi-value" style="${isLong ? 'font-size:.72rem;line-height:1.25;text-align:center;word-break:break-word;' : ''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* ── Top zonas lista ── */
+  const topWrap = document.getElementById('estad-top-zonas');
+  if (topWrap) {
+    topWrap.innerHTML = '';
+    const maxVal = zonasSorted[0]?.total || 1;
+    const medals = ['🥇','🥈','🥉'];
+    zonasSorted.slice(0, 8).forEach((item, idx) => {
+      const pct    = Math.round((item.total / maxVal) * 100);
+      const posCls = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+      const posStr = idx < 3 ? medals[idx] : (idx + 1);
+      const el = document.createElement('div');
+      el.className = 'estad-top-item';
+      el.innerHTML = `
+        <div class="estad-top-pos ${posCls}">${posStr}</div>
+        <div class="estad-top-info">
+          <div class="estad-top-name" title="${escapeHtml_(item.zona)}">${escapeHtml_(item.zona)}</div>
+          <div class="estad-top-bar-track">
+            <div class="estad-top-bar-fill" style="width:${pct}%;"></div>
+          </div>
+        </div>
+        <div class="estad-top-count">${item.total}</div>
+      `;
+      topWrap.appendChild(el);
+    });
+  }
+
+  /* Primer gráfico y paginador */
+  estadRenderZonasPagina_(0);
+}
+
+function estadRenderZonasPagina_(pageIdx) {
+  __estadZonasPagActual = pageIdx;
+  const pages = __estadZonasPages;
+  if (!pages || !pages.length) return;
+
+  const page = pages[pageIdx];
+  if (!page) return;
+
+  /* Etiqueta de página */
+  const lblEl = document.getElementById('estad-zonas-page-label');
+  if (lblEl) {
+    lblEl.textContent = pages.length > 1
+      ? `Página ${pageIdx + 1} / ${pages.length}`
+      : '';
+  }
+
+  /* Destruir chart anterior */
+  estadDestroyChart_('zonas');
+
+  const canvas = document.getElementById('estad-canvas-zonas');
+  if (!canvas) return;
+
+  const isSmall = window.matchMedia('(max-width:700px)').matches;
+  const dl      = window.ChartDataLabels;
+
+  /* Totales por serie para leyenda */
+  const totalChatSerie = (page.datasets || [])
+    .find(d => String(d.label||'').toUpperCase() === 'CHAT')
+    ?.data?.reduce((a, b) => a + (Number(b)||0), 0) || 0;
+  const totalPresSerie = (page.datasets || [])
+    .find(d => String(d.label||'').toUpperCase() === 'PRESENCIAL')
+    ?.data?.reduce((a, b) => a + (Number(b)||0), 0) || 0;
+
+  const datasets = (page.datasets || []).map(ds => {
+    const lkey = String(ds.label||'').toUpperCase();
+    const t    = lkey === 'CHAT' ? totalChatSerie : totalPresSerie;
+    return { ...ds, label: `${ds.label}  (Total: ${t})` };
+  });
+
+  __estadChartsDash['zonas'] = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: { labels: page.labels, datasets },
+    plugins: dl ? [dl] : [],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12, boxHeight: 12,
+            color: '#3d5248', font: { weight: '700', size: 12 }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,.97)',
+          titleColor: '#06402B', bodyColor: '#3d5248',
+          borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+          padding: 12, cornerRadius: 12,
+          titleFont: { weight: '800' }, bodyFont: { weight: '600' }
+        },
+        datalabels: dl ? {
+          color: '#0f1f16',
+          anchor: 'center', align: 'center', clamp: true,
+          font: {
+            weight: '800',
+            size: isSmall ? 11 : 14,
+            family: "'IBM Plex Sans',sans-serif"
+          },
+          formatter: v => (v && v > 0) ? String(v) : '',
+          textStrokeColor: 'rgba(255,255,255,.55)', textStrokeWidth: 3
+        } : { display: false }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            color: '#06402B',
+            font: { weight: '700', size: isSmall ? 9 : 11 },
+            autoSkip: false,
+            minRotation: 90, maxRotation: 90
+          },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true, beginAtZero: true,
+          ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
+          grid: { color: 'rgba(6,64,43,.08)' }
+        }
+      }
+    }
+  });
+
+  /* ── Paginador ── */
+  const pagerWrap = document.getElementById('estad-pager-zonas');
+  if (!pagerWrap) return;
+  pagerWrap.innerHTML = '';
+
+  if (pages.length <= 1) return;
+
+  /* Botón anterior */
+  const btnPrev = document.createElement('button');
+  btnPrev.className = 'estad-pager-btn';
+  btnPrev.textContent = '← Ant.';
+  btnPrev.disabled = (pageIdx === 0);
+  btnPrev.addEventListener('click', () => {
+    if (__estadZonasPagActual > 0) estadRenderZonasPagina_(__estadZonasPagActual - 1);
+  });
+  pagerWrap.appendChild(btnPrev);
+
+  /* Botones numéricos */
+  pages.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'estad-pager-btn' + (i === pageIdx ? ' active' : '');
+    btn.textContent = String(i + 1);
+    btn.addEventListener('click', () => estadRenderZonasPagina_(i));
+    pagerWrap.appendChild(btn);
+  });
+
+  /* Botón siguiente */
+  const btnNext = document.createElement('button');
+  btnNext.className = 'estad-pager-btn';
+  btnNext.textContent = 'Sig. →';
+  btnNext.disabled = (pageIdx === pages.length - 1);
+  btnNext.addEventListener('click', () => {
+    if (__estadZonasPagActual < __estadZonasPages.length - 1)
+      estadRenderZonasPagina_(__estadZonasPagActual + 1);
+  });
+  pagerWrap.appendChild(btnNext);
+}
+
+/* ══════════════════════════════════════════════════════════
+   TAB: TENDENCIA
+══════════════════════════════════════════════════════════ */
+function estadRenderTendencia_() {
+  const rows = __estadCache;
+
+  /* Construir datos mensuales completos */
+  const byMonth = {};
+  rows.forEach(r => {
+    const est   = normalizeText_(r.estado || '');
+    const fecha = parseDDMMYYYY_(r.fecha || '');
+    if (!fecha) return;
+    if (fecha.yyyy !== 2026) return;
+    const key = String(fecha.mm).padStart(2, '0');
+    if (!byMonth[key]) byMonth[key] = { chat: 0, pres: 0 };
+    if (est === 'ATENDIDA CHAT')       byMonth[key].chat++;
+    if (est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
+  });
+
+  const monthsSorted = Object.keys(byMonth).sort();
+  const labels  = monthsSorted.map(k => MONTHS_ES[parseInt(k, 10) - 1]);
+  const chatArr = monthsSorted.map(k => byMonth[k].chat);
+  const presArr = monthsSorted.map(k => byMonth[k].pres);
+  const totArr  = monthsSorted.map((k, i) => chatArr[i] + presArr[i]);
+
+  const totalAll  = totArr.reduce((a, b) => a + b, 0);
+  const totalChat = chatArr.reduce((a, b) => a + b, 0);
+  const totalPres = presArr.reduce((a, b) => a + b, 0);
+  const maxMes    = Math.max(...totArr, 0);
+  const minMes    = totArr.length ? Math.min(...totArr.filter(v => v > 0)) : 0;
+  const promMes   = totArr.length ? Math.round(totalAll / totArr.length) : 0;
+
+  /* Variación último mes vs anterior */
+  let varPct = null;
+  if (totArr.length >= 2) {
+    const last = totArr[totArr.length - 1];
+    const prev = totArr[totArr.length - 2];
+    varPct = prev > 0 ? Math.round(((last - prev) / prev) * 100) : null;
+  }
+
+  /* ── KPIs ── */
+  const kpiWrap = document.getElementById('estad-kpis-tendencia');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { icon: ESTAD_ICON.barras,    value: totalAll,  label: 'Total 2026',   sub: 'solicitudes acumuladas', cls: '' },
+      { icon: ESTAD_ICON.tendencia, value: maxMes,    label: 'Pico Mensual', sub: 'máximo en un mes',       cls: 'kpi-blue' },
+      { icon: ESTAD_ICON.tendencia, value: minMes,    label: 'Mínimo Mes',   sub: 'mínimo registrado',      cls: '' },
+      { icon: ESTAD_ICON.barras,    value: promMes,   label: 'Promedio',     sub: 'atenciones por mes',     cls: '' },
+      {
+        icon:  ESTAD_ICON.tendencia,
+        value: varPct !== null ? (varPct >= 0 ? '+' + varPct + '%' : varPct + '%') : '—',
+        label: 'Var. Último Mes',
+        sub:   'vs mes anterior',
+        cls:   varPct === null ? '' : varPct >= 0 ? 'kpi-verde' : 'kpi-rojo'
+      }
+    ].forEach(k => {
+      const vs     = String(k.value);
+      const isLong = vs.length > 5;
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="kpi-value" style="${isLong ? 'font-size:1rem;line-height:1.2;text-align:center;' : ''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* ── Gráfico de línea ── */
+  estadDestroyChart_('tendencia');
+  const canvas = document.getElementById('estad-canvas-tendencia');
+  if (canvas && labels.length) {
+    const dl = window.ChartDataLabels;
+
+    __estadChartsDash['tendencia'] = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'TOTAL',
+            data: totArr,
+            borderColor: '#06402B',
+            backgroundColor: 'rgba(6,64,43,.10)',
+            borderWidth: 3,
+            pointBackgroundColor: '#06402B',
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            fill: true,
+            tension: 0.38
+          },
+          {
+            label: 'CHAT',
+            data: chatArr,
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249,115,22,.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#f97316',
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            fill: false,
+            tension: 0.38
+          },
+          {
+            label: 'PRESENCIAL',
+            data: presArr,
+            borderColor: '#16a34a',
+            backgroundColor: 'rgba(22,163,74,.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#16a34a',
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            fill: false,
+            tension: 0.38
+          }
+        ]
+      },
+      plugins: dl ? [dl] : [],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 14, boxHeight: 14,
+              color: '#3d5248', font: { weight: '700', size: 13 }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,.97)',
+            titleColor: '#06402B', bodyColor: '#3d5248',
+            borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+            titleFont: { weight: '800', size: 13 },
+            bodyFont: { weight: '600', size: 12 },
+            padding: 12, cornerRadius: 12
+          },
+          datalabels: dl ? {
+            color: (ctx) => {
+              const colors = ['#06402B','#f97316','#16a34a'];
+              return colors[ctx.datasetIndex] || '#333';
+            },
+            anchor: 'top', align: 'top', offset: 4,
+            font: { weight: '900', size: 13, family: "'IBM Plex Sans',sans-serif" },
+            formatter: v => (v && v > 0) ? String(v) : '',
+            textStrokeColor: 'rgba(255,255,255,.8)', textStrokeWidth: 4
+          } : { display: false }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#06402B', font: { weight: '700', size: 12 }, maxRotation: 0 },
+            grid: { color: 'rgba(6,64,43,.06)' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
+            grid: { color: 'rgba(6,64,43,.08)' }
+          }
+        }
+      }
+    });
+  }
+
+  /* ── Tabla comparación mensual ── */
+  const tbody = document.getElementById('estad-month-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!monthsSorted.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;">
+        Sin datos para 2026.
+      </td></tr>`;
+    return;
+  }
+
+  let acumTotal = 0;
+  let prevTotal = null;
+
+  monthsSorted.forEach((key, i) => {
+    const mes   = labels[i];
+    const chat  = chatArr[i];
+    const pres  = presArr[i];
+    const tot   = totArr[i];
+    acumTotal  += tot;
+
+    /* Variación vs mes anterior */
+    let varStr  = '—';
+    let varCls  = '';
+    if (prevTotal !== null && prevTotal > 0) {
+      const diff = Math.round(((tot - prevTotal) / prevTotal) * 100);
+      varStr = (diff >= 0 ? '+' : '') + diff + '%';
+      varCls = diff > 0  ? 'style="color:#16a34a;font-weight:900;"'
+             : diff < 0  ? 'style="color:#dc2626;font-weight:900;"'
+             : 'style="color:#6b7280;"';
+    } else if (prevTotal !== null) {
+      varStr = tot > 0 ? '🆕' : '—';
+    }
+    prevTotal = tot;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-mes">${escapeHtml_(mes)}</td>
+      <td class="td-chat">${chat}</td>
+      <td class="td-pres">${pres}</td>
+      <td class="td-total">${tot}</td>
+      <td ${varCls}>${varStr}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  /* Fila totales */
+  const trFoot = document.createElement('tr');
+  trFoot.innerHTML = `
+    <td class="td-foot">TOTAL</td>
+    <td class="td-foot td-chat">${totalChat}</td>
+    <td class="td-foot td-pres">${totalPres}</td>
+    <td class="td-foot td-total">${totalAll}</td>
+    <td class="td-foot">—</td>
+  `;
+  tbody.appendChild(trFoot);
+}
+
+/* ── Desconectar botones legacy (Tiempo / Zonas) ─────────── */
+/* Los botones btn-estad-tiempo y btn-estad-zonas ya no existen en el
+   nuevo HTML, pero si el navegador los tiene en caché los neutralizamos. */
+(function patchLegacyEstadButtons_() {
+  const bTiempo = document.getElementById('btn-estad-tiempo');
+  const bZonas  = document.getElementById('btn-estad-zonas');
+  const bBack   = document.getElementById('btn-estad-back');
+
+  if (bTiempo) {
+    bTiempo.replaceWith(bTiempo.cloneNode(true));
+  }
+  if (bZonas) {
+    bZonas.replaceWith(bZonas.cloneNode(true));
+  }
+  if (bBack) {
+    bBack.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.back);
+      estadGoBack_();
+    });
+  }
+})();
                               
 </script>
 </body>
