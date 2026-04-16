@@ -4356,7 +4356,6 @@ document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
     __listCache = items;
     renderList_(__listCache);
     showView('view-lista');
-    updateListaAddButtonVisibility_();
 
     // ✅ Auto-refresh cada 30s solo en Pendientes
     startPendientesAutoRefresh_();
