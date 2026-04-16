@@ -449,60 +449,215 @@ button:active { transform: translateY(0) scale(.98); }
   max-width: 100%; text-align: center;
 }
  
-/* ── Estadísticas ────────────────────────────────────────── */
-.card.estad-card {
-  max-width: 1080px; padding: 14px;
-  height: auto; max-height: calc(100vh - 32px);
-  overflow: visible;
-  display: flex; flex-direction: column; gap: 12px;
+/* ── Estadísticas Dashboard ──────────────────────────────── */
+.estad-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-@media (min-width:1400px) { .card.estad-card { max-width: 2200px; } }
- 
-.estad-head { text-align: center; }
-.estad-title {
-  margin: 0; font-family: 'Sora', sans-serif;
-  color: var(--primary); font-weight: 800; font-size: 1.2rem;
+
+/* Header estadísticas */
+.estad-dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-.estad-sub { margin-top: 2px; font-weight: 500; color: var(--text-muted); font-size: .88rem; }
- 
-.estad-toolbar { display: flex; gap: 10px; }
-@media (max-width:700px) { .estad-toolbar { flex-direction: column; } }
- 
-.estad-chart-wrap {
-  flex: 1; min-height: 0;
-  background: rgba(255,255,255,.75);
-  border: 1.5px solid rgba(6,64,43,.12);
-  border-radius: var(--radius-lg);
-  padding: 10px 12px;
-  box-shadow: 0 4px 16px rgba(6,64,43,.08);
-  backdrop-filter: blur(8px);
-  display: flex; flex-direction: column; gap: 10px;
-  overflow: auto; overscroll-behavior: contain;
+.estad-dash-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.estad-dash-title-wrap img {
+  width: 38px; height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(6,64,43,.25));
+}
+.estad-dash-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900; font-size: 1.35rem;
+  color: var(--primary); letter-spacing: -.4px; margin: 0;
+}
+.estad-dash-subtitle {
+  font-size: .78rem; font-weight: 600;
+  color: var(--text-muted); margin: 2px 0 0;
+}
+
+/* Toolbar */
+.estad-dash-toolbar {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;
+}
+.estad-dash-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-xl);
+  border: 1.5px solid var(--input-border);
+  background: rgba(255,255,255,.80); color: var(--text-sub);
+  font-weight: 700; font-size: .82rem; cursor: pointer;
+  transition: .18s; font-family: 'IBM Plex Sans', sans-serif;
+}
+.estad-dash-tab img { width: 18px; height: 18px; object-fit: contain; }
+.estad-dash-tab:hover {
+  background: #fff; color: var(--primary);
+  border-color: var(--primary); transform: translateY(-1px);
+}
+.estad-dash-tab.active {
+  background: linear-gradient(135deg, #0a7a46, #06402B);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 14px rgba(6,64,43,.30);
+}
+.estad-dash-tab.active:hover { transform: translateY(-1px); color: #fff; }
+
+/* KPIs estadísticas */
+.estad-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.estad-kpi-card {
+  background: rgba(255,255,255,.92);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-md);
+  padding: 14px 12px 12px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  box-shadow: 0 4px 14px rgba(6,64,43,.08);
+  transition: transform .15s, box-shadow .15s;
+  position: relative; overflow: hidden;
+}
+.estad-kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--estad-kpi-color, var(--primary));
+  border-radius: 4px 4px 0 0;
+}
+.estad-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6,64,43,.14); }
+.estad-kpi-icon { width: 34px; height: 34px; object-fit: contain; margin-bottom: 2px; }
+.estad-kpi-value {
+  font-family: 'Sora', sans-serif; font-weight: 900;
+  font-size: 1.8rem; color: var(--primary); line-height: 1;
+}
+.estad-kpi-label {
+  font-size: .68rem; font-weight: 700; color: var(--text-muted);
+  text-align: center; text-transform: uppercase; letter-spacing: .5px;
+}
+.estad-kpi-card.ekpi-naranja { --estad-kpi-color: #f97316; }
+.estad-kpi-card.ekpi-verde   { --estad-kpi-color: #16a34a; }
+.estad-kpi-card.ekpi-blue    { --estad-kpi-color: #2563eb; }
+.estad-kpi-card.ekpi-rojo    { --estad-kpi-color: #dc2626; }
+
+/* Semáforo mini en estadísticas */
+.estad-semaforo-wrap {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.estad-sem-card {
+  flex: 1; min-width: 90px;
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  transition: transform .15s;
+}
+.estad-sem-card:hover { transform: translateY(-2px); }
+.estad-sem-value {
+  font-family: 'Sora', sans-serif; font-weight: 900;
+  font-size: 1.6rem; color: #fff; line-height: 1;
+}
+.estad-sem-label {
+  font-size: .64rem; font-weight: 800;
+  color: rgba(255,255,255,.92); text-align: center;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+
+/* Sección estadísticas */
+.estad-section { margin-bottom: 0; }
+.estad-section-title {
+  font-family: 'Sora', sans-serif; font-weight: 800;
+  font-size: .88rem; color: var(--primary);
+  text-transform: uppercase; letter-spacing: .6px;
+  margin: 0 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.estad-section-title img { width: 20px; height: 20px; object-fit: contain; }
+
+/* Chart wrap dentro del dashboard */
+.estad-chart-panel {
+  background: rgba(255,255,255,.88);
+  border: 1.5px solid rgba(6,64,43,.10);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(6,64,43,.06);
+  position: relative;
+  overflow-x: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 14px;
 }
- 
-#estadChart {
-  flex: 1; min-height: 0;
-  width: 100% !important; height: 100% !important; display: block;
+.estad-chart-panel canvas { display: block; }
+
+/* Totales pill (CHAT / PRESENCIAL) */
+.estad-totals-row {
+  display: flex; flex-wrap: wrap;
+  gap: 8px; justify-content: center; margin-top: 8px;
 }
- 
-.estad-totals { flex: 0 0 auto; margin-top: 2px; font-weight: 700; color: var(--primary); }
- 
-.estad-pill {
-  display: inline-flex; align-items: center; gap: 8px;
+.estad-total-pill {
+  display: inline-flex; align-items: center; gap: 7px;
   background: rgba(6,64,43,.06);
   border: 1.5px solid rgba(6,64,43,.15);
   border-radius: var(--radius-xl);
-  padding: 6px 12px; margin: 0 6px 6px 6px; font-size: .85rem;
-  color: var(--text-sub);
+  padding: 6px 14px; font-size: .85rem;
+  color: var(--text-sub); font-weight: 700;
 }
-.estad-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
- 
-#estadCharts { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
-.estad-chart-box { height: 640px; min-height: 520px; }
-@media (max-width:700px) { .estad-chart-box { height: 400px; min-height: 400px; } }
+.estad-total-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* Tabs de modo (TIEMPO / ZONAS) dentro del panel de charts */
+.estad-mode-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.estad-mode-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-xl);
+  border: 1.5px solid var(--input-border);
+  background: rgba(255,255,255,.80); color: var(--text-sub);
+  font-weight: 700; font-size: .80rem; cursor: pointer;
+  transition: .18s; font-family: 'IBM Plex Sans', sans-serif;
+}
+.estad-mode-btn img { width: 16px; height: 16px; }
+.estad-mode-btn.active {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 3px 12px rgba(249,115,22,.35);
+}
+.estad-mode-btn.active.zonas-active {
+  background: linear-gradient(135deg, #16a34a, #06402B);
+  box-shadow: 0 3px 12px rgba(6,64,43,.35);
+}
+
+/* Chart box individual */
+.estad-chart-box {
+  height: 480px; min-height: 380px;
+  margin-bottom: 12px;
+}
+.estad-chart-box:last-child { margin-bottom: 0; }
 .estad-chart-box canvas { width: 100% !important; height: 100% !important; display: block; }
+@media (max-width:700px) { .estad-chart-box { height: 360px; min-height: 320px; } }
+
+/* Animación entrada */
+@keyframes estadFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.estad-animate { animation: estadFadeIn .35s ease both; }
+
+/* Responsive KPIs */
+@media (max-width: 500px) {
+  .estad-kpis { grid-template-columns: repeat(2, 1fr); }
+  .estad-kpi-value { font-size: 1.4rem; }
+  .estad-dash-title { font-size: 1.1rem; }
+}
  
 /* ── SweetAlert2 — Tema Hacienda Claro ──────────────────── */
  
@@ -2543,38 +2698,74 @@ button:active { transform: translateY(0) scale(.98); }
   </div>
 </section>
 
-    <!-- VISTA ESTADISTICAS -->
-  <section id="view-estadisticas" class="view">
-  <div class="card estad-card">
-    <div class="estad-head">
-      <div>
-        <h2 class="estad-title">ESTADÍSTICAS</h2>
-        <div class="estad-sub">Solo SUPER USUARIO</div>
+    <!-- VISTA ESTADÍSTICAS DASHBOARD -->
+<section id="view-estadisticas" class="view">
+  <div class="estad-dashboard">
+
+    <!-- Header -->
+    <div class="estad-dash-header panel-card" style="padding:14px 16px;">
+      <div class="estad-dash-title-wrap">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="Estadísticas" />
+        <div>
+          <h2 class="estad-dash-title">ESTADÍSTICAS 📊</h2>
+          <div class="estad-dash-subtitle" id="estad-dash-subtitle">Solo SUPER USUARIO</div>
+        </div>
       </div>
+      <button class="danger panel-tab" style="width:auto;" onclick="estadGoBack_()">← REGRESAR</button>
     </div>
 
-    <div class="estad-toolbar">
-      <button id="btn-estad-tiempo" class="btn-primary">TIEMPO 2026</button>
-      <button id="btn-estad-zonas" class="btn-primary">ZONAS</button>
-      <button id="btn-estad-back" class="danger">Regresar</button>
+    <!-- KPIs -->
+    <div class="estad-kpis" id="estad-kpis"></div>
+
+    <!-- Semáforo -->
+    <div class="panel-card" style="padding:14px;">
+      <div class="estad-section-title">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+        DISTRIBUCIÓN POR TIPO DE ATENCIÓN
+      </div>
+      <div class="estad-semaforo-wrap" id="estad-semaforo"></div>
     </div>
 
-    <div class="estad-chart-wrap">
-  <!-- contenedor de charts (múltiples canvases) -->
-  <div id="estadCharts"></div>
+    <!-- Charts: TIEMPO / ZONAS -->
+    <div class="panel-card" style="padding:14px;" id="estad-charts-panel">
+      <div class="estad-section-title">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+        GRÁFICOS DE ATENCIÓN
+      </div>
 
-  <!-- Totales: se muestran SOLO en el último gráfico -->
-  <div id="estadTotals" class="estad-totals center">
-    <span class="estad-pill">
-      <span id="dotChat" class="estad-dot"></span>
-      CHAT: <span id="totChat">0</span>
-    </span>
-    <span class="estad-pill">
-      <span id="dotPres" class="estad-dot"></span>
-      PRESENCIAL: <span id="totPres">0</span>
-    </span>
+      <!-- Tabs modo -->
+      <div class="estad-mode-tabs">
+        <button class="estad-mode-btn active" id="estad-btn-tiempo" onclick="estadSwitchMode_('tiempo')">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287528/reloj_mnsqmb.png" alt="" />
+          TIEMPO 2026
+        </button>
+        <button class="estad-mode-btn" id="estad-btn-zonas" onclick="estadSwitchMode_('zonas')">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+          ZONAS
+        </button>
+      </div>
+
+      <!-- Totales -->
+      <div class="estad-totals-row" id="estad-totals-row">
+        <div class="estad-total-pill">
+          <span class="estad-total-dot" id="estad-dot-chat"></span>
+          CHAT: <strong id="estad-tot-chat">0</strong>
+        </div>
+        <div class="estad-total-pill">
+          <span class="estad-total-dot" id="estad-dot-pres"></span>
+          PRESENCIAL: <strong id="estad-tot-pres">0</strong>
+        </div>
+        <div class="estad-total-pill">
+          <span class="estad-total-dot" style="background:#06402B;"></span>
+          TOTAL: <strong id="estad-tot-general">0</strong>
+        </div>
+      </div>
+
+      <!-- Contenedor charts dinámico -->
+      <div id="estadCharts" style="margin-top:10px;"></div>
+    </div>
+
   </div>
-</div>
 </section>
 
      <!-- ============================================================
@@ -3627,395 +3818,562 @@ function canSeePendientes_(){
   return ALLOW_PENDIENTES.includes(n);
 }
 
-/* ================== ESTADISTICAS ================== */
-let __estadCache = [];      // rows no-pendientes
-let __estadMode = 'TIEMPO'; // TIEMPO | ZONAS
-let __estadChart = null;
+/* ======================================================
+   ESTADÍSTICAS DASHBOARD v2
+   ====================================================== */
+
+/* ── Iconos ───────────────────────────────────────────── */
+const ESTAD_ICON_BARRAS  = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png';
+const ESTAD_ICON_RELOJ   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287528/reloj_mnsqmb.png';
+const ESTAD_ICON_ZONAS   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp'; // reemplaza con ícono mapa si tienes
+const ESTAD_ICON_USUARIOS= 'https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp';
+const ESTAD_ICON_PREDIAL = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776026457/predial_fnzfh5.png';
+
+/* ── Estado ──────────���────────────────────────────────── */
+let __estadCache    = [];
+let __estadTabActual= 'tiempo';
+let __estadCharts   = [];
 
 const MONTHS_ES = [
   'ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
   'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'
 ];
 
-function parseDDMMYYYY_(s){
-  const m = String(s||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(!m) return null;
+/* ── Paleta ───────────────────────────────────────────── */
+const ESTAD_PAL = {
+  chat: { bg: '#f97316', border: '#ea6200' },
+  pres: { bg: '#06402B', border: '#04281C' }
+};
+
+/* ── Helpers fecha ────────────────────────────────────── */
+function parseDDMMYYYY_(s) {
+  const m = String(s || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
   const dd = parseInt(m[1],10), mm = parseInt(m[2],10), yyyy = parseInt(m[3],10);
-  if(!yyyy || mm<1 || mm>12 || dd<1 || dd>31) return null;
+  if (!yyyy || mm<1 || mm>12 || dd<1 || dd>31) return null;
   return { dd, mm, yyyy };
 }
 
-/* ✅ Destruye el chart actual (evita errores y “pegotes” al cambiar de gráfico) */
-let __estadCharts = []; // <-- NUEVO: lista de instancias Chart.js
-
-function destroyEstadChart_(){
-  try{
-    for(const c of (__estadCharts || [])){
-      try{ c.destroy(); }catch(_){}
-    }
-  }catch(_){}
-  __estadCharts = [];
-  try{
-    const host = document.getElementById('estadCharts');
-    if(host) host.innerHTML = '';
-  }catch(_){}
-}
-  
-function estadFilterNotPendiente_(rows){
-  const out = [];
-  for(const r of (Array.isArray(rows) ? rows : [])){
-    const est = normalizeText_(r.estado || '');
-    if(!est || est === 'PENDIENTE') continue;
-    out.push(r);
+/* ── Destruir charts ──────────────────────────────────── */
+function destroyEstadChart_() {
+  for (const c of (__estadCharts || [])) {
+    try { c.destroy(); } catch(_) {}
   }
-  return out;
+  __estadCharts = [];
 }
 
-/* API: trae SOLO no-pendientes */
-async function loadEstadisticasData_(){
-  // Backend: doGet action=listsolicitudesnopendientes
+/* ── Filtrar no-pendientes ────────────────────────────── */
+function estadFilterNotPendiente_(rows) {
+  return (Array.isArray(rows) ? rows : []).filter(r => {
+    const est = normalizeText_(r.estado || '');
+    return est && est !== 'PENDIENTE';
+  });
+}
+
+/* ── Cargar datos ─────────────────────────────────────── */
+async function loadEstadisticasData_() {
   const rows = await apiGet('listSolicitudesNoPendientes');
   __estadCache = estadFilterNotPendiente_(rows);
 }
 
-/* Paletas separadas (TIEMPO vs ZONAS) */
-const ESTAD_COLORS = {
-  tiempo: {
-    chat:  '#f97316',   // naranja vivo  → CHAT
-    pres:  '#06402B',   // verde oscuro   → PRESENCIAL
-    chatB: '#ea6200',   // borde naranja
-    presB: '#04281C'    // borde verde muy oscuro
-  },
-  zonas: {
-    chat:  '#22c55e',   // verde medio    → CHAT
-    pres:  '#06402B',   // verde oscuro   → PRESENCIAL
-    chatB: '#16a34a',   // borde verde
-    presB: '#04281C'    // borde verde muy oscuro
-  }
-};
-
-/* ✅ Cambia el color de los punticos del total según modo */
-function setTotalsPalette_(mode){
-  const pal = (mode === 'ZONAS') ? ESTAD_COLORS.zonas : ESTAD_COLORS.tiempo;
-  const dotChat = document.getElementById('dotChat');
-  const dotPres = document.getElementById('dotPres');
-  if(dotChat) dotChat.style.background = pal.chat;
-  if(dotPres) dotPres.style.background = pal.pres;
-}
-
-function buildDataTiempo2026_(rows){
-  // Categorías: meses existentes en 2026 según fecha (dd/mm/yyyy)
-  // Series: CHAT / PRESENCIAL
-  const byMonth = {}; // "01".."12" -> { chat, pres }
-
-  for(const r of rows){
-    const est = normalizeText_(r.estado || '');
-    const fecha = parseDDMMYYYY_(r.fecha || '');
-    if(!fecha) continue;
-    if(fecha.yyyy !== 2026) continue;
-
-    const key = String(fecha.mm).padStart(2,'0');
-    if(!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
-
-    if(est === 'ATENDIDA CHAT') byMonth[key].chat++;
-    if(est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
-  }
-
-  const monthsSorted = Object.keys(byMonth).sort();
-  const labels = monthsSorted.map(k => MONTHS_ES[parseInt(k,10)-1]);
-  const chat = monthsSorted.map(k => byMonth[k].chat);
-  const pres = monthsSorted.map(k => byMonth[k].pres);
-
-  const pal = ESTAD_COLORS.tiempo;
-
-  const datasets = [];
-  const hasChat = chat.some(n=>n>0);
-  const hasPres = pres.some(n=>n>0);
-
-  if(hasChat){
-    datasets.push({
-      label: 'CHAT',
-      data: chat,
-      backgroundColor: pal.chat,
-      borderColor: pal.chatB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
-  if(hasPres){
-    datasets.push({
-      label: 'PRESENCIAL',
-      data: pres,
-      backgroundColor: pal.pres,
-      borderColor: pal.presB,
-      borderWidth: 1.5,
-      stack: 's1',
-      borderRadius: 10
-    });
-  }
-
-  return {
-    labels,
-    datasets,
-    totals: {
-      chat: chat.reduce((a,b)=>a+b,0),
-      pres: pres.reduce((a,b)=>a+b,0)
+/* ── Cambiar tab ─────────────────────────────────��────── */
+function estadShowTab_(tab) {
+  __estadTabActual = tab;
+  const tabs = ['tiempo','zonas'];
+  tabs.forEach(t => {
+    const view = document.getElementById('estad-view-' + t);
+    const btn  = document.getElementById('estad-tab-' + t);
+    if (!view || !btn) return;
+    const active = (t === tab);
+    view.style.display = active ? '' : 'none';
+    btn.classList.toggle('active', active);
+    if (active) {
+      view.classList.remove('estad-animate');
+      void view.offsetWidth;
+      view.classList.add('estad-animate');
     }
-  };
-}
-
-function chunk_(arr, size){
-  const out = [];
-  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size));
-  return out;
-}
-
-function buildDataZonasChunks_(rows){
-  const byZona = {}; // zona -> { chat, pres }
-
-  for(const r of rows){
-    const est = normalizeText_(r.estado || '');
-    const zona = String(r.barrio || '').trim().toUpperCase();
-    if(!zona) continue;
-
-    if(!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
-    if(est === 'ATENDIDA CHAT') byZona[zona].chat++;
-    if(est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
-  }
-
-  const zonas = Object.keys(byZona).sort((a,b)=>{
-    const ta = byZona[a].chat + byZona[a].pres;
-    const tb = byZona[b].chat + byZona[b].pres;
-    return tb - ta;
   });
 
-  const isSmall = window.matchMedia('(max-width: 700px)').matches;
-  const MAX = isSmall ? 15 : 30;  // ✅ PC: 30 barras
-
-  const pal = ESTAD_COLORS.zonas;
-
-  const totals = zonas.reduce((acc, z)=>{
-    acc.chat += byZona[z].chat;
-    acc.pres += byZona[z].pres;
-    return acc;
-  }, { chat:0, pres:0 });
-
-  const pages = chunk_(zonas, MAX).map(pageZonas=>{
-    const chatArr = pageZonas.map(z => byZona[z].chat);
-    const presArr = pageZonas.map(z => byZona[z].pres);
-
-    const datasets = [];
-    if(chatArr.some(n=>n>0)){
-      datasets.push({
-        label: 'CHAT',
-        data: chatArr,
-        backgroundColor: pal.chat,
-        borderColor: pal.chatB,
-        borderWidth: 1.5,
-        stack: 's1',
-        borderRadius: 10
-      });
-    }
-    if(presArr.some(n=>n>0)){
-      datasets.push({
-        label: 'PRESENCIAL',
-        data: presArr,
-        backgroundColor: pal.pres,
-        borderColor: pal.presB,
-        borderWidth: 1.5,
-        stack: 's1',
-        borderRadius: 10
-      });
-    }
-
-    return {
-      labels: pageZonas,     // ✅ SIN trucos de ['', z] que descentraban
-      datasets
-    };
-  });
-
-  return { pages, totals };
+  if (!__estadCache.length) return;
+  if (tab === 'tiempo') renderEstadTiempo_(__estadCache);
+  if (tab === 'zonas')  renderEstadZonas_(__estadCache);
 }
 
-function renderEstadCharts_(titleText, pagesData, totals, mode){
-  const host = document.getElementById('estadCharts');
-  if(!host) return;
-
-  const isSmall = window.matchMedia('(max-width: 700px)').matches;
-
-  setTotalsPalette_(mode);
-
-  // ✅ FIX: vuelve a escribir los totales y asegúrate de que el bloque NO quede vacío/oculto
-  const totChatEl = document.getElementById('totChat');
-  const totPresEl = document.getElementById('totPres');
-  const totalsWrap = document.getElementById('estadTotals');
-
-  if(totChatEl) totChatEl.textContent = String((totals && typeof totals.chat === 'number') ? totals.chat : 0);
-  if(totPresEl) totPresEl.textContent = String((totals && typeof totals.pres === 'number') ? totals.pres : 0);
-
-  if(totalsWrap){
-    totalsWrap.style.display = ''; // por si quedó oculto por algún css/estado anterior
-  }
-
+/* ── Regresar ─────────────────────────────────────────── */
+function estadGoBack_() {
+  playSoundOnce(SOUNDS.back);
   destroyEstadChart_();
-  host.innerHTML = '';
+  showView('view-inicio');
+}
 
-  const dl = window.ChartDataLabels;
-  const isZonas = (mode === 'ZONAS');
-
-  const any = (pagesData || []).some(p => (p.datasets||[]).some(ds => (ds.data||[]).some(v=>v>0)));
-  if(!any){
-    // ✅ Aunque no haya datos, dejamos los totales visibles
-    if(totalsWrap) host.appendChild(totalsWrap);
+/* ── Abrir dashboard estadísticas ─────────────────────── */
+async function openEstadisticas_() {
+  if (!currentUser || !currentUser.isSuper) {
+    Swal.fire({ icon: 'warning', title: 'Solo SUPER USUARIO' });
     return;
   }
 
-  pagesData.forEach((page, idx)=>{
-    const box = document.createElement('div');
-    box.className = 'estad-chart-box';
-
-    const count = (page.labels || []).length;
-    if(isSmall && count <= 3){
-      box.style.height = '220px';
-      box.style.minHeight = '220px';
-    }
-
-    const canvas = document.createElement('canvas');
-    box.appendChild(canvas);
-    host.appendChild(box);
-
-    const pageTitleBase = (pagesData.length > 1)
-  ? `${titleText} (${idx+1}/${pagesData.length})`
-  : titleText;
-
-// ✅ total general (CHAT + PRES) para mostrar bajo el título
-const totalGeneral =
-  ((totals && typeof totals.chat === 'number') ? totals.chat : 0) +
-  ((totals && typeof totals.pres === 'number') ? totals.pres : 0);
-
-// ✅ 2 líneas en el título (no afecta datalabels)
-const pageTitle = [pageTitleBase, `TOTAL: ${totalGeneral}`];
-
-    // ✅ Totales por serie para mostrar en la leyenda (solo texto)
-const totalChatSerie = (page.datasets || [])
-  .find(d => String(d.label || '').toUpperCase() === 'CHAT')
-  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
-
-const totalPresSerie = (page.datasets || [])
-  .find(d => String(d.label || '').toUpperCase() === 'PRESENCIAL')
-  ?.data?.reduce((a,b)=>a + (Number(b)||0), 0) || 0;
-
-// ✅ Clonar datasets para NO dañar el dataset original
-const datasetsWithTotals = (page.datasets || []).map(ds=>{
-  const lbl = String(ds.label || '').toUpperCase();
-  let t = 0;
-  if(lbl === 'CHAT') t = totalChatSerie;
-  if(lbl === 'PRESENCIAL') t = totalPresSerie;
-  return { ...ds, label: `${ds.label} (Total: ${t})` };
-});
-
-    const c = new Chart(canvas.getContext('2d'), {
-      type: 'bar',
-      data: { labels: page.labels, datasets: datasetsWithTotals },
-      plugins: [dl],
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 6, left: 6, right: 6, bottom: 0 } },
-         plugins: {
-    title: {
-      display: true,
-      text: pageTitle,
-      color: '#06402B',                          // ← verde marca
-      font: { size: 17, weight: '800', family: "'Sora', sans-serif" },
-      padding: { bottom: 12 }
-    },
-    legend: {
-      position: 'bottom',
-      labels: {
-        boxWidth: 12, boxHeight: 12,
-        color: '#3d5248',                        // ← verde-gris
-        font: { weight: '700', size: 13 }
-      }
-    },
-    tooltip: { enabled: true },
-    datalabels: {
-      color: '#0f1f16',                          // ← verde muy oscuro, legible en cualquier barra
-      anchor: 'center',
-      align: 'center',
-      clamp: true,
-      font: { weight: '800', size: 16, family: "'IBM Plex Sans', sans-serif" },
-      formatter: (v) => (v && v > 0) ? String(v) : '',
-      textStrokeColor: 'rgba(255,255,255,.55)',  // ← halo blanco suave detrás del número
-      textStrokeWidth: 3
-    }
-  },
-  scales: {
-    x: {
-      stacked: true,
-      ticks: {
-        color: '#06402B',                        // ← verde oscuro
-        font: { weight: '700', size: isSmall ? 10 : 11 },
-        autoSkip: false,
-        minRotation: isZonas ? 90 : 0,
-        maxRotation: isZonas ? 90 : 0,
-        padding: isZonas ? (isSmall ? 6 : 10) : 0
-      },
-      grid: { display: false }
-    },
-    y: {
-      stacked: true,
-      beginAtZero: true,
-      suggestedMax: isZonas ? 4 : undefined,
-      ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
-      grid: { color: 'rgba(6,64,43,.08)' }      // ← grilla verde muy suave
-    }
-  }   
-      }
-    });
-
-    __estadCharts.push(c);
-  });
-
-  // ✅ Totales debajo del último gráfico (siempre)
-  if(totalsWrap) host.appendChild(totalsWrap);
-}
-  
-/* ===== Botones: siempre visibles ===== */
-async function showEstadTiempo_(){
-  __estadMode = 'TIEMPO';
-  const data = buildDataTiempo2026_(__estadCache);
-  renderEstadCharts_(
-    'ATENCIÓN IMPUESTO PREDIAL TIEMPO 2026',
-    [{ labels: data.labels, datasets: data.datasets }],
-    data.totals,
-    'TIEMPO'
-  );
-}
-
-async function showEstadZonas_(){
-  __estadMode = 'ZONAS';
-  const built = buildDataZonasChunks_(__estadCache);
-  renderEstadCharts_('ATENCIÓN IMPUESTO PREDIAL ZONAS', built.pages, built.totals, 'ZONAS');
-}
-
-/* Inicia en TIEMPO 2026 y carga una sola vez */
-async function openEstadisticas_(){
-  if(!currentUser || !currentUser.isSuper){
-    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
-    return;
-  }
+  // Resetear tabs al inicial
+  __estadTabActual = 'tiempo';
+  document.getElementById('estad-view-tiempo').style.display = '';
+  document.getElementById('estad-view-zonas').style.display  = 'none';
+  document.getElementById('estad-tab-tiempo').classList.add('active');
+  document.getElementById('estad-tab-zonas').classList.remove('active');
 
   showView('view-estadisticas');
 
-  try{
-    await loadEstadisticasData_();  // cache no-pendientes
-    await showEstadTiempo_();       // inicia en TIEMPO 2026
-  }catch(e){
-    Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+  try {
+    await loadEstadisticasData_();
+
+    const ts = new Date();
+    const sub = document.getElementById('estad-subtitle-v2');
+    if (sub) {
+      sub.textContent =
+        `${__estadCache.length} registros · Actualizado ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
+    }
+
+    renderEstadTiempo_(__estadCache);
+  } catch(e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
   }
 }
+
+/* ============================================================
+   TAB TIEMPO 2026
+   ============================================================ */
+function renderEstadTiempo_(rows) {
+  destroyEstadChart_();
+
+  // ── Datos por mes ────────────────────────────────────────
+  const byMonth = {};
+  for (const r of rows) {
+    const est   = normalizeText_(r.estado || '');
+    const fecha = parseDDMMYYYY_(r.fecha || '');
+    if (!fecha || fecha.yyyy !== 2026) continue;
+    const key = String(fecha.mm).padStart(2,'0');
+    if (!byMonth[key]) byMonth[key] = { chat:0, pres:0 };
+    if (est === 'ATENDIDA CHAT') byMonth[key].chat++;
+    if (est === 'ATENDIDA PRESENCIAL') byMonth[key].pres++;
+  }
+
+  const monthsSorted = Object.keys(byMonth).sort();
+  const labels  = monthsSorted.map(k => MONTHS_ES[parseInt(k,10)-1]);
+  const chatArr = monthsSorted.map(k => byMonth[k].chat);
+  const presArr = monthsSorted.map(k => byMonth[k].pres);
+  const totChat = chatArr.reduce((a,b)=>a+b,0);
+  const totPres = presArr.reduce((a,b)=>a+b,0);
+  const totGen  = totChat + totPres;
+  const maxMes  = monthsSorted.reduce((best, k) => {
+    const v = byMonth[k].chat + byMonth[k].pres;
+    return v > best.v ? { k, v } : best;
+  }, { k:'', v:0 });
+
+  // ── KPIs ────────────────────────────────────────────────
+  const kpiWrap = document.getElementById('estad-kpis-tiempo');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    const kpis = [
+      {
+        icon: ESTAD_ICON_BARRAS, value: totGen,
+        label: 'Total Atendidas', sub: 'CHAT + Presencial', cls: ''
+      },
+      {
+        icon: ESTAD_ICON_RELOJ, value: totChat,
+        label: 'Via CHAT', sub: 'WhatsApp / Digital', cls: 'kpi-naranja'
+      },
+      {
+        icon: ESTAD_ICON_USUARIOS, value: totPres,
+        label: 'Presencial', sub: 'Atención en ventanilla', cls: 'kpi-verde'
+      },
+      {
+        icon: ESTAD_ICON_PREDIAL,
+        value: maxMes.v ? (MONTHS_ES[parseInt(maxMes.k,10)-1] || '—') : '—',
+        label: 'Mes Más Activo', sub: maxMes.v ? `${maxMes.v} atenciones` : 'sin datos', cls: 'kpi-blue'
+      }
+    ];
+    kpis.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'estad-kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="estad-kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="estad-kpi-value">${k.value}</div>
+        <div class="estad-kpi-label">${k.label}</div>
+        <div class="estad-kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  // ── Leyenda pills ────────────────────────────────────────
+  const legWrap = document.getElementById('estad-legend-tiempo');
+  if (legWrap) {
+    legWrap.innerHTML = `
+      <div class="estad-legend-pill">
+        <span class="estad-legend-dot" style="background:${ESTAD_PAL.chat.bg};"></span>
+        CHAT (Total: ${totChat})
+      </div>
+      <div class="estad-legend-pill">
+        <span class="estad-legend-dot" style="background:${ESTAD_PAL.pres.bg};"></span>
+        PRESENCIAL (Total: ${totPres})
+      </div>
+      <div class="estad-legend-pill" style="background:rgba(6,64,43,.10);border-color:rgba(6,64,43,.25);color:var(--primary);">
+        TOTAL GENERAL: <b style="margin-left:4px;">${totGen}</b>
+      </div>
+    `;
+  }
+
+  // ── Ranking mensual (barras visuales) ────────────────────
+  const rankWrap  = document.getElementById('estad-ranking-tiempo');
+  const rankSect  = document.getElementById('estad-section-ranking-tiempo');
+  if (rankWrap && monthsSorted.length) {
+    if (rankSect) rankSect.style.display = '';
+    rankWrap.innerHTML = '';
+    const maxTotal = Math.max(...monthsSorted.map(k => byMonth[k].chat + byMonth[k].pres), 1);
+    monthsSorted.slice().reverse().forEach(k => {
+      const total = byMonth[k].chat + byMonth[k].pres;
+      const mes   = MONTHS_ES[parseInt(k,10)-1];
+      const pct   = Math.round((total / maxTotal) * 100);
+      const item  = document.createElement('div');
+      item.className = 'estad-zona-bar-item';
+      item.innerHTML = `
+        <div class="estad-zona-bar-info">
+          <span class="estad-zona-bar-label">${mes} · Chat:${byMonth[k].chat} Pres:${byMonth[k].pres}</span>
+          <div class="estad-zona-bar-track">
+            <div class="estad-zona-bar-fill"
+              style="width:${pct}%;background:linear-gradient(90deg,${ESTAD_PAL.chat.bg},${ESTAD_PAL.pres.bg});"></div>
+          </div>
+        </div>
+        <span class="estad-zona-bar-value">${total}</span>
+      `;
+      rankWrap.appendChild(item);
+    });
+  } else if (rankSect) {
+    rankSect.style.display = 'none';
+  }
+
+  // ── Chart.js barras por mes ──────────────────────────────
+  const canvas = document.getElementById('estad-canvas-tiempo');
+  if (!canvas) return;
+
+  const hasData = chatArr.some(v=>v>0) || presArr.some(v=>v>0);
+  if (!hasData) {
+    canvas.parentElement.parentElement.innerHTML =
+      '<div class="estad-empty">Sin datos de 2026 aún.</div>';
+    return;
+  }
+
+  const dl = window.ChartDataLabels;
+  const datasets = [];
+  if (chatArr.some(v=>v>0)) {
+    datasets.push({
+      label: `CHAT (${totChat})`,
+      data: chatArr,
+      backgroundColor: ESTAD_PAL.chat.bg,
+      borderColor: ESTAD_PAL.chat.border,
+      borderWidth: 1.5, stack: 's1', borderRadius: 10
+    });
+  }
+  if (presArr.some(v=>v>0)) {
+    datasets.push({
+      label: `PRESENCIAL (${totPres})`,
+      data: presArr,
+      backgroundColor: ESTAD_PAL.pres.bg,
+      borderColor: ESTAD_PAL.pres.border,
+      borderWidth: 1.5, stack: 's1', borderRadius: 10
+    });
+  }
+
+  const chart = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets },
+    plugins: dl ? [dl] : [],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 10, left: 4, right: 4, bottom: 0 } },
+      plugins: {
+        title: {
+          display: true,
+          text: [`ATENCIÓN IMPUESTO PREDIAL — TIEMPO 2026`, `TOTAL GENERAL: ${totGen}`],
+          color: '#06402B',
+          font: { size: 15, weight: '800', family: "'Sora', sans-serif" },
+          padding: { bottom: 14 }
+        },
+        legend: {
+          display: false // usamos nuestras pills
+        },
+        tooltip: { enabled: true },
+        ...(dl ? {
+          datalabels: {
+            color: '#fff',
+            anchor: 'center', align: 'center', clamp: true,
+            font: { weight: '900', size: 15, family: "'IBM Plex Sans', sans-serif" },
+            formatter: v => (v && v > 0) ? String(v) : '',
+            textStrokeColor: 'rgba(0,0,0,.3)',
+            textStrokeWidth: 3
+          }
+        } : {})
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: '#06402B', font: { weight: '700', size: 11 } },
+          grid: { display: false }
+        },
+        y: {
+          stacked: true, beginAtZero: true,
+          ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
+          grid: { color: 'rgba(6,64,43,.08)' }
+        }
+      }
+    }
+  });
+  __estadCharts.push(chart);
+}
+
+/* ============================================================
+   TAB ZONAS
+   ============================================================ */
+function renderEstadZonas_(rows) {
+  destroyEstadChart_();
+
+  // ── Datos por zona ───────���───────────────────────────────
+  const byZona = {};
+  for (const r of rows) {
+    const est  = normalizeText_(r.estado || '');
+    const zona = String(r.barrio || '').trim().toUpperCase();
+    if (!zona) continue;
+    if (!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
+    if (est === 'ATENDIDA CHAT') byZona[zona].chat++;
+    if (est === 'ATENDIDA PRESENCIAL') byZona[zona].pres++;
+  }
+
+  const zonasSorted = Object.keys(byZona).sort((a,b) => {
+    return (byZona[b].chat+byZona[b].pres) - (byZona[a].chat+byZona[a].pres);
+  });
+
+  const totChat = Object.values(byZona).reduce((a,v)=>a+v.chat,0);
+  const totPres = Object.values(byZona).reduce((a,v)=>a+v.pres,0);
+  const totGen  = totChat + totPres;
+  const topZona = zonasSorted[0] || '—';
+  const topZonaVal = byZona[topZona] ? byZona[topZona].chat + byZona[topZona].pres : 0;
+
+  // ── KPIs ────────────────────────────────────────────────
+  const kpiWrap = document.getElementById('estad-kpis-zonas');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    const kpis = [
+      {
+        icon: ESTAD_ICON_BARRAS, value: totGen,
+        label: 'Total Atendidas', sub: 'CHAT + Presencial', cls: ''
+      },
+      {
+        icon: ESTAD_ICON_RELOJ, value: totChat,
+        label: 'Via CHAT', sub: 'WhatsApp / Digital', cls: 'kpi-naranja'
+      },
+      {
+        icon: ESTAD_ICON_USUARIOS, value: totPres,
+        label: 'Presencial', sub: 'Atención en ventanilla', cls: 'kpi-verde'
+      },
+      {
+        icon: ESTAD_ICON_ZONAS, value: zonasSorted.length,
+        label: 'Zonas Únicas', sub: 'barrios con solicitudes', cls: 'kpi-blue'
+      },
+      {
+        icon: ESTAD_ICON_PREDIAL,
+        value: topZona.length > 14 ? topZona.split(' ').slice(0,2).join(' ') : topZona,
+        label: 'Zona Líder', sub: `${topZonaVal} atenciones`, cls: 'kpi-rojo'
+      }
+    ];
+    kpis.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'estad-kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="estad-kpi-icon" src="${k.icon}" alt="${k.label}" />
+        <div class="estad-kpi-value" style="${String(k.value).length > 6 ? 'font-size:1.1rem;' : ''}">${k.value}</div>
+        <div class="estad-kpi-label">${k.label}</div>
+        <div class="estad-kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  // ── Leyenda pills ────────────────────────────────────────
+  const legWrap = document.getElementById('estad-legend-zonas');
+  if (legWrap) {
+    legWrap.innerHTML = `
+      <div class="estad-legend-pill">
+        <span class="estad-legend-dot" style="background:${ESTAD_PAL.chat.bg};"></span>
+        CHAT (${totChat})
+      </div>
+      <div class="estad-legend-pill">
+        <span class="estad-legend-dot" style="background:${ESTAD_PAL.pres.bg};"></span>
+        PRESENCIAL (${totPres})
+      </div>
+      <div class="estad-legend-pill" style="background:rgba(6,64,43,.10);border-color:rgba(6,64,43,.25);color:var(--primary);">
+        TOTAL: <b style="margin-left:4px;">${totGen}</b>
+      </div>
+    `;
+  }
+
+  // ── Ranking visual barras horizontales (top 30) ──────────
+  const barsWrap = document.getElementById('estad-zona-bars');
+  if (barsWrap) {
+    barsWrap.innerHTML = '';
+    const maxVal = byZona[zonasSorted[0]] ? byZona[zonasSorted[0]].chat + byZona[zonasSorted[0]].pres : 1;
+    zonasSorted.slice(0, 30).forEach(zona => {
+      const total = byZona[zona].chat + byZona[zona].pres;
+      const chatV = byZona[zona].chat;
+      const presV = byZona[zona].pres;
+      const pct   = Math.round((total / maxVal) * 100);
+      const item  = document.createElement('div');
+      item.className = 'estad-zona-bar-item';
+      item.innerHTML = `
+        <div class="estad-zona-bar-info">
+          <span class="estad-zona-bar-label" title="${zona}">${zona} · C:${chatV} P:${presV}</span>
+          <div class="estad-zona-bar-track">
+            <div class="estad-zona-bar-fill"
+              style="width:${pct}%;background:linear-gradient(90deg,${ESTAD_PAL.chat.bg},${ESTAD_PAL.pres.bg});"></div>
+          </div>
+        </div>
+        <span class="estad-zona-bar-value">${total}</span>
+      `;
+      barsWrap.appendChild(item);
+    });
+    if (!zonasSorted.length) {
+      barsWrap.innerHTML = '<div class="estad-empty">Sin datos de zonas.</div>';
+    }
+  }
+
+  // ── Charts.js paginados por zonas ────────────────────────
+  const chartsHost = document.getElementById('estad-zonas-charts');
+  if (!chartsHost) return;
+  chartsHost.innerHTML = '';
+
+  if (!zonasSorted.length) {
+    chartsHost.innerHTML = '<div class="estad-empty">Sin datos de zonas.</div>';
+    return;
+  }
+
+  const isSmall = window.matchMedia('(max-width:700px)').matches;
+  const PAGE_SIZE = isSmall ? 15 : 30;
+  const dl = window.ChartDataLabels;
+
+  // Paginar zonas
+  const pages = [];
+  for (let i = 0; i < zonasSorted.length; i += PAGE_SIZE) {
+    pages.push(zonasSorted.slice(i, i + PAGE_SIZE));
+  }
+
+  pages.forEach((pageZonas, idx) => {
+    const chatData = pageZonas.map(z => byZona[z].chat);
+    const presData = pageZonas.map(z => byZona[z].pres);
+
+    const wrapDiv = document.createElement('div');
+    wrapDiv.style.marginBottom = '18px';
+
+    // Título de página
+    if (pages.length > 1) {
+      const pTitle = document.createElement('div');
+      pTitle.className = 'estad-section-title';
+      pTitle.style.marginTop = '10px';
+      pTitle.innerHTML = `
+        <img src="${ESTAD_ICON_BARRAS}" alt="" />
+        PÁGINA ${idx + 1} DE ${pages.length}
+      `;
+      wrapDiv.appendChild(pTitle);
+    }
+
+    const chartWrap = document.createElement('div');
+    chartWrap.className = 'estad-chart-wrap-v2';
+    const boxDiv = document.createElement('div');
+    boxDiv.className = 'estad-chart-box-v2';
+    // Altura adaptativa si pocas zonas
+    if (pageZonas.length <= 6) {
+      boxDiv.style.height = '220px';
+      boxDiv.style.minHeight = '180px';
+    }
+    const canvas = document.createElement('canvas');
+    boxDiv.appendChild(canvas);
+    chartWrap.appendChild(boxDiv);
+    wrapDiv.appendChild(chartWrap);
+    chartsHost.appendChild(wrapDiv);
+
+    const datasets = [];
+    if (chatData.some(v=>v>0)) {
+      datasets.push({
+        label: `CHAT (${chatData.reduce((a,b)=>a+b,0)})`,
+        data: chatData,
+        backgroundColor: ESTAD_PAL.chat.bg,
+        borderColor: ESTAD_PAL.chat.border,
+        borderWidth: 1.5, stack: 's1', borderRadius: 10
+      });
+    }
+    if (presData.some(v=>v>0)) {
+      datasets.push({
+        label: `PRESENCIAL (${presData.reduce((a,b)=>a+b,0)})`,
+        data: presData,
+        backgroundColor: ESTAD_PAL.pres.bg,
+        borderColor: ESTAD_PAL.pres.border,
+        borderWidth: 1.5, stack: 's1', borderRadius: 10
+      });
+    }
+
+    const chart = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: pageZonas, datasets },
+      plugins: dl ? [dl] : [],
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        layout: { padding: { top: 8, left: 4, right: 4, bottom: 0 } },
+        plugins: {
+          title: {
+            display: pages.length > 1,
+            text: `ZONAS — Página ${idx+1}/${pages.length}`,
+            color: '#06402B',
+            font: { size: 13, weight: '800', family: "'Sora', sans-serif" },
+            padding: { bottom: 10 }
+          },
+          legend: { display: false },
+          tooltip: { enabled: true },
+          ...(dl ? {
+            datalabels: {
+              color: '#fff',
+              anchor: 'center', align: 'center', clamp: true,
+              font: { weight: '900', size: 14, family: "'IBM Plex Sans', sans-serif" },
+              formatter: v => (v && v > 0) ? String(v) : '',
+              textStrokeColor: 'rgba(0,0,0,.3)',
+              textStrokeWidth: 3
+            }
+          } : {})
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: {
+              color: '#06402B', font: { weight: '700', size: isSmall ? 9 : 10 },
+              autoSkip: false, minRotation: 90, maxRotation: 90,
+              padding: isSmall ? 4 : 8
+            },
+            grid: { display: false }
+          },
+          y: {
+            stacked: true, beginAtZero: true,
+            suggestedMax: 4,
+            ticks: { precision: 0, color: '#3d5248', font: { weight: '700' } },
+            grid: { color: 'rgba(6,64,43,.08)' }
+          }
+        }
+      }
+    });
+    __estadCharts.push(chart);
+  });
+}
+
+/* ── Event listeners botones estadísticas ─────────────── */
+document.getElementById('btn-estadisticas')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  await openEstadisticas_();
+});
 
   /* ================== MI SEMÁFORO ================== */
 
