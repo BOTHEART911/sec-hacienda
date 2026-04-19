@@ -3078,11 +3078,52 @@ renderProcList_ = function(items) {
     head.appendChild(headRight);
     card.appendChild(head);
 
-    // Descripción
+    // Descripción (con truncado a 3 líneas y pastilla "…" press-and-hold)
     const desc = document.createElement('div');
     desc.className = 'proc-descripcion';
-    desc.innerHTML = `<img src="${ICONO_CHINCHETA}" alt="📌" /><span>${escapeHtml_(row.descripcion || '')}</span>`;
+    desc.innerHTML = `
+      <img src="${ICONO_CHINCHETA}" alt="📌" />
+      <div class="proc-desc-wrap">
+        <span class="proc-desc-text">${escapeHtml_(row.descripcion || '')}</span>
+        <button type="button" class="proc-desc-pill"
+          aria-label="Mantén presionado para ver completo"
+          title="Mantén presionado para ver el asunto completo">
+          <span class="proc-desc-pill-dots">•••</span>
+        </button>
+      </div>
+    `;
     card.appendChild(desc);
+
+    // Press-and-hold para expandir el asunto
+    const __descText = desc.querySelector('.proc-desc-text');
+    const __descPill = desc.querySelector('.proc-desc-pill');
+    if (__descText && __descPill) {
+      // Ocultar la pastilla si el texto NO necesita truncado
+      requestAnimationFrame(() => {
+        if (__descText.scrollHeight <= __descText.clientHeight + 1) {
+          __descPill.style.display = 'none';
+        }
+      });
+
+      const __expand = (e) => {
+        if (e) e.preventDefault();
+        __descText.classList.add('expanded');
+      };
+      const __collapse = () => {
+        __descText.classList.remove('expanded');
+      };
+
+      // Desktop
+      __descPill.addEventListener('mousedown',  __expand);
+      __descPill.addEventListener('mouseup',    __collapse);
+      __descPill.addEventListener('mouseleave', __collapse);
+      // Móvil
+      __descPill.addEventListener('touchstart', __expand, { passive: false });
+      __descPill.addEventListener('touchend',   __collapse);
+      __descPill.addEventListener('touchcancel',__collapse);
+      // Seguridad: si sueltas fuera
+      __descPill.addEventListener('blur',       __collapse);
+    }
 
         // Fila iconos categoría (CON COLOR)
     const catRow = document.createElement('div');
