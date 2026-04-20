@@ -2315,3 +2315,8 @@ button:active { transform: translateY(0) scale(.98); }
   line-height: 1;
   transform: translateY(-1px);
 }
+
+#proc-ver-body .proc-detalle-field:first-child .proc-detalle-value {
+  text-align: justify;
+  hyphens: auto;
+}
