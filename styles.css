@@ -2270,16 +2270,16 @@ button:active { transform: translateY(0) scale(.98); }
   padding: 0 10px;
   margin-top: 2px;
   border-radius: 999px;
-  border: 1.5px solid rgba(220, 38, 38, 0.55);
+  border: 1.5px solid rgba(107, 114, 128, 0.55);
   background: rgba(255, 255, 255, 0.95);
-  color: #dc2626;
+  color: #4b5563;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+  box-shadow: 0 2px 6px rgba(107, 114, 128, 0.15);
   transition: transform .12s, background .15s, color .15s, box-shadow .15s;
   user-select: none;
   -webkit-user-select: none;
@@ -2287,14 +2287,14 @@ button:active { transform: translateY(0) scale(.98); }
 }
 
 .proc-desc-pill:hover {
-  background: rgba(254, 226, 226, 0.95);
-  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+  background: rgba(229, 231, 235, 0.95);
+  box-shadow: 0 3px 10px rgba(107, 114, 128, 0.25);
 }
 
 .proc-desc-pill:active,
 .proc-desc-pill:focus {
   transform: scale(0.92);
-  background: #dc2626;
+  background: #6b7280;
   color: #fff;
   outline: none;
 }
