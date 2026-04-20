@@ -2321,8 +2321,9 @@ button:active { transform: translateY(0) scale(.98); }
   min-width: 0;
   text-align: justify;
   text-justify: inter-word;
-  hyphens: none;
-  -webkit-hyphens: none;
-  word-break: normal;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  -ms-hyphens: none !important;
+  word-break: normal !important;
   overflow-wrap: break-word;
 }
