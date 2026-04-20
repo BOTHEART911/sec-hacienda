@@ -1361,6 +1361,16 @@ button:active { transform: translateY(0) scale(.98); }
     gap: 5px;
   }
 
+   @media (max-width: 699px) {
+  #proc-ver-body .proc-detalle-field:first-child {
+    flex-direction: column;
+    gap: 2px;
+  }
+  #proc-ver-body .proc-detalle-field:first-child .proc-detalle-label {
+    min-width: 0;
+  }
+}
+
 }
 
     /* ============================================================
