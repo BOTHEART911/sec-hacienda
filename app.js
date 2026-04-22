@@ -1536,7 +1536,7 @@ const GRUPOS_SEMAFORO = [
   { asignado:'LEESLIE JULIET GOMEZ QUINTERO',   contacto1:'3183200977', asistente:'MARIA NIDIA MENESES MARTINEZ',       contacto2:'3015786913' },
   { asignado:'LUIS GILBERTO MOYA ROMERO',        contacto1:'3208858086', asistente:'NICOL ESTEFANI MADRIGALES GONZALEZ', contacto2:'3212331684' },
   { asignado:'ANDREA KATERINE LAMAR RODRIGUEZ',  contacto1:'3163170769', asistente:'VICTOR MANUEL FANDIÑO GIRALDO',      contacto2:'3203811201' },
-  { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3183200977', asistente:'',                                   contacto2:'' },
+  { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3204744065', asistente:'',                                   contacto2:'' },
   { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3166139232', asistente:'',                                   contacto2:'' },
   { asignado:'DIANA MARCELA OTALORA',            contacto1:'3108034107', asistente:'',                                   contacto2:'' },
   { asignado:'ROSALBA ABADIA ARAGON',            contacto1:'3202028939', asistente:'AMANDA VANESSA TAMAYO BEJARANO',     contacto2:'3209661591' }
