@@ -1010,6 +1010,15 @@ function normalizeText_(s){
     .toUpperCase();
 }
 
+/* Normaliza una zona: quita el espacio + número romano final
+   Ej: "ARAGON I" → "ARAGON", "ORQUIDEAS REAL IV" → "ORQUIDEAS REAL" */
+function normalizeZona_(barrio) {
+  if (!barrio) return '';
+  let s = String(barrio).trim().toUpperCase();
+  s = s.replace(/\s+[IVX]+$/i, '').trim();
+  return s;
+}
+
   function showAlDiaAlert_(){
   return Swal.fire({
     icon: 'success',
@@ -5211,7 +5220,7 @@ function estadRenderZonas_() {
   const byZona = {};
   rows.forEach(r => {
     const est  = normalizeText_(r.estado || '');
-    const zona = String(r.barrio || '').trim().toUpperCase();
+    const zona = normalizeZona_(r.barrio); 
     if (!zona) return;
     if (!byZona[zona]) byZona[zona] = { chat: 0, pres: 0 };
     if (est === 'ATENDIDA CHAT')       byZona[zona].chat++;
@@ -5747,7 +5756,7 @@ function buildDataZonasChunks_(rows) {
 
   rows.forEach(r => {
     const est  = normalizeText_(r.estado || '');
-    const zona = String(r.barrio || '').trim().toUpperCase();
+    const zona = normalizeZona_(r.barrio);
     if (!zona) return;
     if (!byZona[zona]) byZona[zona] = { chat:0, pres:0 };
     if (est === 'ATENDIDA CHAT')       { byZona[zona].chat++; totalChat++; }
