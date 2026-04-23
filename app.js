@@ -1,7 +1,7 @@
 /* ================== CONFIGURACIÓN ================== */
 // TODO: pega aquí la URL /exec de tu Apps Script desplegado
 const API_BASE = 'https://script.google.com/macros/s/AKfycby_TJ_vPiqPJdJdqBMuhya_Prwb7UMoFEUMISeHv_nAqT0jepMDfu5kNBn5ayTKiuJB_A/exec';
-
+ 
 /* ================== SONIDOS (mismos tags/estilo indexref) ================== */
 const SOUNDS = {
   question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
