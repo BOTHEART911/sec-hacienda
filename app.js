@@ -400,6 +400,18 @@ function canSeePendientes_(){
   return ALLOW_PENDIENTES.includes(n);
 }
 
+/* ── Permiso para AGREGAR ASIGNACIÓN (semáforo) ─── */
+const ALLOW_AGREGAR_ASIGNACION = [
+  'AMANDA VANESSA TAMAYO BEJARANO'
+].map(s => normalizeText_(s));
+
+function canSeeAgregarAsignacion_() {
+  if (!currentUser) return false;
+  if (currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return ALLOW_AGREGAR_ASIGNACION.includes(n);
+}
+
 
   /* ================== MI SEMÁFORO ================== */
 
@@ -1564,6 +1576,27 @@ function getContacto3ByCoordinador_(nombre) {
   return found ? found.contacto3 : '';
 }
 
+/* Devuelve el contacto del usuario logueado consultando
+   COORDINADORES_CONTACTO3 y GRUPOS_SEMAFORO (asignado/asistente). */
+function getContactoUsuarioLogueado_() {
+  if (!currentUser) return '';
+  const n = normalizeText_(currentUser.nombre || '');
+
+  // 1) Tabla oficial de coordinadores
+  const coord = COORDINADORES_CONTACTO3.find(c => normalizeText_(c.coordinador) === n);
+  if (coord) return coord.contacto3 || '';
+
+  // 2) Grupos del semáforo — como asignado
+  const gA = GRUPOS_SEMAFORO.find(g => normalizeText_(g.asignado) === n);
+  if (gA) return gA.contacto1 || '';
+
+  // 3) Grupos del semáforo — como asistente
+  const gS = GRUPOS_SEMAFORO.find(g => normalizeText_(g.asistente) === n);
+  if (gS) return gS.contacto2 || '';
+
+  return '';
+}
+
 const FERIADOS_2026 = new Set([
   '23/03/2026','02/04/2026','03/04/2026','01/05/2026','18/05/2026','08/06/2026',
   '15/06/2026','29/06/2026','20/07/2026','07/08/2026','17/08/2026','12/10/2026',
@@ -2009,7 +2042,7 @@ async function abrirVistaAsignaciones_() {
   document.getElementById('proc-filter').value = '';
   // Mostrar / ocultar botón agregar
   const btnAgregar = document.getElementById('btn-agregar-asignacion');
-  if (btnAgregar) btnAgregar.style.display = currentUser.isSuper ? '' : 'none';
+  if (btnAgregar) btnAgregar.style.display = canSeeAgregarAsignacion_() ? '' : 'none';
 
   await loadAndRenderProcesos_();
   startAsignacionesAutoRefresh_(); // ← AGREGA ESTA LÍNEA
@@ -2267,7 +2300,7 @@ function abrirAgregarAsignacion_() {
   document.getElementById('proc-contacto2').value = '';
   // Coordinador y contacto3 del usuario logueado
   document.getElementById('proc-coordinador').value = currentUser?.nombre || '';
-  document.getElementById('proc-contacto3').value   = currentUser?.telefono || '';
+document.getElementById('proc-contacto3').value   = getContactoUsuarioLogueado_();
   // Files
   ['proc-recibido1','proc-recibido2','proc-recibido3'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -3195,6 +3228,14 @@ renderProcList_ = function(items) {
       el.textContent = 'N° Exp. Interno: ' + row.expediente;
       consWrap.appendChild(el);
     }
+
+   if (row.coordinador) {
+  const el = document.createElement('span');
+  el.style.cssText = 'font-size:.64rem;font-weight:500;color:var(--text-muted);font-style:italic;';
+  el.textContent = 'Asignado por: ' + row.coordinador;
+  consWrap.appendChild(el);
+}
+    
     actions.appendChild(consWrap);
 
     const icons = document.createElement('div');
@@ -3223,12 +3264,20 @@ if (currentUser?.isSuper && String(row.estado || '').toUpperCase() !== 'FINALIZA
     btnVer.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirVerAsignacion_(row); });
     icons.appendChild(btnVer);
 
-    const estadoUpper = String(row.estado || '').toUpperCase();
-    if (currentUser?.isSuper || estadoUpper !== 'FINALIZADO') {
-      const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
-      btnEdit.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirEditarAsignacion_(row); });
-      icons.appendChild(btnEdit);
-    }
+    const estadoUpper   = String(row.estado || '').toUpperCase();
+const miNombre      = normalizeText_(currentUser?.nombre || '');
+const esSuperUser   = !!currentUser?.isSuper;
+const esCoordRow    = miNombre === normalizeText_(row.coordinador || '');
+const esAsignadoRow = miNombre === normalizeText_(row.asignado || '') ||
+                      miNombre === normalizeText_(row.asistente || '');
+const puedeEditar   = esSuperUser ||
+                      esCoordRow ||
+                      (esAsignadoRow && estadoUpper !== 'FINALIZADO');
+if (puedeEditar) {
+  const btnEdit = _mkProcIconBtn_(ICONO_EDITAR, 'Editar asignación');
+  btnEdit.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); currentProcesoSelected = row; abrirEditarAsignacion_(row); });
+  icons.appendChild(btnEdit);
+}
 
     actions.appendChild(icons);
     card.appendChild(actions);
@@ -3309,12 +3358,18 @@ abrirVerAsignacion_ = function(row) {
 
   // Creación con formato largo (posición correcta, debajo de campos)
   const creacionEl = document.getElementById('proc-ver-creacion');
-  if (creacionEl) {
-    creacionEl.className = 'proc-creacion-field';
-    creacionEl.innerHTML = row.creacion
-      ? `<span>Creada:</span> ${escapeHtml_(formatCreacionLarga_(row.creacion))}`
-      : '';
+if (creacionEl) {
+  creacionEl.className = 'proc-creacion-field';
+  let html = '';
+  if (row.creacion) {
+    html += `<span>Creada:</span> ${escapeHtml_(formatCreacionLarga_(row.creacion))}`;
   }
+  if (row.coordinador) {
+    if (html) html += '<br>';
+    html += `<span>Asignado por:</span> ${escapeHtml_(row.coordinador)}`;
+  }
+  creacionEl.innerHTML = html;
+}
 
   // Evidencia — con zoom al hacer clic
   const evWrap = document.getElementById('proc-ver-evidencia');
@@ -3381,9 +3436,15 @@ abrirVerAsignacion_ = function(row) {
   }
 
   // ── EDITAR (asignado NO puede editar si FINALIZADO) ───────
-  const puedeEditar = currentUser?.isSuper || estado !== 'FINALIZADO';
-  if (puedeEditar) {
-    const btnEditar = document.createElement('button');
+  const miNombre      = normalizeText_(currentUser?.nombre || '');
+const esCoordRow    = miNombre === normalizeText_(row.coordinador || '');
+const esAsignadoRow = miNombre === normalizeText_(row.asignado || '') ||
+                      miNombre === normalizeText_(row.asistente || '');
+const puedeEditar = currentUser?.isSuper ||
+                    esCoordRow ||
+                    (esAsignadoRow && estado !== 'FINALIZADO');
+if (puedeEditar) {
+  const btnEditar = document.createElement('button');
     btnEditar.type = 'button';
     btnEditar.className = 'btn-primary proc-action-btn';
     btnEditar.style.width = 'auto';
