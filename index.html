@@ -1196,13 +1196,46 @@
         </div>
       </div>
 
-      <div class="panel-section" style="margin-top:14px;">
-        <div class="panel-section-title">
-          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
-          GRÁFICO POR CATEGORÍA
+  <!-- ── TAB: CATEGORÍAS ── -->
+    <div id="panel-view-cats" class="panel-animate" style="display:none;">
+
+      <div class="panel-grid-2">
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+            POR CATEGORÍA
+          </div>
+          <div class="cat-donut-wrap" id="panel-cats"></div>
         </div>
-        <div class="panel-chart-wrap" style="height:260px;">
-          <canvas id="panel-chart-cats"></canvas>
+
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+            <span id="panel-subcats-list-title">POR SUBCATEGORÍA</span>
+          </div>
+          <div class="cat-donut-wrap" id="panel-subcats"></div>
+        </div>
+      </div>
+
+      <div class="panel-grid-2" style="margin-top:14px;">
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+            GRÁFICO POR CATEGORÍA
+          </div>
+          <div class="panel-chart-wrap" style="height:280px;">
+            <canvas id="panel-chart-cats"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+            <span id="panel-subcats-chart-title">GRÁFICO POR SUBCATEGORÍA</span>
+          </div>
+          <div class="panel-chart-wrap" style="height:280px;">
+            <canvas id="panel-chart-subcats"></canvas>
+          </div>
         </div>
       </div>
 
