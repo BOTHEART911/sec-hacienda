@@ -5024,8 +5024,19 @@ function panelRenderCats_(rows) {
             position: 'bottom',
             labels: { font: { weight: '700', size: 11 }, color: '#3d5248', boxWidth: 12, padding: 10 }
           },
-          // Tooltip desactivado: el total ya se ve arriba
-          tooltip: { enabled: false },
+          tooltip: {
+            backgroundColor: 'rgba(255,255,255,.97)',
+            titleColor: '#06402B', bodyColor: '#3d5248',
+            borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+            padding: 10, cornerRadius: 10,
+            callbacks: {
+              label: (ctx) => {
+                const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 1;
+                const pct = Math.round((ctx.parsed / total) * 100);
+                return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+              }
+            }
+          },
           datalabels: {
             color: '#fff',
             font: { weight: '900', size: 13 },
