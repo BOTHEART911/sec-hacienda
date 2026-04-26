@@ -4629,14 +4629,24 @@ function panelRenderResumen_(rows) {
 
 /* ── TAB: EQUIPO ─────────────────────────────────────────── */
 function panelRenderEquipo_(rows) {
-  // Ranking por asignado
+  const hoy = formatDDMMYYYY_(new Date());
+
+  // Ranking por asignado en 4 buckets
   const byAsignado = {};
   rows.forEach(r => {
     const n = (r.asignado || '').trim().toUpperCase() || 'SIN ASIGNAR';
-    if (!byAsignado[n]) byAsignado[n] = { total: 0, activos: 0, finaliz: 0 };
+    if (!byAsignado[n]) byAsignado[n] = { total: 0, activo: 0, porVencer: 0, vencida: 0, finaliz: 0 };
     byAsignado[n].total++;
-    if (normalizeText_(r.estado||'') === 'FINALIZADO') byAsignado[n].finaliz++;
-    else byAsignado[n].activos++;
+
+    const estado = normalizeText_(r.estado || '');
+    if (estado === 'FINALIZADO') {
+      byAsignado[n].finaliz++;
+    } else {
+      const faltan = diasHabiles_(hoy, r.respuesta);
+      if (faltan < 0)                       byAsignado[n].vencida++;    // estrictamente vencida
+      else if (faltan >= 0 && faltan <= 3)  byAsignado[n].porVencer++;  // hoy y 1–3 días hábiles
+      else                                  byAsignado[n].activo++;     // > 3 días
+    }
   });
 
   const sorted = Object.entries(byAsignado)
@@ -4655,6 +4665,15 @@ function panelRenderEquipo_(rows) {
         const medals   = ['🥇','🥈','🥉'];
         const posSymbol= idx < 3 ? medals[idx] : (idx + 1);
 
+        const parts = [];
+        if (stats.activo > 0)    parts.push(`<span style="color:#16a34a;font-weight:800;">ACTIVO: ${stats.activo}</span>`);
+        if (stats.porVencer > 0) parts.push(`<span style="color:#f97316;font-weight:800;">POR VENCER: ${stats.porVencer}</span>`);
+        if (stats.vencida > 0)   parts.push(`<span style="color:#dc2626;font-weight:800;">VENCIDAS: ${stats.vencida}</span>`);
+        if (stats.finaliz > 0)   parts.push(`<span style="color:#6b7280;font-weight:800;">FINALIZADAS: ${stats.finaliz}</span>`);
+        const detailHtml = parts.length
+          ? parts.join(' · ')
+          : '<span style="color:var(--text-muted);">Sin asignaciones</span>';
+
         const item = document.createElement('div');
         item.className = 'ranking-item';
         item.innerHTML = `
@@ -4662,9 +4681,7 @@ function panelRenderEquipo_(rows) {
           <div class="ranking-avatar">${initials}</div>
           <div class="ranking-info">
             <div class="ranking-name">${escapeHtml_(nombre)}</div>
-            <div class="ranking-detail">
-              Activos: ${stats.activos} · Finalizados: ${stats.finaliz}
-            </div>
+            <div class="ranking-detail" style="font-size:.66rem;line-height:1.45;">${detailHtml}</div>
           </div>
           <div class="ranking-count">${stats.total}</div>
         `;
@@ -4673,7 +4690,7 @@ function panelRenderEquipo_(rows) {
     }
   }
 
-  // Chart carga de trabajo (barras horizontales)
+  // Chart carga de trabajo (4 series apiladas con colores semáforo)
   panelDestroyChart_('equipo');
   const ctxEq = document.getElementById('panel-chart-equipo');
   if (ctxEq && sorted.length) {
@@ -4682,8 +4699,10 @@ function panelRenderEquipo_(rows) {
       const parts = n.split(' ');
       return parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1] : n;
     });
-    const actData = topN.map(([,s]) => s.activos);
-    const finData = topN.map(([,s]) => s.finaliz);
+    const actData  = topN.map(([,s]) => s.activo);
+    const pvData   = topN.map(([,s]) => s.porVencer);
+    const venData  = topN.map(([,s]) => s.vencida);
+    const finData  = topN.map(([,s]) => s.finaliz);
 
     __panelCharts['equipo'] = new Chart(ctxEq, {
       type: 'bar',
@@ -4691,20 +4710,10 @@ function panelRenderEquipo_(rows) {
       data: {
         labels,
         datasets: [
-          {
-            label: 'Activos',
-            data: actData,
-            backgroundColor: '#2563eb',
-            borderRadius: 6,
-            stack: 'stack'
-          },
-          {
-            label: 'Finalizados',
-            data: finData,
-            backgroundColor: '#16a34a',
-            borderRadius: 6,
-            stack: 'stack'
-          }
+          { label: 'ACTIVO',      data: actData, backgroundColor: '#16a34a', borderRadius: 6, stack: 'stack' },
+          { label: 'POR VENCER',  data: pvData,  backgroundColor: '#f97316', borderRadius: 6, stack: 'stack' },
+          { label: 'VENCIDAS',    data: venData, backgroundColor: '#dc2626', borderRadius: 6, stack: 'stack' },
+          { label: 'FINALIZADAS', data: finData, backgroundColor: '#6b7280', borderRadius: 6, stack: 'stack' }
         ]
       },
       options: {
@@ -4714,11 +4723,11 @@ function panelRenderEquipo_(rows) {
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { font: { weight: '700', size: 12 }, color: '#3d5248', boxWidth: 12 }
+            labels: { font: { weight: '700', size: 11 }, color: '#3d5248', boxWidth: 12, padding: 8 }
           },
           datalabels: {
             color: '#fff',
-            font: { weight: '900', size: 12 },
+            font: { weight: '900', size: 11 },
             anchor: 'center', align: 'center',
             formatter: v => v > 0 ? v : '',
             textStrokeColor: 'rgba(0,0,0,.3)',
@@ -4828,13 +4837,12 @@ function panelRenderTiempo_(rows) {
 
 /* ── TAB: CATEGORÍAS ─────────────────────────────────────── */
 function panelRenderCats_(rows) {
-  const total = rows.length || 1;
-
   // Categorías
-  const catMap  = panelCountByKey_(rows, 'categoria');
+  const catMap     = panelCountByKey_(rows, 'categoria');
   const sortedCats = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
-  const maxCat  = Math.max(...sortedCats.map(([,v])=>v), 1);
+  const maxCat     = Math.max(...sortedCats.map(([,v])=>v), 1);
 
+  // Lista categorías (igual que antes)
   const catsWrap = document.getElementById('panel-cats');
   if (catsWrap) {
     catsWrap.innerHTML = '';
@@ -4859,41 +4867,135 @@ function panelRenderCats_(rows) {
     if (!sortedCats.length) catsWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
   }
 
-  // Subcategorías
-  const subcatMap   = panelCountByKey_(rows, 'subcategoria');
-  const sortedSubs  = Object.entries(subcatMap).sort((a,b) => b[1]-a[1]);
-  const maxSub      = Math.max(...sortedSubs.map(([,v])=>v), 1);
+  // Mapa: categoría → { subcat: count }
+  const subcatPorCat = {};
+  rows.forEach(r => {
+    const cat    = String(r.categoria    || '').trim();
+    const subcat = String(r.subcategoria || '').trim();
+    if (!cat || !subcat) return;
+    if (!subcatPorCat[cat]) subcatPorCat[cat] = {};
+    subcatPorCat[cat][subcat] = (subcatPorCat[cat][subcat] || 0) + 1;
+  });
 
-  const subcatsWrap = document.getElementById('panel-subcats');
-  if (subcatsWrap) {
-    subcatsWrap.innerHTML = '';
-    sortedSubs.slice(0, 10).forEach(([sub, count], idx) => {
-      const iconUrl = getSubcatIcon_(sub);
-      const color   = PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
-      const pct     = Math.round((count / maxSub) * 100);
-      const item = document.createElement('div');
-      item.className = 'cat-stat-item';
-      item.innerHTML = `
-        ${iconUrl ? `<img class="cat-stat-icon" src="${iconUrl}" alt="${sub}" />` : ''}
-        <div class="cat-stat-info">
-          <div class="cat-stat-name" title="${escapeHtml_(sub)}">${escapeHtml_(sub)}</div>
-          <div class="cat-stat-bar-track">
-            <div class="cat-stat-bar-fill" style="width:${pct}%;background:${color};"></div>
+  // Categoría activa por defecto = la más grande
+  let activeCat = sortedCats[0]?.[0] || null;
+
+  // Render lista + chart de subcats según categoría
+  const renderSubcatsView = (catName) => {
+    const titleListEl  = document.getElementById('panel-subcats-list-title');
+    const titleChartEl = document.getElementById('panel-subcats-chart-title');
+    const subcatsWrap  = document.getElementById('panel-subcats');
+
+    const subMap = (catName && subcatPorCat[catName]) ? subcatPorCat[catName] : {};
+    const titleSuffix = catName ? ` — ${catName}` : '';
+
+    if (titleListEl)  titleListEl.textContent  = `POR SUBCATEGORÍA${titleSuffix}`;
+    if (titleChartEl) titleChartEl.textContent = `GRÁFICO POR SUBCATEGORÍA${titleSuffix}`;
+
+    const sortedSubs = Object.entries(subMap).sort((a,b) => b[1]-a[1]);
+    const maxSub     = Math.max(...sortedSubs.map(([,v])=>v), 1);
+
+    // Lista subcats
+    if (subcatsWrap) {
+      subcatsWrap.innerHTML = '';
+      sortedSubs.slice(0, 10).forEach(([sub, count], idx) => {
+        const iconUrl = getSubcatIcon_(sub);
+        const color   = PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
+        const pct     = Math.round((count / maxSub) * 100);
+        const item = document.createElement('div');
+        item.className = 'cat-stat-item';
+        item.innerHTML = `
+          ${iconUrl ? `<img class="cat-stat-icon" src="${iconUrl}" alt="${sub}" />` : ''}
+          <div class="cat-stat-info">
+            <div class="cat-stat-name" title="${escapeHtml_(sub)}">${escapeHtml_(sub)}</div>
+            <div class="cat-stat-bar-track">
+              <div class="cat-stat-bar-fill" style="width:${pct}%;background:${color};"></div>
+            </div>
           </div>
-        </div>
-        <div class="cat-stat-count">${count}</div>
-      `;
-      subcatsWrap.appendChild(item);
-    });
-    if (!sortedSubs.length) subcatsWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
-  }
+          <div class="cat-stat-count">${count}</div>
+        `;
+        subcatsWrap.appendChild(item);
+      });
+      if (!sortedSubs.length) {
+        subcatsWrap.innerHTML = '<div class="panel-empty">Sin subcategorías.</div>';
+      }
+    }
 
-  // Chart de categorías (dona)
+    // Chart subcats (dona derecha)
+    panelDestroyChart_('subcats');
+    const ctxSubs = document.getElementById('panel-chart-subcats');
+    if (ctxSubs && sortedSubs.length) {
+      const labels = sortedSubs.map(([k]) => {
+        const words = k.split(' ');
+        return words.length > 3 ? words.slice(0,3).join(' ') + '…' : k;
+      });
+      const values = sortedSubs.map(([,v]) => v);
+      const colors = sortedSubs.map((_,i) => PANEL_CAT_COLORS_LIST[i % PANEL_CAT_COLORS_LIST.length]);
+
+      __panelCharts['subcats'] = new Chart(ctxSubs, {
+        type: 'doughnut',
+        plugins: [window.ChartDataLabels || {}],
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderWidth: 3,
+            borderColor: '#fff',
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          animation: { duration: 400 },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { weight: '700', size: 11 }, color: '#3d5248', boxWidth: 12, padding: 10 }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,.97)',
+              titleColor: '#06402B', bodyColor: '#3d5248',
+              borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+              padding: 10, cornerRadius: 10,
+              callbacks: {
+                label: (ctx) => {
+                  const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 1;
+                  const pct = Math.round((ctx.parsed / total) * 100);
+                  return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                }
+              }
+            },
+            datalabels: {
+              color: '#fff',
+              font: { weight: '900', size: 13 },
+              formatter: (v, ctx) => {
+                const pctVal = Math.round(v / (ctx.dataset.data.reduce((a,b)=>a+b,0)||1) * 100);
+                return pctVal >= 5 ? pctVal + '%' : '';
+              },
+              textStrokeColor: 'rgba(0,0,0,.4)',
+              textStrokeWidth: 3
+            }
+          }
+        }
+      });
+    } else {
+      // Si no hay subcats, destruir cualquier chart anterior
+      panelDestroyChart_('subcats');
+    }
+  };
+
+  // Render inicial con la categoría más grande
+  renderSubcatsView(activeCat);
+
+  // Chart de categorías (dona izquierda) con hover interactivo
   panelDestroyChart_('cats');
   const ctxCats = document.getElementById('panel-chart-cats');
   if (ctxCats && sortedCats.length) {
+    const fullLabels = sortedCats.map(([k]) => k);
     const labels = sortedCats.map(([k]) => {
-      // Acortar nombre para el gráfico
       const words = k.split(' ');
       return words.length > 3 ? words.slice(0,3).join(' ') + '…' : k;
     });
@@ -4922,6 +5024,8 @@ function panelRenderCats_(rows) {
             position: 'bottom',
             labels: { font: { weight: '700', size: 11 }, color: '#3d5248', boxWidth: 12, padding: 10 }
           },
+          // Tooltip desactivado: el total ya se ve arriba
+          tooltip: { enabled: false },
           datalabels: {
             color: '#fff',
             font: { weight: '900', size: 13 },
@@ -4931,6 +5035,17 @@ function panelRenderCats_(rows) {
             },
             textStrokeColor: 'rgba(0,0,0,.4)',
             textStrokeWidth: 3
+          }
+        },
+        onHover: (event, activeElements, chart) => {
+          chart.canvas.style.cursor = activeElements.length ? 'pointer' : 'default';
+          if (activeElements.length > 0) {
+            const idx = activeElements[0].index;
+            const catName = fullLabels[idx];
+            if (catName !== activeCat) {
+              activeCat = catName;
+              renderSubcatsView(activeCat);
+            }
           }
         }
       }
