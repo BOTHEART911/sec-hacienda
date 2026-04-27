@@ -1154,19 +1154,62 @@ respLimpiaBtn.type = 'button';
 respLimpiaBtn.title = 'RESPUESTA LIMPIA';
 respLimpiaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1774398142/mensaje_xu3mbq.webp" alt="RESPUESTA LIMPIA">`;
 respLimpiaBtn.addEventListener('click', async ()=>{
-  // al igual que responder-adjuntar, seleccionamos la tarjeta actual
   currentCardSelected = it;
-
-  // opcional: si quieres restringirlo SOLO en pendientes, descomenta:
-  // if(currentListMode !== 'PENDIENTE'){ return; }
-
   playSoundOnce(SOUNDS.menu);
   openRespuestaLimpiaModal_();
 });
 
+    // Icono DAR DE BAJA (solo en PENDIENTES)
+    const bajaBtn = document.createElement('button');
+    bajaBtn.className = 'icon-btn';
+    bajaBtn.type = 'button';
+    bajaBtn.title = 'DAR DE BAJA';
+    bajaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp" alt="DAR DE BAJA">`;
+    bajaBtn.addEventListener('click', async ()=>{
+      const ok = await Swal.fire({
+        icon: 'warning',
+        title: 'DAR DE BAJA',
+        html: `
+          <div style="text-align:left; font-size:.92rem; line-height:1.55;">
+            <p style="margin:0 0 10px;"><b>⚠️ Esta acción es irreversible.</b></p>
+            <p style="margin:0 0 10px;">El registro será <b>eliminado permanentemente</b> de la hoja SOLICITUDES.</p>
+            <p style="margin:0; color:#b91c1c; font-weight:800;">
+              Realiza esta acción ÚNICAMENTE si la solicitud ya fue referida o atendida en el Grupo de WhatsApp de solicitudes.
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Sí, dar de baja',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc2626'
+      });
+      if(!ok.isConfirmed) return;
+
+      try{
+        await apiPost('darDeBajaSolicitud', {
+          id_predial: it.id_predial,
+          usuario: currentUser ? (currentUser.nombre || '') : ''
+        });
+        await loadAndRenderList_(currentListMode);
+
+        // Si ya no quedan pendientes, salir y mostrar "AL DÍA"
+        if(__listCache.length === 0){
+          stopPendientesAutoRefresh_();
+          showView('view-inicio');
+          await showAlDiaAlert_();
+          return;
+        }
+
+        Swal.fire({ icon:'success', title:'Solicitud dada de baja', timer:1400, showConfirmButton:false });
+      }catch(e){
+        Swal.fire({ icon:'error', title:'Error', text: String(e.message || e) });
+      }
+    });
+
     icons.appendChild(respLimpiaBtn);
     icons.appendChild(alDiaBtn);
     icons.appendChild(noBtn);
+    icons.appendChild(bajaBtn);
 
     actions.appendChild(btnResp);
     actions.appendChild(icons);
