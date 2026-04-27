@@ -1166,6 +1166,7 @@ respLimpiaBtn.addEventListener('click', async ()=>{
     bajaBtn.title = 'DAR DE BAJA';
     bajaBtn.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp" alt="DAR DE BAJA">`;
     bajaBtn.addEventListener('click', async ()=>{
+     playSoundOnce(SOUNDS.warning);
       const ok = await Swal.fire({
         icon: 'warning',
         title: 'DAR DE BAJA',
