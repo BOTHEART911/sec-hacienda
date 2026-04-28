@@ -2379,6 +2379,14 @@ document.getElementById('proc-asignado')?.addEventListener('change', () => {
   });
 });
 
+/* ── Helper: si consecutivo es 100% numérico, anteponer ' para preservar ceros ── */
+function formatConsecutivo_(value) {
+  const s = String(value || '').trim();
+  if (!s) return '';
+  if (/^\d+$/.test(s)) return "'" + s;   // solo dígitos → anteponer '
+  return s.toUpperCase();
+}
+
 // Guardar asignación
 document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async () => {
   // Validaciones
@@ -2443,7 +2451,7 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
 
   try {
     const res = await apiPost('agregarProceso', {
-      recibido, consecutivo: consecutivo.toUpperCase(),
+      recibido, consecutivo: formatConsecutivo_(consecutivo),
       descripcion: descripcion.toUpperCase(), respuesta, medio,
       peticionario: peticionario,
       expediente:   expediente,
@@ -2771,6 +2779,7 @@ function abrirEditarAsignacion_(row) {
   document.getElementById('edit-coordinador').value = row.coordinador || '';
   document.getElementById('edit-contacto3').value   = row.contacto3   || '';
   document.getElementById('edit-bitacora').value    = row.bitacora    || '';
+  window.__bitacoraOriginal = row.bitacora || ''; // <-- NUEVO: guardar original para diff
 
   // Etapas
   updateEditEtapas_(catVal);
@@ -2920,7 +2929,7 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
     const ea  = document.getElementById('edit-asignado')?.value;
     const eci = document.getElementById('edit-cierre')?.value.trim();
     if (er)               payload.recibido    = er;
-    if (ec)               payload.consecutivo = ec.toUpperCase();
+    if (ec)               payload.consecutivo = formatConsecutivo_(ec);
     if (ed)               payload.descripcion = ed.toUpperCase();
     const _pet = (document.getElementById('edit-peticionario')?.value || '').trim().toUpperCase();
     const _exp = (document.getElementById('edit-expediente')?.value   || '').trim().toUpperCase();
@@ -2950,7 +2959,26 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
   payload.contacto2    = document.getElementById('edit-contacto2')?.value    || '';
   payload.coordinador  = document.getElementById('edit-coordinador')?.value  || '';
   payload.contacto3    = document.getElementById('edit-contacto3')?.value    || '';
-    payload.bitacora     = (document.getElementById('edit-bitacora')?.value || '').trim() || '';
+    // ── Bitácora: anteponer NOMBRE DEL USUARIO solo a la entrada NUEVA ──
+    const _bitTextarea = (document.getElementById('edit-bitacora')?.value || '').trim();
+    const _bitOriginal = String(window.__bitacoraOriginal || '').trim();
+    const _nombreUser  = String(currentUser?.nombre || '').toUpperCase();
+
+    if (!_bitTextarea) {
+      payload.bitacora = '';
+    } else if (_bitTextarea === _bitOriginal) {
+      // Sin cambios: dejar como estaba
+      payload.bitacora = _bitOriginal;
+    } else if (_bitOriginal && _bitTextarea.startsWith(_bitOriginal)) {
+      // Se agregó texto al final
+      const _nuevoTexto = _bitTextarea.slice(_bitOriginal.length).trim();
+      payload.bitacora = _nuevoTexto
+        ? _bitOriginal + '\n' + _nombreUser + ': ' + _nuevoTexto
+        : _bitOriginal;
+    } else {
+      // Bitácora vacía o reescrita totalmente → tratar todo como entrada nueva
+      payload.bitacora = _nombreUser + ': ' + _bitTextarea;
+    }
   payload.etapa        = document.getElementById('edit-etapa')?.value        || '';
 
   // Archivos de respuesta: solo permitidos si estado es EN PROYECCIÓN o super
