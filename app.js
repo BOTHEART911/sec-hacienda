@@ -402,7 +402,8 @@ function canSeePendientes_(){
 
 /* ── Permiso para AGREGAR ASIGNACIÓN (semáforo) ─── */
 const ALLOW_AGREGAR_ASIGNACION = [
-  'AMANDA VANESSA TAMAYO BEJARANO'
+  'AMANDA VANESSA TAMAYO BEJARANO',
+  'DEYSI PATRICIA GONZALEZ GUERRA'
 ].map(s => normalizeText_(s));
 
 function canSeeAgregarAsignacion_() {
@@ -776,7 +777,8 @@ try {
     'SOL MAR OCHOA HERNANDEZ',
     'ROSALBA ABADIA ARAGON',
     'AMANDA VANESSA TAMAYO BEJARANO',
-    'DIANA MARCELA OTALORA'
+    'DIANA MARCELA OTALORA',
+    'DEYSI PATRICIA GONZALEZ GUERRA'
   ].map(s => normalizeText_(s));
 
   const bSema = document.getElementById('btn-semaforo');
@@ -1609,9 +1611,10 @@ const GRUPOS_SEMAFORO = [
 
 /* ── Tabla coordinadores (contacto3) ───────────────────── */
 const COORDINADORES_CONTACTO3 = [
-  { coordinador: 'LUZ HAYDEE ORTEGA MAYORGA',     contacto3: '3222622322' },
+  { coordinador: 'LUZ HAYDEE ORTEGA MAYORGA',      contacto3: '3222622322' },
   { coordinador: 'OSCAR MAURICIO POLANIA GUERRA',  contacto3: '3103230712' },
-  { coordinador: 'DIEGO FERNANDO GARCIA',          contacto3: '3166139232' }
+  { coordinador: 'DIEGO FERNANDO GARCIA',          contacto3: '3166139232' },
+  { coordinador: 'DEYSI PATRICIA GONZALEZ GUERRA', contacto3: '3103395014' }
 ];
 
 function getContacto3ByCoordinador_(nombre) {
