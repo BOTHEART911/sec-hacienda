@@ -1219,6 +1219,45 @@ button:active { transform: translateY(0) scale(.98); }
   font-weight: 800;
 }
 
+/* ── Pastillas filtro por estado en MIS ASIGNACIONES ───── */
+.proc-status-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  justify-content: center;
+}
+.proc-status-pill {
+  width: auto;
+  padding: 6px 14px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--input-border);
+  background: rgba(255,255,255,.85);
+  color: var(--text-sub);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: .74rem;
+  letter-spacing: .3px;
+  cursor: pointer;
+  transition: .18s;
+  white-space: nowrap;
+}
+.proc-status-pill:hover {
+  background: #fff;
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.proc-status-pill.active {
+  background: linear-gradient(135deg, #0a7a46, #06402B);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(6,64,43,.28);
+}
+@media (max-width: 500px) {
+  .proc-status-pill { font-size: .68rem; padding: 5px 10px; }
+}
+
     /* ============================================================
    AJUSTES MÓVIL — Solo pantallas pequeñas (≤ 699px)
    NO afecta escritorio ni tablet
