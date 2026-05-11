@@ -1797,7 +1797,7 @@ function applyProcFilters_() {
     filtered = filtered.filter(row => normalizeText_(row.estado || '') === target);
   }
 
-  // 2) Filtro por texto (input)
+  // 2) Filtro por texto (input que YA EXISTE — no se toca)
   const q = normalizeText_(document.getElementById('proc-filter')?.value || '');
   if (q) {
     filtered = filtered.filter(row => {
@@ -2322,19 +2322,22 @@ function _mkProcIconBtn_(src, title) {
   return btn;
 }
 
-// Filtro asignaciones
+// Filtro asignaciones (input de texto YA EXISTE en el HTML — solo cambiamos su lógica
+// para que se combine con el filtro de pastillas)
 document.getElementById('proc-filter')?.addEventListener('input', () => {
-  const q = normalizeText_(document.getElementById('proc-filter').value || '');
-  if (!q) { renderProcList_(__procListCache); return; }
-  const filtered = __procListCache.filter(row => {
-    const blob = normalizeText_([
-      row.id_proceso, row.estado, row.recibido, row.consecutivo, row.descripcion,
-      row.respuesta, row.medio, row.categoria, row.subcategoria, row.asignado,
-      row.asistente, row.coordinador, row.etapa, row.bitacora
-    ].join(' '));
-    return blob.includes(q);
+  applyProcFilters_();
+});
+
+// Handlers de las pastillas de estado
+document.querySelectorAll('#proc-status-filter .proc-status-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    document.querySelectorAll('#proc-status-filter .proc-status-pill')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    __procStatusFilter = btn.dataset.status || 'ALL';
+    applyProcFilters_();
   });
-  renderProcList_(filtered);
 });
 
 // Botones vista asignaciones
