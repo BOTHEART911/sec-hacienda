@@ -1024,6 +1024,10 @@ function normalizeText_(s){
     .toUpperCase();
 }
 
+
+
+
+
 /* Normaliza una zona: quita el espacio + número romano final
    Ej: "ARAGON I" → "ARAGON", "ORQUIDEAS REAL IV" → "ORQUIDEAS REAL" */
 function normalizeZona_(barrio) {
@@ -1779,6 +1783,35 @@ function getPrefijo_(nombreCompleto) {
 
 function esSolMar_() {
   return normalizeText_(currentUser?.nombre || '') === normalizeText_(SOLMAR_NOMBRE);
+}
+
+/* ── Filtro por estado (pastillas) ───────────────────────── */
+let __procStatusFilter = 'ALL';
+
+function applyProcFilters_() {
+  let filtered = Array.isArray(__procListCache) ? __procListCache.slice() : [];
+
+  // 1) Filtro por estado (pastilla)
+  if (__procStatusFilter && __procStatusFilter !== 'ALL') {
+    const target = normalizeText_(__procStatusFilter);
+    filtered = filtered.filter(row => normalizeText_(row.estado || '') === target);
+  }
+
+  // 2) Filtro por texto (input)
+  const q = normalizeText_(document.getElementById('proc-filter')?.value || '');
+  if (q) {
+    filtered = filtered.filter(row => {
+      const blob = normalizeText_([
+        row.id_proceso, row.estado, row.recibido, row.consecutivo, row.descripcion,
+        row.respuesta, row.medio, row.categoria, row.subcategoria, row.asignado,
+        row.asistente, row.coordinador, row.etapa, row.bitacora,
+        row.peticionario, row.expediente
+      ].join(' '));
+      return blob.includes(q);
+    });
+  }
+
+  renderProcList_(filtered);
 }
 
 /* ── Estado global ──────────────────────────────────────── */
