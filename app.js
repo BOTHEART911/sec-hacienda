@@ -6203,24 +6203,47 @@ async function abrirBDPredial_() {
   const miasWrap = document.getElementById('bdp-pills-mias-wrap');
   if (miasWrap)   miasWrap.style.display = esSustanciadorPredial_() ? '' : 'none';
 
-  showView('view-bd-predial');
+ showView('view-bd-predial');
+  
+  /* Mostrar mensaje de carga inmediato para que el usuario sepa que está procesando */
+  const wrap = document.getElementById('bdp-list');
+  if (wrap) {
+    wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1; margin-top:40px; font-size:.95rem;">⏳ Cargando expedientes desde el servidor...<br><span style="font-size:.78rem;">Esto puede tardar unos segundos.</span></p>';
+  }
+  const countEl = document.getElementById('bdp-count');
+  if (countEl) countEl.textContent = '...';
+  
   await loadBDPredial_();
 }
 
-/* ── Cargar desde backend ─────────────────────────────── */
+/* ── Cargar desde backend (con cache de búsqueda) ─────── */
 async function loadBDPredial_() {
   try {
     const data = await apiGet('listpredial');
-    __bdpListCache = Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+
+    /* Pre-calcular el blob de búsqueda UNA sola vez por fila.
+       Esto evita recalcular normalizeText_(join(' ')) en cada keystroke. */
+    rows.forEach(r => {
+      r.__searchBlob = normalizeText_([
+        r.id_predial, r.matricula, r.ficha_catastral, r.nombres,
+        r.direccion_predio, r.correo_electronico, r.nit_cedula,
+        r.debe_desde, r.deuda_hasta, r.valor_deuda, r.clasificacion,
+        r.no_exp_fisico, r.actuacion, r.sustanciador, r.asistente,
+        r.bitacora, r.estado_proceso, r.asignador
+      ].join(' '));
+    });
+
+    __bdpListCache = rows;
     applyBDPredialFilters_();
   } catch (e) {
     Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
   }
 }
 
-/* ── Aplicar todos los filtros ────────────────────────── */
+/* ── Aplicar todos los filtros (OPTIMIZADO) ───────────── */
 function applyBDPredialFilters_() {
-  let filtered = __bdpListCache.slice();
+  let filtered = __bdpListCache;
 
   if (__bdpFilterClasif !== 'ALL') {
     filtered = filtered.filter(r =>
@@ -6247,35 +6270,21 @@ function applyBDPredialFilters_() {
 
   const q = normalizeText_(document.getElementById('bdp-filter')?.value || '');
   if (q) {
-    filtered = filtered.filter(r => {
-      const blob = normalizeText_([
-        r.id_predial, r.matricula, r.ficha_catastral, r.nombres,
-        r.direccion_predio, r.correo_electronico, r.nit_cedula,
-        r.debe_desde, r.deuda_hasta, r.valor_deuda, r.clasificacion,
-        r.no_exp_fisico, r.actuacion, r.sustanciador, r.asistente,
-        r.bitacora, r.estado_proceso, r.asignador
-      ].join(' '));
-      return blob.includes(q);
-    });
+    /* Usar el blob pre-calculado (cache) en lugar de recalcular */
+    filtered = filtered.filter(r => (r.__searchBlob || '').includes(q));
   }
 
   renderBDPredial_(filtered);
 }
 
-/* ── Render de tarjetas ───────────────────────────────── */
+/* ── Render de tarjetas (OPTIMIZADO - sin chat) ──────── */
 function renderBDPredial_(items) {
   const wrap = document.getElementById('bdp-list');
   const countEl = document.getElementById('bdp-count');
   if (!wrap) return;
 
-  /* 1. Cancelar listeners Firebase anteriores ANTES de tocar el DOM */
-  if (window.__bdpChatBadgeUnsubs) {
-    window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
-  }
-  window.__bdpChatBadgeUnsubs = [];
-
-  /* 2. Vaciar */
-  wrap.innerHTML = '';
+  /* Vaciar de forma rápida */
+  wrap.textContent = '';
   if (countEl) countEl.textContent = String(items.length);
 
   if (!items.length) {
@@ -6283,13 +6292,16 @@ function renderBDPredial_(items) {
     return;
   }
 
-  /* 3. Render en un DocumentFragment para evitar reflows intermedios */
+  /* Permisos calculados UNA sola vez fuera del loop */
+  const puedeEliminar = canEliminarPredial_();
+  const puedeDecision = canDecisionPredial_();
+
+  /* Render en DocumentFragment para evitar reflows intermedios */
   const frag = document.createDocumentFragment();
-  const idsParaBadge = [];   // ← acumulamos para hacer 1 SOLA suscripción Firebase
 
   for (const row of items) {
-    const clasif = (row.clasificacion || 'BAJA').toUpperCase();
-    const actuacion = (row.actuacion || 'NINGUNA').toUpperCase();
+    const clasif     = (row.clasificacion || 'BAJA').toUpperCase();
+    const actuacion  = (row.actuacion || 'NINGUNA').toUpperCase();
     const estadoProc = (row.estado_proceso || 'PENDIENTE').toUpperCase();
 
     const card = document.createElement('div');
@@ -6344,25 +6356,10 @@ function renderBDPredial_(items) {
     const actions = document.createElement('div');
     actions.className = 'bdp-actions';
 
-    /* CHAT */
-    const btnChat = _bdpMkBtn_(
-      'https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp',
-      'Chat de expediente'
-    );
-    btnChat.style.position = 'relative';
-    btnChat.innerHTML += `<span class="chat-unread-badge" id="bdp-chat-badge-${row.id_predial}" style="display:none;"></span>`;
-    btnChat.addEventListener('click', () => {
-      playSoundOnce(SOUNDS.menu);
-      __bdpSelected = row;
-      abrirBDPChat_(row);
-    });
-    actions.appendChild(btnChat);
-
-    /* Acumular id para suscripción Firebase global (1 sola, no 1 por tarjeta) */
-    idsParaBadge.push(row.id_predial);
+    /* ❌ CHAT ELIMINADO — ya no se crea botón ni listener Firebase */
 
     /* ELIMINAR */
-    if (canEliminarPredial_()) {
+    if (puedeEliminar) {
       const btnDel = _bdpMkBtn_(
         'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp',
         'Eliminar expediente'
@@ -6418,7 +6415,7 @@ function renderBDPredial_(items) {
     actions.appendChild(btnEdit);
 
     /* DECISIÓN */
-    if (canDecisionPredial_()) {
+    if (puedeDecision) {
       const btnDec = _bdpMkBtn_(
         'https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp',
         'Decisión (cambiar Actuación)'
@@ -6437,8 +6434,9 @@ function renderBDPredial_(items) {
     frag.appendChild(card);
   }
 
-  /* 4. UNA sola inserción al DOM (1 reflow en vez de N) */
+  /* UNA sola inserción al DOM */
   wrap.appendChild(frag);
+}
 
 /* 5. UNA SOLA suscripción Firebase para TODOS los badges
         Solo (re)suscribimos si el conjunto de IDs cambió */
@@ -6516,15 +6514,6 @@ document.getElementById('btn-bd-predial')?.addEventListener('click', () => {
 /* ── REGRESAR ─────────────────────────────────────────── */
 document.getElementById('btn-bdp-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
-  if (window.__bdpChatBadgeUnsubs) {
-    window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
-    window.__bdpChatBadgeUnsubs = [];
-  }
-  if (window.__bdpDetBadgeUnsub) {
-    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
-    window.__bdpDetBadgeUnsub = null;
-  }
-  window.__bdpChatBadgeIdsKey = null;
   showView('view-inicio');
 });
 
@@ -7150,39 +7139,6 @@ function abrirBDPDetalle_(row) {
   const actions = document.getElementById('bdp-det-actions');
   actions.innerHTML = '';
 
-  /* CHAT */
-  const btnChat = document.createElement('button');
-  btnChat.type = 'button';
-  btnChat.className = 'proc-btn-chat proc-action-btn';
-  btnChat.innerHTML = `
-    <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp"
-         alt="Chat" style="width:22px;height:22px;" />
-    CHAT
-    <span class="chat-unread-badge" id="bdp-det-chat-badge" style="display:none;"></span>
-  `;
-  btnChat.addEventListener('click', () => {
-    playSoundOnce(SOUNDS.menu);
-    abrirBDPChat_(row);
-  });
-  actions.appendChild(btnChat);
-
-/* Badge live del chat — con cancelación previa para no acumular listeners */
-  if (window.__bdpDetBadgeUnsub) {
-    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
-    window.__bdpDetBadgeUnsub = null;
-  }
-  initFirebase_().then(db => {
-    if (!db) return;
-    const ref = db.ref('chats-predial/' + row.id_predial + '/mensajes');
-    const handler = ref.on('value', snap => {
-      const badge = document.getElementById('bdp-det-chat-badge');
-      if (!badge) return;
-      const n = snap.numChildren();
-      if (n > 0) { badge.textContent = n > 99 ? '99+' : String(n); badge.style.display = ''; }
-      else { badge.style.display = 'none'; }
-    });
-    window.__bdpDetBadgeUnsub = () => ref.off('value', handler);
-  });
 
   /* REBOTAR */
   const btnReb = document.createElement('button');
@@ -7237,10 +7193,6 @@ function bdpDetSection_(title, pairs) {
 
 document.getElementById('btn-bdp-det-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
-  if (window.__bdpDetBadgeUnsub) {
-    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
-    window.__bdpDetBadgeUnsub = null;
-  }
   showView('view-bd-predial');
 });
 
@@ -7321,208 +7273,6 @@ document.getElementById('btn-bdp-reb-guardar')?.addEventListener('click', async 
     Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
   }
 });
-
-/* ── CHAT PREDIAL (Firebase) ──────────────────────────── */
-let __bdpChatRef         = null;
-let __bdpChatTypingRef   = null;
-let __bdpChatId          = null;
-let __bdpChatRow         = null;
-let __bdpChatUnsubMsg    = null;
-let __bdpChatUnsubTyping = null;
-let __bdpChatTypingTimer = null;
-let __bdpLastDateShown   = '';
-
-async function abrirBDPChat_(row) {
-  if (!currentUser) return;
-  __bdpChatRow      = row;
-  __bdpChatId       = row.id_predial;
-  __bdpLastDateShown = '';
-
-  /* Header reutiliza el chat existente */
-  document.getElementById('chat-header-title').textContent =
-    (row.no_exp_fisico || row.id_predial) + ' — ' + (row.nombres || '').substring(0, 40);
-  document.getElementById('chat-header-sub').textContent =
-    (row.sustanciador || '') + (row.asistente ? ' · ' + row.asistente : '');
-
-  const container = document.getElementById('chat-messages');
-  container.innerHTML = '';
-  const emptyEl = document.createElement('div');
-  emptyEl.id = 'chat-empty';
-  emptyEl.className = 'chat-empty';
-  emptyEl.innerHTML = `
-    <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png" alt="">
-    <p>Aún no hay mensajes.<br>¡Sé el primero en escribir!</p>
-  `;
-  container.appendChild(emptyEl);
-
-  cerrarBDPChatListeners_();
-  document.getElementById('modal-chat').classList.add('open');
-
-  /* Botón reset solo para OSCAR */
-  const resetBtn = document.getElementById('btn-chat-reset');
-  if (resetBtn) {
-    resetBtn.style.display =
-      normalizeText_(currentUser?.nombre || '') === normalizeText_('OSCAR MAURICIO POLANIA GUERRA')
-        ? 'flex' : 'none';
-  }
-
-  document.body.style.overflow = 'hidden';
-
-  const db = await initFirebase_();
-  if (!db) {
-    Swal.fire({ icon:'error', title:'Error de conexión', text:'No se pudo conectar con Firebase.' });
-    cerrarBDPChat_();
-    return;
-  }
-
-  __bdpChatRef       = db.ref('chats-predial/' + __bdpChatId + '/mensajes');
-  __bdpChatTypingRef = db.ref('chats-predial/' + __bdpChatId + '/typing/' +
-    encodeURIComponent(currentUser.nombre || 'usuario'));
-
-  /* Listener mensajes */
-  let primeraCarga = true;
-  __bdpChatUnsubMsg = __bdpChatRef.on('child_added', snap => {
-    const data = snap.val();
-    if (!data) return;
-    const empty = container.querySelector('#chat-empty');
-    if (empty) empty.style.display = 'none';
-    /* Reutilizamos render del chat de asignaciones */
-    const msgEl = renderChatMsg_(snap.key, data, container);
-    container.appendChild(msgEl);
-    if (primeraCarga) chatScrollBottom_(true);
-    else {
-      const esMio = normalizeText_(data.autor||'') === normalizeText_(currentUser?.nombre||'');
-      if (esMio) chatScrollBottom_(true);
-      else {
-        chatScrollBottom_(false);
-        showChatToast_(data.autor);
-      }
-    }
-  });
-  __bdpChatRef.once('value', () => { primeraCarga = false; chatScrollBottom_(true); });
-
-  /* Listener typing */
-  const typingRoot = db.ref('chats-predial/' + __bdpChatId + '/typing');
-  __bdpChatUnsubTyping = typingRoot.on('value', snap => {
-    const typing = snap.val() || {};
-    const others = Object.entries(typing)
-      .filter(([k, v]) => v === true &&
-        normalizeText_(decodeURIComponent(k)) !== normalizeText_(currentUser?.nombre || ''))
-      .map(([k]) => decodeURIComponent(k).split(' ')[0]);
-    const typingEl  = document.getElementById('chat-typing');
-    const typingWho = document.getElementById('chat-typing-who');
-    if (others.length && typingEl) {
-      typingWho.textContent = others[0];
-      typingEl.classList.add('visible');
-    } else if (typingEl) {
-      typingEl.classList.remove('visible');
-    }
-  });
-
-  /* Reasignar handlers de input y enviar al modo predial */
-  bdpAttachChatHandlers_();
-
-  setTimeout(() => document.getElementById('chat-input')?.focus(), 180);
-}
-
-function cerrarBDPChat_() {
-  document.getElementById('modal-chat').classList.remove('open');
-  document.body.style.overflow = '';
-  if (__bdpChatTypingRef) __bdpChatTypingRef.set(false).catch(()=>{});
-  cerrarBDPChatListeners_();
-  bdpDetachChatHandlers_();
-  __bdpChatRow = null;
-  __bdpChatId  = null;
-}
-
-function cerrarBDPChatListeners_() {
-  try { if (__bdpChatRef && __bdpChatUnsubMsg)       __bdpChatRef.off('child_added', __bdpChatUnsubMsg); } catch(_) {}
-  try { if (__bdpChatTypingRef && __bdpChatUnsubTyping) {
-    const tr = __bdpChatTypingRef.parent;
-    if (tr) tr.off('value', __bdpChatUnsubTyping);
-  }} catch(_) {}
-  __bdpChatUnsubMsg = null;
-  __bdpChatUnsubTyping = null;
-  clearTimeout(__bdpChatTypingTimer);
-}
-
-/* Handlers exclusivos del chat predial */
-let __bdpChatSendBound = null;
-let __bdpChatInputBound = null;
-let __bdpChatKeyBound = null;
-let __bdpChatCloseBound = null;
-
-function bdpAttachChatHandlers_() {
-  const btnSend  = document.getElementById('btn-chat-send');
-  const inp      = document.getElementById('chat-input');
-  const btnClose = document.getElementById('btn-chat-close');
-
-  __bdpChatSendBound = (e) => {
-    e?.stopPropagation?.();
-    bdpEnviarMensaje_();
-  };
-  __bdpChatInputBound = () => {
-    if (!__bdpChatTypingRef) return;
-    __bdpChatTypingRef.set(true).catch(()=>{});
-    clearTimeout(__bdpChatTypingTimer);
-    __bdpChatTypingTimer = setTimeout(() => {
-      __bdpChatTypingRef.set(false).catch(()=>{});
-    }, 2500);
-    chatInputAutoResize_();
-  };
-  __bdpChatKeyBound = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      playSoundOnce(SOUNDS.success);
-      bdpEnviarMensaje_();
-    }
-  };
-  __bdpChatCloseBound = () => {
-    playSoundOnce(SOUNDS.back);
-    cerrarBDPChat_();
-  };
-
-  /* Sobreescribir los listeners por clone */
-  if (btnSend)  { const n = btnSend.cloneNode(true);  btnSend.parentNode.replaceChild(n, btnSend);   n.addEventListener('click', __bdpChatSendBound); }
-  if (btnClose) { const n = btnClose.cloneNode(true); btnClose.parentNode.replaceChild(n, btnClose); n.addEventListener('click', __bdpChatCloseBound); }
-  if (inp)      {
-    const n = inp.cloneNode(true);
-    inp.parentNode.replaceChild(n, inp);
-    n.addEventListener('input', __bdpChatInputBound);
-    n.addEventListener('keydown', __bdpChatKeyBound);
-  }
-}
-
-function bdpDetachChatHandlers_() {
-  /* Al cerrar restauramos los handlers de asignaciones recargando una vez el chat de procesos */
-  /* No es estrictamente necesario porque siempre se rebindean al abrir; aquí solo limpiamos refs */
-  __bdpChatSendBound = null;
-  __bdpChatInputBound = null;
-  __bdpChatKeyBound = null;
-  __bdpChatCloseBound = null;
-}
-
-async function bdpEnviarMensaje_() {
-  const inp = document.getElementById('chat-input');
-  if (!inp) return;
-  const texto = inp.value.trim();
-  if (!texto || !__bdpChatRef) return;
-  inp.value = '';
-  inp.style.height = '';
-  if (__bdpChatTypingRef) __bdpChatTypingRef.set(false).catch(()=>{});
-  clearTimeout(__bdpChatTypingTimer);
-  try {
-    await __bdpChatRef.push({
-      autor: currentUser?.nombre || 'Usuario',
-      texto: texto,
-      ts: firebase.database.ServerValue.TIMESTAMP
-    });
-  } catch (e) {
-    Swal.fire({ icon:'error', title:'Error', text:'No se pudo enviar el mensaje.' });
-  }
-}
-
-
 
 /* ── Reemplazar botón AGREGAR del placeholder Fase 2 ──── */
 (function rebindBDPAgregar_() {
