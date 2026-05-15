@@ -6476,7 +6476,7 @@ function renderBDPredial_(items) {
   } else {
     /* Mismo conjunto de IDs: refrescar referencia visual de badges
        (los IDs en DOM cambiaron de instancia tras el re-render) */
-    initFirebase_().then(db => {
+     initFirebase_().then(db => {
       if (!db) return;
       db.ref('chats-predial').once('value').then(snap => {
         const data = snap.val() || {};
@@ -6495,6 +6495,7 @@ function renderBDPredial_(items) {
       });
     });
   }
+}
 
 function _bdpMkBtn_(src, title) {
   const btn = document.createElement('button');
@@ -8284,3 +8285,4 @@ document.addEventListener('visibilitychange', ()=>{
   __lastVersionCheck = now;
   checkAppVersion();
 });
+
