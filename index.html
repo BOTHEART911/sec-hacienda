@@ -121,9 +121,15 @@
   <div class="btn-row" style="margin-top:10px;">
     <button id="btn-atenciones-registradas" class="btn-primary" style="display:none;">ATENCIONES REGISTRADAS</button>
   </div>
-  <div class="btn-row" style="margin-top:10px;">
+<div class="btn-row" style="margin-top:10px;">
     <button id="btn-mis-informes" class="btn-primary" style="display:none;">MIS INFORMES PREDIAL</button>
     <button id="btn-estadisticas" class="btn-primary" style="display:none;">ESTADISTICAS 📊</button>
+  </div>
+  <div class="btn-row" style="margin-top:10px;">
+    <button id="btn-bd-predial" class="btn-primary btn-icon-label" style="display:none; background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778860851/base_de_datos_cty8xc.webp" alt="BD Predial" />
+      BASE DE DATOS
+    </button>
   </div>
 </div>
 
@@ -1260,6 +1266,90 @@
     </div>
 
     <div id="atenc-wrap" class="sol-list"></div>
+  </div>
+</section>
+
+    <!-- ============================================================
+     VISTA BASE DE DATOS IMPUESTO PREDIAL
+     ============================================================ -->
+<section id="view-bd-predial" class="view">
+  <div class="card" style="max-width:1200px;">
+
+    <h2 class="proc-view-title">BASE DE DATOS IMPUESTO PREDIAL</h2>
+
+    <div class="count-row" style="margin-bottom:12px;">
+      <span class="count-pill">TOTAL: <span id="bdp-count">0</span></span>
+      <input id="bdp-filter" class="filter-input" type="text" placeholder="Filtrar por cualquier dato…" />
+    </div>
+
+    <!-- Pastillas filtro CLASIFICACION -->
+    <div class="bdp-pills-label">CLASIFICACIÓN</div>
+    <div id="bdp-pills-clasif" class="proc-status-filter">
+      <button type="button" class="proc-status-pill active" data-clasif="ALL">TODAS</button>
+      <button type="button" class="proc-status-pill" data-clasif="ALTA"
+        style="background:rgba(220,38,38,.10);border-color:#dc2626;color:#dc2626;">ALTA</button>
+      <button type="button" class="proc-status-pill" data-clasif="MEDIA"
+        style="background:rgba(249,115,22,.10);border-color:#f97316;color:#f97316;">MEDIA</button>
+      <button type="button" class="proc-status-pill" data-clasif="BAJA"
+        style="background:rgba(22,163,74,.10);border-color:#16a34a;color:#16a34a;">BAJA</button>
+    </div>
+
+    <!-- Pastillas filtro ACTUACION -->
+    <div class="bdp-pills-label">ACTUACIÓN</div>
+    <div id="bdp-pills-actuacion" class="proc-status-filter">
+      <button type="button" class="proc-status-pill active" data-actuacion="ALL">TODAS</button>
+      <button type="button" class="proc-status-pill" data-actuacion="NINGUNA">NINGUNA</button>
+      <button type="button" class="proc-status-pill" data-actuacion="ACUERDO DE PAGO">ACUERDO DE PAGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="COBRO PERSUASIVO">COBRO PERSUASIVO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="COBRO COACTIVO">COBRO COACTIVO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="EMBARGO">EMBARGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="DESEMBARGO">DESEMBARGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</button>
+      <button type="button" class="proc-status-pill" data-actuacion="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="PRESCRIPCION">PRESCRIPCIÓN</button>
+      <button type="button" class="proc-status-pill" data-actuacion="INSOLVENCIA">INSOLVENCIA</button>
+    </div>
+
+    <!-- Pastillas filtro ESTADO PROCESO -->
+    <div class="bdp-pills-label">ESTADO PROCESO</div>
+    <div id="bdp-pills-estado" class="proc-status-filter">
+      <button type="button" class="proc-status-pill active" data-estado="ALL">TODOS</button>
+      <button type="button" class="proc-status-pill" data-estado="PENDIENTE">PENDIENTE</button>
+      <button type="button" class="proc-status-pill" data-estado="AL DIA">AL DÍA</button>
+    </div>
+
+    <!-- Pastilla "Solo las mías" (solo aparece si el usuario es sustanciador) -->
+    <div id="bdp-pills-mias-wrap" style="margin-top:6px; display:none;">
+      <button type="button" id="bdp-pill-mias" class="proc-status-pill"
+        style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border-color:transparent;">
+        👤 SOLO LAS MÍAS
+      </button>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="btn-row" style="margin-top:14px; margin-bottom:14px;">
+      <button id="btn-bdp-panel" class="btn-primary"
+        style="background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%); display:none;">
+        <span style="display:inline-flex;align-items:center;gap:8px;">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png"
+               style="width:22px;height:22px;object-fit:contain;" alt="Panel" />
+          PANEL 📊
+        </span>
+      </button>
+      <button id="btn-bdp-agregar" class="btn-primary btn-icon-label"
+        style="background:linear-gradient(135deg,#06b6d4,#0284c7); display:none;">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778860849/agregar_ojlawh.webp" alt="Agregar" />
+        AGREGAR EXPEDIENTE
+      </button>
+      <button id="btn-bdp-mis-exp" class="btn-primary btn-icon-label"
+        style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778860849/expedientes_evq6df.webp" alt="Mis Exp" />
+        MIS EXPEDIENTES
+      </button>
+      <button id="btn-bdp-back" class="danger">REGRESAR</button>
+    </div>
+
+    <div id="bdp-list" class="sol-list"></div>
   </div>
 </section>
 
