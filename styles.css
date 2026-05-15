@@ -2565,3 +2565,63 @@ button:active { transform: translateY(0) scale(.98); }
   .bdp-valor-deuda { font-size: 1rem; }
   .bdp-nombres { font-size: .92rem; }
 }
+
+/* ============================================================
+   BD PREDIAL — Vista DETALLE
+   ============================================================ */
+.bdp-det-section {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1.5px solid rgba(6,64,43,.10);
+}
+.bdp-det-section-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: .80rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bdp-det-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 16px;
+}
+.bdp-det-grid > div {
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(6,64,43,.06);
+}
+.bdp-det-grid b {
+  display: block;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.bdp-det-grid .val {
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--text-main);
+  word-break: break-word;
+}
+.bdp-det-bitacora {
+  background: rgba(6,64,43,.05);
+  border: 1.5px solid rgba(6,64,43,.12);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  max-height: 280px;
+  overflow-y: auto;
+}
