@@ -6536,8 +6536,10 @@ document.getElementById('bdp-pill-mias')?.addEventListener('click', () => {
 });
 
 /* ── Filtro de texto ───────────────────────────────────── */
+let __bdpFilterTimer = null;
 document.getElementById('bdp-filter')?.addEventListener('input', () => {
-  applyBDPredialFilters_();
+  clearTimeout(__bdpFilterTimer);
+  __bdpFilterTimer = setTimeout(applyBDPredialFilters_, 180);
 });
 
 /* ── MIS EXPEDIENTES (columna I de USUARIOS) ───────────── */
