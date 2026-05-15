@@ -846,6 +846,7 @@ document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   try{ const b = document.getElementById('btn-agregar');        if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-pendientes');     if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-atenciones-registradas'); if(b) b.style.display = 'none'; }catch(_){}
+  try{ const b = document.getElementById('btn-bd-predial'); if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-mis-informes');   if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-estadisticas');   if(b) b.style.display = 'none'; }catch(_){}
   try{ const b = document.getElementById('btn-semaforo');       if(b) b.style.display = 'none'; }catch(_){}
@@ -859,6 +860,7 @@ try{ const b = document.getElementById('btn-drive-anexos'); if(b) b.style.displa
 try{ const b = document.getElementById('btn-mis-informes'); if(b) b.style.display = 'none'; }catch(_){}
 try{ const b = document.getElementById('btn-estadisticas'); if(b) b.style.display = 'none'; }catch(_){}
 try{ const b = document.getElementById('btn-semaforo');     if(b) b.style.display = 'none'; }catch(_){}
+try{ const b = document.getElementById('btn-bd-predial'); if(b) b.style.display = 'none'; }catch(_){}
 
 /* ================== INICIO: botones ================== */
 document.getElementById('btn-pendientes')?.addEventListener('click', async ()=>{
@@ -6546,6 +6548,981 @@ document.getElementById('btn-bdp-panel')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
   Swal.fire({ icon:'info', title:'Panel 📊', text:'Disponible en Fase 4.', timer:1400, showConfirmButton:false });
 });
+
+/* ============================================================
+   BD PREDIAL — Fase 3: AGREGAR / EDITAR / VER / DECISIÓN / REBOTAR / CHAT
+   ============================================================ */
+
+/* ── Estado ───────────────────────────────────────────── */
+let __bdpFormMode    = 'add';   // 'add' | 'edit'
+let __bdpFormRow     = null;
+let __bdpDetRow      = null;
+let __bdpAnioTarget  = '';
+let __bdpFechaTarget = '';
+let __bdpDecRow      = null;
+let __bdpRebRow      = null;
+
+/* ── Helpers visuales ─────────────────────────────────── */
+function bdpFormatPesosInput_(value) {
+  const n = Number(String(value).replace(/\D/g, '')) || 0;
+  return n === 0 ? '' : '$ ' + n.toLocaleString('es-CO');
+}
+function bdpDigitsOnly_(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+/* ── Sanitizadores numéricos ──────────────────────────── */
+function bdpSetupNumericInputs_() {
+  /* NIT */
+  const nit = document.getElementById('bdp-nit');
+  if (nit && !nit.dataset.binded) {
+    nit.dataset.binded = '1';
+    nit.addEventListener('input', () => {
+      nit.value = bdpDigitsOnly_(nit.value).slice(0, 10);
+    });
+  }
+  /* Matrícula */
+  const mat = document.getElementById('bdp-matricula');
+  if (mat && !mat.dataset.binded) {
+    mat.dataset.binded = '1';
+    mat.addEventListener('input', () => {
+      mat.value = bdpDigitsOnly_(mat.value);
+    });
+  }
+  /* Ficha */
+  const ficha = document.getElementById('bdp-ficha');
+  if (ficha && !ficha.dataset.binded) {
+    ficha.dataset.binded = '1';
+    ficha.addEventListener('input', () => {
+      ficha.value = bdpDigitsOnly_(ficha.value).slice(0, 15);
+    });
+  }
+  /* Valor Deuda con formato pesos */
+  const valor = document.getElementById('bdp-valor-deuda');
+  if (valor && !valor.dataset.binded) {
+    valor.dataset.binded = '1';
+    valor.addEventListener('input', () => {
+      valor.value = bdpFormatPesosInput_(valor.value);
+      bdpUpdateClasifPreview_();
+    });
+  }
+  /* Exp número */
+  const expNum = document.getElementById('bdp-exp-numero');
+  if (expNum && !expNum.dataset.binded) {
+    expNum.dataset.binded = '1';
+    expNum.addEventListener('input', () => {
+      expNum.value = bdpDigitsOnly_(expNum.value).slice(0, 4);
+    });
+  }
+}
+
+/* ── Llenar A-Z en select letra ───────────────────────── */
+function bdpPopulateLetras_() {
+  const sel = document.getElementById('bdp-exp-letra');
+  if (!sel || sel.childElementCount > 1) return;
+  for (let i = 65; i <= 90; i++) {
+    const o = document.createElement('option');
+    o.value = String.fromCharCode(i);
+    o.textContent = o.value;
+    sel.appendChild(o);
+  }
+}
+
+/* ── Sustanciador → autocompletar asistente/contactos ─── */
+function bdpAutoFillAsistente_(sustanciador) {
+  const grupos = {
+    'LEESLIE JULIET GOMEZ QUINTERO':   { c1:'3183200977', asis:'MARIA NIDIA MENESES MARTINEZ',       c2:'3015786913' },
+    'LUIS GILBERTO MOYA ROMERO':       { c1:'3208858086', asis:'NICOL ESTEFANI MADRIGALES GONZALEZ', c2:'3212331684' },
+    'ANDREA KATERINE LAMAR RODRIGUEZ': { c1:'3163170769', asis:'VICTOR MANUEL FANDIÑO GIRALDO',      c2:'3203811201' },
+    'LUIS GABRIEL RAMIREZ RAMIREZ':    { c1:'3204744065', asis:'', c2:'' },
+    'DIEGO FERNANDO GARCIA':           { c1:'3166139232', asis:'', c2:'' }
+  };
+  const g = grupos[normalizeText_(sustanciador || '')] || { c1:'', asis:'', c2:'' };
+  document.getElementById('bdp-asistente').value      = g.asis;
+  document.getElementById('bdp-contacto-sust').value  = g.c1;
+  document.getElementById('bdp-contacto-asist').value = g.c2;
+}
+
+/* ── Vista previa de CLASIFICACION en el form ─────────── */
+function bdpUpdateClasifPreview_() {
+  const v = Number(bdpDigitsOnly_(document.getElementById('bdp-valor-deuda')?.value || '')) || 0;
+  const out = document.getElementById('bdp-clasif-preview');
+  if (!out) return;
+  let label = '', color = '';
+  if (v <= 0)                   { label = ''; color = ''; }
+  else if (v >= 10527174)       { label = 'ALTA';  color = '#dc2626'; }
+  else if (v <= 2671074)        { label = 'BAJA';  color = '#16a34a'; }
+  else                          { label = 'MEDIA'; color = '#f97316'; }
+  out.innerHTML = label
+    ? `Clasificación automática: <b style="color:${color};">${label}</b>`
+    : '';
+}
+
+/* ── Picker AÑO (DEBE DESDE) ──────────────────────────── */
+function abrirBDPAnio_() {
+  __bdpAnioTarget = 'debe-desde';
+  const sel = document.getElementById('bdp-anio-select');
+  if (sel && !sel.childElementCount) {
+    const anioActual = new Date().getFullYear();
+    for (let y = anioActual; y >= 1975; y--) {
+      const o = document.createElement('option');
+      o.value = String(y);
+      o.textContent = String(y);
+      sel.appendChild(o);
+    }
+  }
+  document.getElementById('bdp-anio-modal').classList.add('open');
+  document.getElementById('bdp-anio-modal').setAttribute('aria-hidden', 'false');
+}
+function cancelarBDPAnio() {
+  document.getElementById('bdp-anio-modal').classList.remove('open');
+  document.getElementById('bdp-anio-modal').setAttribute('aria-hidden', 'true');
+}
+function confirmarBDPAnio() {
+  const sel = document.getElementById('bdp-anio-select');
+  const y = sel?.value || '';
+  if (!y) { cancelarBDPAnio(); return; }
+  document.getElementById('bdp-debe-desde').value     = bdpFormatDebeDesde_(y + '01');
+  document.getElementById('bdp-debe-desde-raw').value = y + '01';
+  cancelarBDPAnio();
+}
+
+/* ── Picker FECHA (dd/mm/2026) ────────────────────────── */
+function abrirBDPFecha_(target) {
+  __bdpFechaTarget = target;
+  const dSel = document.getElementById('bdp-pick-dia');
+  const mSel = document.getElementById('bdp-pick-mes');
+  if (dSel && !dSel.childElementCount) {
+    for (let d = 1; d <= 31; d++) {
+      const o = document.createElement('option');
+      o.value = String(d).padStart(2,'0');
+      o.textContent = o.value;
+      dSel.appendChild(o);
+    }
+  }
+  if (mSel && !mSel.childElementCount) {
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    meses.forEach((nm, i) => {
+      const o = document.createElement('option');
+      o.value = String(i + 1).padStart(2,'0');
+      o.textContent = nm;
+      mSel.appendChild(o);
+    });
+  }
+  document.getElementById('bdp-fecha-modal').classList.add('open');
+  document.getElementById('bdp-fecha-modal').setAttribute('aria-hidden', 'false');
+}
+function cancelarBDPFecha() {
+  document.getElementById('bdp-fecha-modal').classList.remove('open');
+  document.getElementById('bdp-fecha-modal').setAttribute('aria-hidden', 'true');
+}
+function confirmarBDPFecha() {
+  const d = document.getElementById('bdp-pick-dia')?.value || '01';
+  const m = document.getElementById('bdp-pick-mes')?.value || '01';
+  const val = `${d}/${m}/2026`;
+  const map = {
+    'fecha-oficio-persuas': 'bdp-fecha-oficio-persuas',
+    'fecha-entrega':        'bdp-fecha-entrega',
+    'fecha-resolucion':     'bdp-fecha-resolucion',
+    'fecha-oficio':         'bdp-fecha-oficio'
+  };
+  const inputId = map[__bdpFechaTarget];
+  if (inputId) {
+    const el = document.getElementById(inputId);
+    if (el) el.value = val;
+  }
+  cancelarBDPFecha();
+}
+
+/* ── Abrir AGREGAR ────────────────────────────────────── */
+function abrirBDPAgregar_() {
+  if (!canAgregarPredial_()) {
+    Swal.fire({ icon:'warning', title:'Sin permiso' });
+    return;
+  }
+  __bdpFormMode = 'add';
+  __bdpFormRow  = null;
+  document.getElementById('bdp-form-title').textContent = 'AGREGAR EXPEDIENTE';
+  document.getElementById('bdp-form-badge').innerHTML = '';
+
+  /* Limpiar campos */
+  [
+    'bdp-nombres','bdp-nit','bdp-correo','bdp-direccion','bdp-matricula',
+    'bdp-ficha','bdp-debe-desde','bdp-debe-desde-raw','bdp-valor-deuda',
+    'bdp-exp-numero','bdp-bitacora','bdp-oficio-persuas',
+    'bdp-fecha-oficio-persuas','bdp-fecha-entrega','bdp-resol-liquidac',
+    'bdp-fecha-resolucion','bdp-oficio-citacion','bdp-fecha-oficio',
+    'bdp-ejecutoria','bdp-f-mp','bdp-asistente'
+  ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  document.getElementById('bdp-escaneado').value      = 'NO';
+  document.getElementById('bdp-actuacion').value      = 'NINGUNA';
+  document.getElementById('bdp-estado-proceso').value = 'PENDIENTE';
+  ['notif-citacion','notif-electr','notif-personal','notif-aviso','publicacion-web','mandam-pago']
+    .forEach(k => { const el = document.getElementById('bdp-'+k); if (el) el.value = 'NO'; });
+  document.getElementById('bdp-sustanciador').value = '';
+  document.getElementById('bdp-exp-letra').value    = '';
+
+  /* Deuda hasta automática */
+  const anio = new Date().getFullYear();
+  document.getElementById('bdp-deuda-hasta').value = bdpFormatDebeDesde_(String(anio) + '01');
+
+  /* Asignador = usuario actual */
+  document.getElementById('bdp-asignador').value = currentUser?.nombre || '';
+
+  document.getElementById('bdp-clasif-preview').innerHTML = '';
+
+  /* Mostrar todos los campos super */
+  document.getElementById('bdp-super-fields').style.display = '';
+  document.getElementById('bdp-extra-fields').style.display = '';
+
+  bdpPopulateLetras_();
+  bdpSetupNumericInputs_();
+
+  showView('view-bdp-form');
+}
+
+/* ── Abrir EDITAR ─────────────────────────────────────── */
+function abrirBDPEditar_(row) {
+  if (!canEditarPredial_()) {
+    Swal.fire({ icon:'warning', title:'Sin permiso' });
+    return;
+  }
+  __bdpFormMode = 'edit';
+  __bdpFormRow  = row;
+
+  document.getElementById('bdp-form-title').textContent = 'EDITAR EXPEDIENTE';
+  document.getElementById('bdp-form-badge').innerHTML =
+    `<div class="edit-badge">${escapeHtml_(row.id_predial)} — ${escapeHtml_(row.no_exp_fisico || '')}</div>`;
+
+  bdpPopulateLetras_();
+  bdpSetupNumericInputs_();
+
+  /* Cargar valores */
+  document.getElementById('bdp-nombres').value   = row.nombres || '';
+  document.getElementById('bdp-nit').value       = row.nit_cedula || '';
+  document.getElementById('bdp-correo').value    = row.correo_electronico || '';
+  document.getElementById('bdp-direccion').value = row.direccion_predio || '';
+
+  const matRaw = String(row.matricula || '').replace(/^357-/, '');
+  document.getElementById('bdp-matricula').value = matRaw;
+
+  const fichaRaw = bdpCleanFicha_(row.ficha_catastral);
+  document.getElementById('bdp-ficha').value = fichaRaw;
+
+  document.getElementById('bdp-escaneado').value = row.escaneado || 'NO';
+
+  document.getElementById('bdp-debe-desde').value     = bdpFormatDebeDesde_(row.debe_desde || '');
+  document.getElementById('bdp-debe-desde-raw').value = row.debe_desde || '';
+  document.getElementById('bdp-deuda-hasta').value    = bdpFormatDebeDesde_(row.deuda_hasta || '');
+
+  document.getElementById('bdp-valor-deuda').value = bdpFormatPesosInput_(row.valor_deuda || 0);
+  bdpUpdateClasifPreview_();
+
+  /* Separar letra y número del exp físico */
+  const exp = String(row.no_exp_fisico || '').toUpperCase();
+  const mExp = exp.match(/^([A-Z])(\d{4})$/);
+  document.getElementById('bdp-exp-letra').value  = mExp ? mExp[1] : '';
+  document.getElementById('bdp-exp-numero').value = mExp ? mExp[2] : '';
+
+  document.getElementById('bdp-sustanciador').value = row.sustanciador || '';
+  document.getElementById('bdp-asistente').value    = row.asistente || '';
+  document.getElementById('bdp-contacto-sust').value  = row.contacto_sustanciador || '';
+  document.getElementById('bdp-contacto-asist').value = row.contacto_asistente || '';
+  document.getElementById('bdp-asignador').value         = row.asignador || '';
+  document.getElementById('bdp-contacto-asignador').value= row.contacto_asignador || '';
+
+  document.getElementById('bdp-bitacora').value       = row.bitacora || '';
+  document.getElementById('bdp-actuacion').value      = row.actuacion || 'NINGUNA';
+  document.getElementById('bdp-estado-proceso').value = row.estado_proceso || 'PENDIENTE';
+
+  document.getElementById('bdp-oficio-persuas').value       = row.oficio_persuas || '';
+  document.getElementById('bdp-fecha-oficio-persuas').value = row.fecha_oficio_persuas || '';
+  document.getElementById('bdp-fecha-entrega').value        = row.fecha_entrega || '';
+  document.getElementById('bdp-resol-liquidac').value       = row.resol_liquidac || '';
+  document.getElementById('bdp-fecha-resolucion').value     = row.fecha_resolucion || '';
+  document.getElementById('bdp-oficio-citacion').value      = row.oficio_citacion || '';
+  document.getElementById('bdp-fecha-oficio').value         = row.fecha_oficio || '';
+  document.getElementById('bdp-notif-citacion').value       = row.notif_citacion || 'NO';
+  document.getElementById('bdp-notif-electr').value         = row.notif_electr   || 'NO';
+  document.getElementById('bdp-notif-personal').value       = row.notif_personal || 'NO';
+  document.getElementById('bdp-notif-aviso').value          = row.notif_aviso    || 'NO';
+  document.getElementById('bdp-publicacion-web').value      = row.publicacion_web|| 'NO';
+  document.getElementById('bdp-ejecutoria').value           = row.ejecutoria || '';
+  document.getElementById('bdp-mandam-pago').value          = row.mandam_pago || 'NO';
+  document.getElementById('bdp-f-mp').value                 = row.f_mp || '';
+
+  /* Permisos: solo super edita todo. Usuario normal solo bitácora+actuación
+     (en este momento solo super puede llegar aquí, pero dejamos el control listo) */
+  const esSuper = !!currentUser?.isSuper;
+  document.getElementById('bdp-super-fields').style.display = esSuper ? '' : 'none';
+  document.getElementById('bdp-extra-fields').style.display = esSuper ? '' : 'none';
+
+  showView('view-bdp-form');
+}
+
+/* ── Cambio de sustanciador autocompleta asistente ────── */
+document.getElementById('bdp-sustanciador')?.addEventListener('change', () => {
+  bdpAutoFillAsistente_(document.getElementById('bdp-sustanciador').value);
+});
+
+/* ── Botón GUARDAR ────────────────────────────────────── */
+document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async () => {
+  const esEdit = (__bdpFormMode === 'edit');
+  const esSuper = !!currentUser?.isSuper;
+
+  const bitacora = (document.getElementById('bdp-bitacora')?.value || '').trim();
+  const actuacion = document.getElementById('bdp-actuacion')?.value || 'NINGUNA';
+  const estadoProc = document.getElementById('bdp-estado-proceso')?.value || 'PENDIENTE';
+
+  if (!bitacora) {
+    Swal.fire({ icon:'warning', title:'Bitácora requerida' });
+    return;
+  }
+
+  /* Validar campos super solo si aplican */
+  let payload = {
+    bitacora,
+    actuacion,
+    estado_proceso: estadoProc,
+    isSuper: esSuper ? 'true' : 'false'
+  };
+
+  if (esSuper) {
+    const nombres  = (document.getElementById('bdp-nombres').value || '').trim();
+    const nit      = bdpDigitsOnly_(document.getElementById('bdp-nit').value || '');
+    const direccion= (document.getElementById('bdp-direccion').value || '').trim();
+    const valorRaw = Number(bdpDigitsOnly_(document.getElementById('bdp-valor-deuda').value || '')) || 0;
+    const debeRaw  = (document.getElementById('bdp-debe-desde-raw').value || '').trim();
+    const sust     = document.getElementById('bdp-sustanciador').value || '';
+    const expLet   = (document.getElementById('bdp-exp-letra').value || '').trim().toUpperCase();
+    const expNum   = (document.getElementById('bdp-exp-numero').value || '').trim();
+
+    if (!nombres) { Swal.fire({ icon:'warning', title:'Nombres requeridos' }); return; }
+    if (!nit || !/^\d{1,10}$/.test(nit)) { Swal.fire({ icon:'warning', title:'NIT/Cédula inválido', text:'1 a 10 dígitos' }); return; }
+    if (!direccion) { Swal.fire({ icon:'warning', title:'Dirección requerida' }); return; }
+    if (!valorRaw || valorRaw <= 0) { Swal.fire({ icon:'warning', title:'Valor Deuda requerido' }); return; }
+    if (!debeRaw || !/^\d{6}$/.test(debeRaw)) { Swal.fire({ icon:'warning', title:'Selecciona el año de Debe Desde' }); return; }
+    if (!sust) { Swal.fire({ icon:'warning', title:'Sustanciador requerido' }); return; }
+    if (!expLet || !expNum || expNum.length !== 4) {
+      Swal.fire({ icon:'warning', title:'No. Exp. Físico inválido', text:'Letra + 4 dígitos (ej: A0001)' });
+      return;
+    }
+
+    payload = {
+      ...payload,
+      nombres,
+      nit_cedula: nit,
+      correo_electronico: (document.getElementById('bdp-correo').value || '').trim(),
+      direccion_predio: direccion,
+      matricula: bdpDigitsOnly_(document.getElementById('bdp-matricula').value || ''),
+      ficha_catastral: bdpDigitsOnly_(document.getElementById('bdp-ficha').value || ''),
+      escaneado: document.getElementById('bdp-escaneado').value || 'NO',
+      debe_desde: debeRaw,
+      valor_deuda: valorRaw,
+      no_exp_fisico: expLet + expNum,
+      sustanciador: sust,
+
+      oficio_persuas:       (document.getElementById('bdp-oficio-persuas').value || '').trim(),
+      fecha_oficio_persuas: (document.getElementById('bdp-fecha-oficio-persuas').value || '').trim(),
+      fecha_entrega:        (document.getElementById('bdp-fecha-entrega').value || '').trim(),
+      resol_liquidac:       (document.getElementById('bdp-resol-liquidac').value || '').trim(),
+      fecha_resolucion:     (document.getElementById('bdp-fecha-resolucion').value || '').trim(),
+      oficio_citacion:      (document.getElementById('bdp-oficio-citacion').value || '').trim(),
+      fecha_oficio:         (document.getElementById('bdp-fecha-oficio').value || '').trim(),
+      notif_citacion:       document.getElementById('bdp-notif-citacion').value || 'NO',
+      notif_electr:         document.getElementById('bdp-notif-electr').value   || 'NO',
+      notif_personal:       document.getElementById('bdp-notif-personal').value || 'NO',
+      notif_aviso:          document.getElementById('bdp-notif-aviso').value    || 'NO',
+      publicacion_web:      document.getElementById('bdp-publicacion-web').value|| 'NO',
+      ejecutoria:           (document.getElementById('bdp-ejecutoria').value || '').trim(),
+      mandam_pago:          document.getElementById('bdp-mandam-pago').value || 'NO',
+      f_mp:                 (document.getElementById('bdp-f-mp').value || '').trim()
+    };
+  }
+
+  /* AGREGAR */
+  if (!esEdit) {
+    if (!esSuper) { Swal.fire({ icon:'warning', title:'Sin permiso' }); return; }
+    payload.asignador = currentUser?.nombre || '';
+    try {
+      const ok = await Swal.fire({
+        icon:'question', title:'Guardar expediente',
+        text: `Contribuyente: ${payload.nombres}. Se notificará por WhatsApp al sustanciador.`,
+        showCancelButton:true, confirmButtonText:'Guardar', cancelButtonText:'Cancelar'
+      });
+      if (!ok.isConfirmed) return;
+      const res = await apiPost('agregarpredial', payload);
+      playSoundOnce(SOUNDS.success);
+      await Swal.fire({ icon:'success', title:'Expediente creado', html:`<b>${res.id_predial}</b><br>Clasificación: ${res.clasificacion}`, timer:2200, showConfirmButton:false });
+      await abrirBDPredial_();
+    } catch (e) {
+      Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+    }
+    return;
+  }
+
+  /* EDITAR */
+  payload.id_predial = __bdpFormRow.id_predial;
+  payload.rowIndex   = __bdpFormRow.rowIndex;
+  try {
+    const ok = await Swal.fire({
+      icon:'question', title:'Guardar cambios',
+      text:'Se actualizará el expediente con los datos editados.',
+      showCancelButton:true, confirmButtonText:'Guardar', cancelButtonText:'Cancelar'
+    });
+    if (!ok.isConfirmed) return;
+    await apiPost('editarpredial', payload);
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon:'success', title:'Guardado', timer:1400, showConfirmButton:false });
+    await abrirBDPredial_();
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
+
+/* ── Regresar del form ────────────────────────────────── */
+document.getElementById('btn-bdp-form-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-bd-predial');
+});
+
+/* ── VER DETALLES ─────────────────────────────────────── */
+function abrirBDPDetalle_(row) {
+  __bdpDetRow = row;
+
+  /* HEADER */
+  const header = document.getElementById('bdp-det-header');
+  const clasif = (row.clasificacion || 'BAJA').toUpperCase();
+  const actuacion = (row.actuacion || 'NINGUNA').toUpperCase();
+  const estadoProc = (row.estado_proceso || 'PENDIENTE').toUpperCase();
+  header.innerHTML = `
+    <span class="bdp-clasif-badge ${clasif}" style="font-size:.82rem; padding:6px 14px;">${clasif}</span>
+    <span class="bdp-actuacion act-${actuacion.replace(/\s+/g,'_')}" style="font-size:.82rem; padding:6px 14px;">${escapeHtml_(actuacion)}</span>
+    <span class="bdp-estado est-${estadoProc.replace(/\s+/g,'-')}" style="font-size:.82rem; padding:6px 14px;">${escapeHtml_(estadoProc)}</span>
+  `;
+
+  /* CUERPO */
+  const body = document.getElementById('bdp-det-body');
+  body.innerHTML = '';
+
+  /* Sección: Identificación */
+  const ident = bdpDetSection_('🏠 Identificación del predio', [
+    ['ID Predial',          row.id_predial],
+    ['No. Exp. Físico',     row.no_exp_fisico],
+    ['Nombres',             row.nombres],
+    ['NIT / Cédula',        row.nit_cedula],
+    ['Correo electrónico',  row.correo_electronico],
+    ['Dirección del predio',row.direccion_predio],
+    ['Matrícula',           row.matricula],
+    ['Ficha Catastral',     bdpCleanFicha_(row.ficha_catastral)],
+    ['Escaneado',           row.escaneado]
+  ]);
+  body.appendChild(ident);
+
+  /* Sección: Deuda */
+  const deuda = bdpDetSection_('💰 Información de deuda', [
+    ['Debe desde',     bdpFormatDebeDesde_(row.debe_desde)],
+    ['Deuda hasta',    bdpFormatDebeDesde_(row.deuda_hasta)],
+    ['Valor deuda',    bdpFormatPesos_(row.valor_deuda)],
+    ['Clasificación',  row.clasificacion]
+  ]);
+  body.appendChild(deuda);
+
+  /* Sección: Gestión */
+  const gest = bdpDetSection_('⚖️ Gestión jurídica', [
+    ['Actuación',       row.actuacion],
+    ['Estado proceso',  row.estado_proceso],
+    ['Sustanciador',    row.sustanciador],
+    ['Asistente',       row.asistente],
+    ['Asignador',       row.asignador]
+  ]);
+  body.appendChild(gest);
+
+  /* Sección: Persuasivo */
+  const persuas = bdpDetSection_('📨 Persuasivo', [
+    ['Oficio persuasivo',       row.oficio_persuas],
+    ['Fecha oficio persuasivo', row.fecha_oficio_persuas],
+    ['Fecha entrega',           row.fecha_entrega]
+  ]);
+  if (persuas) body.appendChild(persuas);
+
+  /* Sección: Liquidación */
+  const liq = bdpDetSection_('📜 Liquidación y citación', [
+    ['Resolución liquidación', row.resol_liquidac],
+    ['Fecha resolución',       row.fecha_resolucion],
+    ['Oficio citación',        row.oficio_citacion],
+    ['Fecha oficio',           row.fecha_oficio]
+  ]);
+  if (liq) body.appendChild(liq);
+
+  /* Sección: Notificaciones */
+  const notif = bdpDetSection_('🔔 Notificaciones', [
+    ['Citación',       row.notif_citacion],
+    ['Electrónica',    row.notif_electr],
+    ['Personal',       row.notif_personal],
+    ['Aviso',          row.notif_aviso],
+    ['Publicación web',row.publicacion_web]
+  ]);
+  if (notif) body.appendChild(notif);
+
+  /* Sección: Coactivo */
+  const coac = bdpDetSection_('🚨 Coactivo', [
+    ['Ejecutoria',         row.ejecutoria],
+    ['Mandamiento de pago',row.mandam_pago],
+    ['F-MP',               row.f_mp]
+  ]);
+  if (coac) body.appendChild(coac);
+
+  /* Bitácora */
+  if (row.bitacora) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bdp-det-section';
+    wrap.innerHTML = `
+      <div class="bdp-det-section-title">📝 Bitácora</div>
+      <div class="bdp-det-bitacora">${escapeHtml_(row.bitacora)}</div>
+    `;
+    body.appendChild(wrap);
+  }
+
+  /* BOTONES de acción */
+  const actions = document.getElementById('bdp-det-actions');
+  actions.innerHTML = '';
+
+  /* CHAT */
+  const btnChat = document.createElement('button');
+  btnChat.type = 'button';
+  btnChat.className = 'proc-btn-chat proc-action-btn';
+  btnChat.innerHTML = `
+    <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp"
+         alt="Chat" style="width:22px;height:22px;" />
+    CHAT
+    <span class="chat-unread-badge" id="bdp-det-chat-badge" style="display:none;"></span>
+  `;
+  btnChat.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    abrirBDPChat_(row);
+  });
+  actions.appendChild(btnChat);
+
+  /* Badge live del chat */
+  initFirebase_().then(db => {
+    if (!db) return;
+    const ref = db.ref('chats-predial/' + row.id_predial + '/mensajes');
+    ref.once('value').then(snap => {
+      const badge = document.getElementById('bdp-det-chat-badge');
+      if (!badge) return;
+      const n = snap.numChildren();
+      if (n > 0) { badge.textContent = n > 99 ? '99+' : String(n); badge.style.display = ''; }
+    });
+  });
+
+  /* REBOTAR */
+  const btnReb = document.createElement('button');
+  btnReb.type = 'button';
+  btnReb.className = 'proc-action-btn proc-btn-rebotar';
+  btnReb.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775844088/devolver_zhe62l.webp" alt="Rebotar" /> REBOTAR`;
+  btnReb.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    __bdpRebRow = row;
+    document.getElementById('bdp-reb-context').innerHTML =
+      `<b>${escapeHtml_(row.nombres || '')}</b> — Exp. ${escapeHtml_(row.no_exp_fisico || '')}`;
+    document.getElementById('bdp-reb-justif').value = '';
+    document.getElementById('modal-bdp-rebotar').classList.remove('hidden');
+  });
+  actions.appendChild(btnReb);
+
+  /* EDITAR */
+  if (canEditarPredial_()) {
+    const btnEd = document.createElement('button');
+    btnEd.type = 'button';
+    btnEd.className = 'btn-primary proc-action-btn';
+    btnEd.style.width = 'auto';
+    btnEd.innerHTML = `<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp"
+      style="width:20px;height:20px;vertical-align:middle;" alt="Editar" /> EDITAR`;
+    btnEd.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      abrirBDPEditar_(row);
+    });
+    actions.appendChild(btnEd);
+  }
+
+  showView('view-bdp-detalle');
+}
+
+function bdpDetSection_(title, pairs) {
+  /* Solo crea la sección si hay al menos un campo con valor */
+  const hasData = pairs.some(([_, v]) => v != null && String(v).trim() !== '' && String(v).trim() !== '0');
+  if (!hasData) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'bdp-det-section';
+  let html = `<div class="bdp-det-section-title">${title}</div><div class="bdp-det-grid">`;
+  pairs.forEach(([label, value]) => {
+    if (value == null) return;
+    const s = String(value).trim();
+    if (!s || s === '0') return;
+    html += `<div><b>${escapeHtml_(label)}</b><span class="val">${escapeHtml_(s)}</span></div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  return wrap;
+}
+
+document.getElementById('btn-bdp-det-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  showView('view-bd-predial');
+});
+
+/* ── DECISIÓN ─────────────────────────────────────────── */
+function abrirBDPDecision_(row) {
+  if (!canDecisionPredial_()) {
+    Swal.fire({ icon:'warning', title:'Sin permiso' });
+    return;
+  }
+  __bdpDecRow = row;
+  document.getElementById('bdp-dec-context').innerHTML =
+    `<b>${escapeHtml_(row.nombres || '')}</b> — Exp. ${escapeHtml_(row.no_exp_fisico || '')}<br>` +
+    `Actuación actual: <b>${escapeHtml_(row.actuacion || 'NINGUNA')}</b>`;
+  document.getElementById('bdp-dec-actuacion').value = row.actuacion || 'NINGUNA';
+  document.getElementById('modal-bdp-decision').classList.remove('hidden');
+}
+
+document.getElementById('btn-bdp-dec-cancelar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  document.getElementById('modal-bdp-decision').classList.add('hidden');
+  __bdpDecRow = null;
+});
+
+document.getElementById('btn-bdp-dec-guardar')?.addEventListener('click', async () => {
+  if (!__bdpDecRow) return;
+  const nueva = document.getElementById('bdp-dec-actuacion').value;
+  if (!nueva) { Swal.fire({ icon:'warning', title:'Selecciona una actuación' }); return; }
+  try {
+    const ok = await Swal.fire({
+      icon:'question',
+      title:'Confirmar decisión',
+      html:`Nueva actuación: <b>${escapeHtml_(nueva)}</b><br>Se notificará al sustanciador.`,
+      showCancelButton:true, confirmButtonText:'Confirmar', cancelButtonText:'Cancelar'
+    });
+    if (!ok.isConfirmed) return;
+
+    await apiPost('decisionpredial', {
+      id_predial: __bdpDecRow.id_predial,
+      actuacion: nueva,
+      usuario: currentUser?.nombre || ''
+    });
+
+    document.getElementById('modal-bdp-decision').classList.add('hidden');
+    __bdpDecRow = null;
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon:'success', title:'Actuación actualizada', timer:1400, showConfirmButton:false });
+    await loadBDPredial_();
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
+
+/* ── REBOTAR ──────────────────────────────────────────── */
+document.getElementById('btn-bdp-reb-cancelar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  document.getElementById('modal-bdp-rebotar').classList.add('hidden');
+  __bdpRebRow = null;
+});
+
+document.getElementById('btn-bdp-reb-guardar')?.addEventListener('click', async () => {
+  if (!__bdpRebRow) return;
+  const just = (document.getElementById('bdp-reb-justif').value || '').trim();
+  if (!just) {
+    Swal.fire({ icon:'warning', title:'Justificación requerida' });
+    return;
+  }
+  try {
+    await apiPost('rebotarpredial', {
+      id_predial: __bdpRebRow.id_predial,
+      justificacion: just,
+      usuario: currentUser?.nombre || ''
+    });
+    document.getElementById('modal-bdp-rebotar').classList.add('hidden');
+    __bdpRebRow = null;
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon:'success', title:'Objeción enviada', timer:1400, showConfirmButton:false });
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
+
+/* ── CHAT PREDIAL (Firebase) ──────────────────────────── */
+let __bdpChatRef         = null;
+let __bdpChatTypingRef   = null;
+let __bdpChatId          = null;
+let __bdpChatRow         = null;
+let __bdpChatUnsubMsg    = null;
+let __bdpChatUnsubTyping = null;
+let __bdpChatTypingTimer = null;
+let __bdpLastDateShown   = '';
+
+async function abrirBDPChat_(row) {
+  if (!currentUser) return;
+  __bdpChatRow      = row;
+  __bdpChatId       = row.id_predial;
+  __bdpLastDateShown = '';
+
+  /* Header reutiliza el chat existente */
+  document.getElementById('chat-header-title').textContent =
+    (row.no_exp_fisico || row.id_predial) + ' — ' + (row.nombres || '').substring(0, 40);
+  document.getElementById('chat-header-sub').textContent =
+    (row.sustanciador || '') + (row.asistente ? ' · ' + row.asistente : '');
+
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+  const emptyEl = document.createElement('div');
+  emptyEl.id = 'chat-empty';
+  emptyEl.className = 'chat-empty';
+  emptyEl.innerHTML = `
+    <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788408/chincheta_v6mg7a.png" alt="">
+    <p>Aún no hay mensajes.<br>¡Sé el primero en escribir!</p>
+  `;
+  container.appendChild(emptyEl);
+
+  cerrarBDPChatListeners_();
+  document.getElementById('modal-chat').classList.add('open');
+
+  /* Botón reset solo para OSCAR */
+  const resetBtn = document.getElementById('btn-chat-reset');
+  if (resetBtn) {
+    resetBtn.style.display =
+      normalizeText_(currentUser?.nombre || '') === normalizeText_('OSCAR MAURICIO POLANIA GUERRA')
+        ? 'flex' : 'none';
+  }
+
+  document.body.style.overflow = 'hidden';
+
+  const db = await initFirebase_();
+  if (!db) {
+    Swal.fire({ icon:'error', title:'Error de conexión', text:'No se pudo conectar con Firebase.' });
+    cerrarBDPChat_();
+    return;
+  }
+
+  __bdpChatRef       = db.ref('chats-predial/' + __bdpChatId + '/mensajes');
+  __bdpChatTypingRef = db.ref('chats-predial/' + __bdpChatId + '/typing/' +
+    encodeURIComponent(currentUser.nombre || 'usuario'));
+
+  /* Listener mensajes */
+  let primeraCarga = true;
+  __bdpChatUnsubMsg = __bdpChatRef.on('child_added', snap => {
+    const data = snap.val();
+    if (!data) return;
+    const empty = container.querySelector('#chat-empty');
+    if (empty) empty.style.display = 'none';
+    /* Reutilizamos render del chat de asignaciones */
+    const msgEl = renderChatMsg_(snap.key, data, container);
+    container.appendChild(msgEl);
+    if (primeraCarga) chatScrollBottom_(true);
+    else {
+      const esMio = normalizeText_(data.autor||'') === normalizeText_(currentUser?.nombre||'');
+      if (esMio) chatScrollBottom_(true);
+      else {
+        chatScrollBottom_(false);
+        showChatToast_(data.autor);
+      }
+    }
+  });
+  __bdpChatRef.once('value', () => { primeraCarga = false; chatScrollBottom_(true); });
+
+  /* Listener typing */
+  const typingRoot = db.ref('chats-predial/' + __bdpChatId + '/typing');
+  __bdpChatUnsubTyping = typingRoot.on('value', snap => {
+    const typing = snap.val() || {};
+    const others = Object.entries(typing)
+      .filter(([k, v]) => v === true &&
+        normalizeText_(decodeURIComponent(k)) !== normalizeText_(currentUser?.nombre || ''))
+      .map(([k]) => decodeURIComponent(k).split(' ')[0]);
+    const typingEl  = document.getElementById('chat-typing');
+    const typingWho = document.getElementById('chat-typing-who');
+    if (others.length && typingEl) {
+      typingWho.textContent = others[0];
+      typingEl.classList.add('visible');
+    } else if (typingEl) {
+      typingEl.classList.remove('visible');
+    }
+  });
+
+  /* Reasignar handlers de input y enviar al modo predial */
+  bdpAttachChatHandlers_();
+
+  setTimeout(() => document.getElementById('chat-input')?.focus(), 180);
+}
+
+function cerrarBDPChat_() {
+  document.getElementById('modal-chat').classList.remove('open');
+  document.body.style.overflow = '';
+  if (__bdpChatTypingRef) __bdpChatTypingRef.set(false).catch(()=>{});
+  cerrarBDPChatListeners_();
+  bdpDetachChatHandlers_();
+  __bdpChatRow = null;
+  __bdpChatId  = null;
+}
+
+function cerrarBDPChatListeners_() {
+  try { if (__bdpChatRef && __bdpChatUnsubMsg)       __bdpChatRef.off('child_added', __bdpChatUnsubMsg); } catch(_) {}
+  try { if (__bdpChatTypingRef && __bdpChatUnsubTyping) {
+    const tr = __bdpChatTypingRef.parent;
+    if (tr) tr.off('value', __bdpChatUnsubTyping);
+  }} catch(_) {}
+  __bdpChatUnsubMsg = null;
+  __bdpChatUnsubTyping = null;
+  clearTimeout(__bdpChatTypingTimer);
+}
+
+/* Handlers exclusivos del chat predial */
+let __bdpChatSendBound = null;
+let __bdpChatInputBound = null;
+let __bdpChatKeyBound = null;
+let __bdpChatCloseBound = null;
+
+function bdpAttachChatHandlers_() {
+  const btnSend  = document.getElementById('btn-chat-send');
+  const inp      = document.getElementById('chat-input');
+  const btnClose = document.getElementById('btn-chat-close');
+
+  __bdpChatSendBound = (e) => {
+    e?.stopPropagation?.();
+    bdpEnviarMensaje_();
+  };
+  __bdpChatInputBound = () => {
+    if (!__bdpChatTypingRef) return;
+    __bdpChatTypingRef.set(true).catch(()=>{});
+    clearTimeout(__bdpChatTypingTimer);
+    __bdpChatTypingTimer = setTimeout(() => {
+      __bdpChatTypingRef.set(false).catch(()=>{});
+    }, 2500);
+    chatInputAutoResize_();
+  };
+  __bdpChatKeyBound = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      playSoundOnce(SOUNDS.success);
+      bdpEnviarMensaje_();
+    }
+  };
+  __bdpChatCloseBound = () => {
+    playSoundOnce(SOUNDS.back);
+    cerrarBDPChat_();
+  };
+
+  /* Sobreescribir los listeners por clone */
+  if (btnSend)  { const n = btnSend.cloneNode(true);  btnSend.parentNode.replaceChild(n, btnSend);   n.addEventListener('click', __bdpChatSendBound); }
+  if (btnClose) { const n = btnClose.cloneNode(true); btnClose.parentNode.replaceChild(n, btnClose); n.addEventListener('click', __bdpChatCloseBound); }
+  if (inp)      {
+    const n = inp.cloneNode(true);
+    inp.parentNode.replaceChild(n, inp);
+    n.addEventListener('input', __bdpChatInputBound);
+    n.addEventListener('keydown', __bdpChatKeyBound);
+  }
+}
+
+function bdpDetachChatHandlers_() {
+  /* Al cerrar restauramos los handlers de asignaciones recargando una vez el chat de procesos */
+  /* No es estrictamente necesario porque siempre se rebindean al abrir; aquí solo limpiamos refs */
+  __bdpChatSendBound = null;
+  __bdpChatInputBound = null;
+  __bdpChatKeyBound = null;
+  __bdpChatCloseBound = null;
+}
+
+async function bdpEnviarMensaje_() {
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const texto = inp.value.trim();
+  if (!texto || !__bdpChatRef) return;
+  inp.value = '';
+  inp.style.height = '';
+  if (__bdpChatTypingRef) __bdpChatTypingRef.set(false).catch(()=>{});
+  clearTimeout(__bdpChatTypingTimer);
+  try {
+    await __bdpChatRef.push({
+      autor: currentUser?.nombre || 'Usuario',
+      texto: texto,
+      ts: firebase.database.ServerValue.TIMESTAMP
+    });
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text:'No se pudo enviar el mensaje.' });
+  }
+}
+
+/* ── Conectar tarjetas con los flujos reales (override Fase 2) ── */
+const __bdpOrigRender = renderBDPredial_;
+renderBDPredial_ = function(items) {
+  __bdpOrigRender(items);
+  /* Reasignar handlers de los botones VER / EDITAR / DECISION / CHAT
+     después del render, leyendo de nuevo las tarjetas para mapear cada
+     botón a su fila */
+  const wrap = document.getElementById('bdp-list');
+  if (!wrap) return;
+  const cards = wrap.querySelectorAll('.bdp-card');
+  cards.forEach((card, idx) => {
+    const row = items[idx];
+    if (!row) return;
+    const btns = card.querySelectorAll('.bdp-icon-btn');
+    btns.forEach(btn => {
+      const title = btn.getAttribute('title') || '';
+      /* Reasignar VER */
+      if (title === 'Ver detalles') {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+        clone.addEventListener('click', () => {
+          playSoundOnce(SOUNDS.menu);
+          __bdpSelected = row;
+          abrirBDPDetalle_(row);
+        });
+      }
+      /* Reasignar EDITAR */
+      if (title === 'Editar expediente') {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+        clone.addEventListener('click', () => {
+          playSoundOnce(SOUNDS.menu);
+          __bdpSelected = row;
+          abrirBDPEditar_(row);
+        });
+      }
+      /* Reasignar DECISIÓN */
+      if (title === 'Decisión (cambiar Actuación)') {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+        clone.addEventListener('click', () => {
+          playSoundOnce(SOUNDS.menu);
+          __bdpSelected = row;
+          abrirBDPDecision_(row);
+        });
+      }
+      /* Reasignar CHAT */
+      if (title === 'Chat de expediente') {
+        /* Mantener badge: solo reemplazar listeners conservando innerHTML */
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', () => {
+          playSoundOnce(SOUNDS.menu);
+          abrirBDPChat_(row);
+        });
+      }
+    });
+  });
+};
+
+/* ── Reemplazar botón AGREGAR del placeholder Fase 2 ──── */
+(function rebindBDPAgregar_() {
+  const btn = document.getElementById('btn-bdp-agregar');
+  if (!btn) return;
+  const clone = btn.cloneNode(true);
+  btn.parentNode.replaceChild(clone, btn);
+  clone.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.back);
+    abrirBDPAgregar_();
+  });
+})();
 
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
 let __APP_VERSION_LOADED = '';
