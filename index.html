@@ -1637,6 +1637,155 @@
   </div>
 </div>
 
+    <!-- ============================================================
+     VISTA PANEL BD PREDIAL
+     ============================================================ -->
+<section id="view-bdp-panel" class="view">
+  <div class="panel-card">
+
+    <!-- Header -->
+    <div class="panel-header">
+      <div class="panel-title-wrap">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778860851/base_de_datos_cty8xc.webp" alt="Panel BD Predial" />
+        <div>
+          <h2 class="panel-title">PANEL — BD PREDIAL 📊</h2>
+          <div class="panel-subtitle" id="bdpp-subtitle">Cargando datos...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="panel-toolbar">
+      <button class="panel-tab active" id="bdpp-tab-resumen" onclick="bdppShowTab_('resumen')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+        RESUMEN
+      </button>
+      <button class="panel-tab" id="bdpp-tab-cartera" onclick="bdppShowTab_('cartera')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+        CARTERA
+      </button>
+      <button class="panel-tab" id="bdpp-tab-actuaciones" onclick="bdppShowTab_('actuaciones')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp" alt="" />
+        ACTUACIONES
+      </button>
+      <button class="panel-tab" id="bdpp-tab-equipo" onclick="bdppShowTab_('equipo')">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp" alt="" />
+        EQUIPO
+      </button>
+      <button class="danger panel-tab" onclick="bdppGoBack_()">← REGRESAR</button>
+    </div>
+
+    <!-- ══════════ TAB: RESUMEN ══════════ -->
+    <div id="bdpp-view-resumen" class="panel-animate">
+      <div class="panel-kpis" id="bdpp-kpis-resumen"></div>
+
+      <div class="panel-grid-2">
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+            DISTRIBUCIÓN POR CLASIFICACIÓN
+          </div>
+          <div class="panel-chart-wrap" style="height:280px;">
+            <canvas id="bdpp-chart-clasif"></canvas>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-title">
+            <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+            ESTADO DEL PROCESO
+          </div>
+          <div class="panel-chart-wrap" style="height:280px;">
+            <canvas id="bdpp-chart-estado"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: CARTERA ══════════ -->
+    <div id="bdpp-view-cartera" class="panel-animate" style="display:none;">
+      <div class="panel-kpis" id="bdpp-kpis-cartera"></div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+          TOP 10 DEUDORES
+        </div>
+        <div class="ranking-list" id="bdpp-top-deudores"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+          MONTO ACUMULADO POR CLASIFICACIÓN
+        </div>
+        <div class="panel-chart-wrap" style="height:280px;">
+          <canvas id="bdpp-chart-monto-clasif"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: ACTUACIONES ══════════ -->
+    <div id="bdpp-view-actuaciones" class="panel-animate" style="display:none;">
+      <div class="panel-kpis" id="bdpp-kpis-actuaciones"></div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp" alt="" />
+          DISTRIBUCIÓN POR ACTUACIÓN
+        </div>
+        <div class="panel-chart-wrap" style="height:340px;">
+          <canvas id="bdpp-chart-actuacion"></canvas>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+          MONTO ADEUDADO POR ACTUACIÓN
+        </div>
+        <div class="panel-chart-wrap" style="height:300px;">
+          <canvas id="bdpp-chart-monto-actuacion"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: EQUIPO ══════════ -->
+    <div id="bdpp-view-equipo" class="panel-animate" style="display:none;">
+      <div class="panel-kpis" id="bdpp-kpis-equipo"></div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp" alt="" />
+          RANKING POR SUSTANCIADOR
+        </div>
+        <div class="ranking-list" id="bdpp-ranking-sust"></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+          CARGA POR SUSTANCIADOR
+        </div>
+        <div class="panel-chart-wrap" style="height:340px;">
+          <canvas id="bdpp-chart-sust"></canvas>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">
+          <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+          MONTO GESTIONADO POR SUSTANCIADOR
+        </div>
+        <div class="panel-chart-wrap" style="height:280px;">
+          <canvas id="bdpp-chart-monto-sust"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
   <!-- Cierre del Container -->
   </div> 
  
