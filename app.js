@@ -6085,6 +6085,462 @@ function buildDataZonasChunks_(rows) {
   };
 }
 
+/* ============================================================
+   BASE DE DATOS IMPUESTO PREDIAL — Frontend
+   Fase 2 — Lista + filtros + permisos
+   ============================================================ */
+
+/* ── Permisos ─────────────────────────────────────────── */
+const SUSTANCIADORES_PREDIAL = [
+  'DIEGO FERNANDO GARCIA',
+  'LEESLIE JULIET GOMEZ QUINTERO',
+  'ANDREA KATERINE LAMAR RODRIGUEZ',
+  'LUIS GABRIEL RAMIREZ RAMIREZ',
+  'LUIS GILBERTO MOYA ROMERO'
+].map(s => normalizeText_(s));
+
+const ASISTENTES_PREDIAL = [
+  'MARIA NIDIA MENESES MARTINEZ',
+  'NICOL ESTEFANI MADRIGALES GONZALEZ',
+  'VICTOR MANUEL FANDIÑO GIRALDO'
+].map(s => normalizeText_(s));
+
+function canSeeBDPredial_() {
+  if (!currentUser) return false;
+  if (currentUser.isSuper) return true;
+  const n = normalizeText_(currentUser.nombre || '');
+  return SUSTANCIADORES_PREDIAL.includes(n) ||
+         ASISTENTES_PREDIAL.includes(n);
+}
+
+function canAgregarPredial_()   { return !!(currentUser && currentUser.isSuper); }
+function canEditarPredial_()    { return !!(currentUser && currentUser.isSuper); }
+function canEliminarPredial_()  { return !!(currentUser && currentUser.isSuper); }
+function canDecisionPredial_()  { return !!(currentUser && currentUser.isSuper); }
+function canVerPanelPredial_()  { return !!(currentUser && currentUser.isSuper); }
+
+function esSustanciadorPredial_() {
+  if (!currentUser) return false;
+  const n = normalizeText_(currentUser.nombre || '');
+  return SUSTANCIADORES_PREDIAL.includes(n);
+}
+
+/* ── Estado global ────────────────────────────────────── */
+let __bdpListCache       = [];
+let __bdpFilterClasif    = 'ALL';
+let __bdpFilterActuacion = 'ALL';
+let __bdpFilterEstado    = 'ALL';
+let __bdpFilterMias      = false;
+let __bdpSelected        = null;
+
+/* ── Formatear valor en pesos ─────────────────────────── */
+function bdpFormatPesos_(valor) {
+  const n = Number(valor) || 0;
+  return '$ ' + n.toLocaleString('es-CO');
+}
+
+/* ── Formatear DEBE DESDE (YYYYMM) → "Enero - 2026" ──── */
+function bdpFormatDebeDesde_(yyyymm) {
+  const s = String(yyyymm || '').trim();
+  if (!/^\d{6}$/.test(s)) return s;
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const y = s.substring(0, 4);
+  const m = parseInt(s.substring(4, 6), 10);
+  if (m < 1 || m > 12) return s;
+  return meses[m - 1] + ' - ' + y;
+}
+
+/* ── Quitar apóstrofe inicial (ficha catastral) ───────── */
+function bdpCleanFicha_(s) {
+  let v = String(s || '').trim();
+  if (v.startsWith("'")) v = v.substring(1);
+  return v;
+}
+
+/* ── Abrir la vista ───────────────────────────────────── */
+async function abrirBDPredial_() {
+  if (!currentUser || !canSeeBDPredial_()) {
+    Swal.fire({ icon: 'warning', title: 'Sin permiso' });
+    return;
+  }
+
+  /* Reset filtros */
+  __bdpFilterClasif    = 'ALL';
+  __bdpFilterActuacion = 'ALL';
+  __bdpFilterEstado    = 'ALL';
+  __bdpFilterMias      = false;
+  __bdpSelected        = null;
+
+  /* Reset visual pastillas */
+  document.querySelectorAll('#bdp-pills-clasif    .proc-status-pill').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#bdp-pills-actuacion .proc-status-pill').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#bdp-pills-estado    .proc-status-pill').forEach(b => b.classList.remove('active'));
+  document.querySelector('#bdp-pills-clasif    [data-clasif="ALL"]')?.classList.add('active');
+  document.querySelector('#bdp-pills-actuacion [data-actuacion="ALL"]')?.classList.add('active');
+  document.querySelector('#bdp-pills-estado    [data-estado="ALL"]')?.classList.add('active');
+  document.getElementById('bdp-pill-mias')?.classList.remove('active');
+
+  /* Reset filtro de texto */
+  const filterInput = document.getElementById('bdp-filter');
+  if (filterInput) filterInput.value = '';
+
+  /* Permisos: mostrar/ocultar botones */
+  const btnPanel   = document.getElementById('btn-bdp-panel');
+  const btnAgregar = document.getElementById('btn-bdp-agregar');
+  if (btnPanel)   btnPanel.style.display   = canVerPanelPredial_()  ? '' : 'none';
+  if (btnAgregar) btnAgregar.style.display = canAgregarPredial_()   ? '' : 'none';
+
+  /* Pastilla "Solo las mías" para sustanciadores */
+  const miasWrap = document.getElementById('bdp-pills-mias-wrap');
+  if (miasWrap)   miasWrap.style.display = esSustanciadorPredial_() ? '' : 'none';
+
+  showView('view-bd-predial');
+  await loadBDPredial_();
+}
+
+/* ── Cargar desde backend ─────────────────────────────── */
+async function loadBDPredial_() {
+  try {
+    const data = await apiGet('listpredial');
+    __bdpListCache = Array.isArray(data) ? data : [];
+    applyBDPredialFilters_();
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+}
+
+/* ── Aplicar todos los filtros ────────────────────────── */
+function applyBDPredialFilters_() {
+  let filtered = __bdpListCache.slice();
+
+  if (__bdpFilterClasif !== 'ALL') {
+    filtered = filtered.filter(r =>
+      normalizeText_(r.clasificacion || '') === __bdpFilterClasif
+    );
+  }
+  if (__bdpFilterActuacion !== 'ALL') {
+    filtered = filtered.filter(r =>
+      normalizeText_(r.actuacion || '') === __bdpFilterActuacion
+    );
+  }
+  if (__bdpFilterEstado !== 'ALL') {
+    filtered = filtered.filter(r =>
+      normalizeText_(r.estado_proceso || '') === __bdpFilterEstado
+    );
+  }
+  if (__bdpFilterMias && currentUser) {
+    const miNombre = normalizeText_(currentUser.nombre || '');
+    filtered = filtered.filter(r =>
+      normalizeText_(r.sustanciador || '') === miNombre ||
+      normalizeText_(r.asistente || '')    === miNombre
+    );
+  }
+
+  const q = normalizeText_(document.getElementById('bdp-filter')?.value || '');
+  if (q) {
+    filtered = filtered.filter(r => {
+      const blob = normalizeText_([
+        r.id_predial, r.matricula, r.ficha_catastral, r.nombres,
+        r.direccion_predio, r.correo_electronico, r.nit_cedula,
+        r.debe_desde, r.deuda_hasta, r.valor_deuda, r.clasificacion,
+        r.no_exp_fisico, r.actuacion, r.sustanciador, r.asistente,
+        r.bitacora, r.estado_proceso, r.asignador
+      ].join(' '));
+      return blob.includes(q);
+    });
+  }
+
+  renderBDPredial_(filtered);
+}
+
+/* ── Render de tarjetas ───────────────────────────────── */
+function renderBDPredial_(items) {
+  const wrap = document.getElementById('bdp-list');
+  const countEl = document.getElementById('bdp-count');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (countEl) countEl.textContent = String(items.length);
+
+  if (!items.length) {
+    wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1; margin-top:20px;">No hay expedientes que coincidan con los filtros.</p>';
+    return;
+  }
+
+  for (const row of items) {
+    const clasif = (row.clasificacion || 'BAJA').toUpperCase();
+    const actuacion = (row.actuacion || 'NINGUNA').toUpperCase();
+    const estadoProc = (row.estado_proceso || 'PENDIENTE').toUpperCase();
+
+    const card = document.createElement('div');
+    card.className = 'bdp-card clasif-' + clasif;
+
+    /* HEAD */
+    const head = document.createElement('div');
+    head.className = 'bdp-head';
+
+    const headLeft = document.createElement('div');
+    headLeft.className = 'bdp-head-left';
+    headLeft.innerHTML = `
+      <p class="bdp-nombres">${escapeHtml_(row.nombres || '')}</p>
+      <p class="bdp-direccion">📍 ${escapeHtml_(row.direccion_predio || 'Sin dirección')}</p>
+    `;
+
+    const headRight = document.createElement('div');
+    headRight.className = 'bdp-head-right';
+    headRight.innerHTML = `
+      <div class="bdp-valor-deuda">${bdpFormatPesos_(row.valor_deuda)}</div>
+      <span class="bdp-clasif-badge ${clasif}">${clasif}</span>
+    `;
+
+    head.appendChild(headLeft);
+    head.appendChild(headRight);
+    card.appendChild(head);
+
+    /* GRID datos secundarios */
+    const grid = document.createElement('div');
+    grid.className = 'bdp-grid';
+
+    const fichaTxt = bdpCleanFicha_(row.ficha_catastral);
+    grid.innerHTML = `
+      <div><b>Ficha Catastral</b>${escapeHtml_(fichaTxt || '—')}</div>
+      <div><b>N° Exp. Físico</b>${escapeHtml_(row.no_exp_fisico || '—')}</div>
+      <div><b>Sustanciador</b>${escapeHtml_(row.sustanciador || '—')}</div>
+      <div><b>Asignador</b>${escapeHtml_(row.asignador || '—')}</div>
+      <div><b>Debe desde</b>${escapeHtml_(bdpFormatDebeDesde_(row.debe_desde))}</div>
+      <div><b>Deuda hasta</b>${escapeHtml_(bdpFormatDebeDesde_(row.deuda_hasta))}</div>
+    `;
+    card.appendChild(grid);
+
+    /* Pastillas actuación + estado */
+    const pillsRow = document.createElement('div');
+    pillsRow.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:4px;';
+    pillsRow.innerHTML = `
+      <span class="bdp-actuacion act-${actuacion.replace(/\s+/g,'_')}">${escapeHtml_(actuacion)}</span>
+      <span class="bdp-estado est-${estadoProc.replace(/\s+/g,'-')}">${escapeHtml_(estadoProc)}</span>
+    `;
+    card.appendChild(pillsRow);
+
+    /* Acciones */
+    const actions = document.createElement('div');
+    actions.className = 'bdp-actions';
+
+    /* CHAT */
+    const btnChat = _bdpMkBtn_(
+      'https://res.cloudinary.com/dqqeavica/image/upload/v1776016986/chat_sueco4.webp',
+      'Chat de expediente'
+    );
+    btnChat.style.position = 'relative';
+    btnChat.innerHTML += `<span class="chat-unread-badge" id="bdp-chat-badge-${row.id_predial}" style="display:none;"></span>`;
+    btnChat.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      __bdpSelected = row;
+      Swal.fire({ icon:'info', title:'Chat', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+    });
+    actions.appendChild(btnChat);
+
+    /* Badge live de mensajes */
+    initFirebase_().then(db => {
+      if (!db) return;
+      const refMsg = db.ref('chats-predial/' + row.id_predial + '/mensajes');
+      const handler = refMsg.on('value', snap => {
+        const badge = document.getElementById('bdp-chat-badge-' + row.id_predial);
+        if (!badge) return;
+        const n = snap.numChildren();
+        if (n > 0) {
+          badge.textContent = n > 99 ? '99+' : String(n);
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      });
+      if (!window.__bdpChatBadgeUnsubs) window.__bdpChatBadgeUnsubs = [];
+      window.__bdpChatBadgeUnsubs.push(() => refMsg.off('value', handler));
+    });
+
+    /* ELIMINAR */
+    if (canEliminarPredial_()) {
+      const btnDel = _bdpMkBtn_(
+        'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp',
+        'Eliminar expediente'
+      );
+      btnDel.classList.add('danger-icon');
+      btnDel.addEventListener('click', async () => {
+        const ok = await Swal.fire({
+          icon:'warning',
+          title:'¿Eliminar expediente?',
+          html:`<b>${escapeHtml_(row.nombres || row.id_predial)}</b><br>
+                <b>Exp. Físico:</b> ${escapeHtml_(row.no_exp_fisico || '')}<br><br>
+                Esta acción es irreversible.`,
+          showCancelButton:true,
+          confirmButtonText:'Eliminar',
+          cancelButtonText:'Cancelar',
+          confirmButtonColor:'#dc2626'
+        });
+        if (!ok.isConfirmed) return;
+        try {
+          await apiPost('eliminarpredial', { id_predial: row.id_predial });
+          playSoundOnce(SOUNDS.success);
+          await loadBDPredial_();
+          Swal.fire({ icon:'success', title:'Eliminado', timer:1400, showConfirmButton:false });
+        } catch (e) {
+          Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+        }
+      });
+      actions.appendChild(btnDel);
+    }
+
+    /* VER */
+    const btnVer = _bdpMkBtn_(
+      'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png',
+      'Ver detalles'
+    );
+    btnVer.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      __bdpSelected = row;
+      Swal.fire({ icon:'info', title:'Ver Detalles', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+    });
+    actions.appendChild(btnVer);
+
+    /* EDITAR */
+    const btnEdit = _bdpMkBtn_(
+      'https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp',
+      'Editar expediente'
+    );
+    btnEdit.addEventListener('click', () => {
+      playSoundOnce(SOUNDS.menu);
+      __bdpSelected = row;
+      Swal.fire({ icon:'info', title:'Editar', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+    });
+    actions.appendChild(btnEdit);
+
+    /* DECISIÓN (solo super usuario) */
+    if (canDecisionPredial_()) {
+      const btnDec = _bdpMkBtn_(
+        'https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp',
+        'Decisión (cambiar Actuación)'
+      );
+      btnDec.style.background = 'linear-gradient(135deg,#0a7a46,#06402B)';
+      btnDec.querySelector('img').style.filter = 'brightness(0) invert(1)';
+      btnDec.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.menu);
+        __bdpSelected = row;
+        Swal.fire({ icon:'info', title:'Decisión', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+      });
+      actions.appendChild(btnDec);
+    }
+
+    card.appendChild(actions);
+    wrap.appendChild(card);
+  }
+}
+
+function _bdpMkBtn_(src, title) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'bdp-icon-btn';
+  btn.title = title;
+  btn.setAttribute('aria-label', title);
+  btn.innerHTML = `<img src="${src}" alt="${title}" />`;
+  return btn;
+}
+
+/* ── Botón principal: abrir BD ─────────────────────────── */
+document.getElementById('btn-bd-predial')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  abrirBDPredial_();
+});
+
+/* ── REGRESAR ─────────────────────────────────────────── */
+document.getElementById('btn-bdp-back')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  /* Cancelar listeners de badges firebase */
+  if (window.__bdpChatBadgeUnsubs) {
+    window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
+    window.__bdpChatBadgeUnsubs = [];
+  }
+  showView('view-inicio');
+});
+
+/* ── Pastillas filtro CLASIFICACION ────────────────────── */
+document.querySelectorAll('#bdp-pills-clasif .proc-status-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    document.querySelectorAll('#bdp-pills-clasif .proc-status-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    __bdpFilterClasif = btn.dataset.clasif || 'ALL';
+    applyBDPredialFilters_();
+  });
+});
+
+/* ── Pastillas filtro ACTUACION ────────────────────────── */
+document.querySelectorAll('#bdp-pills-actuacion .proc-status-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    document.querySelectorAll('#bdp-pills-actuacion .proc-status-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    __bdpFilterActuacion = btn.dataset.actuacion || 'ALL';
+    applyBDPredialFilters_();
+  });
+});
+
+/* ── Pastillas filtro ESTADO PROCESO ───────────────────── */
+document.querySelectorAll('#bdp-pills-estado .proc-status-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    document.querySelectorAll('#bdp-pills-estado .proc-status-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    __bdpFilterEstado = btn.dataset.estado || 'ALL';
+    applyBDPredialFilters_();
+  });
+});
+
+/* ── Pastilla "Solo las mías" ──────────────────────────── */
+document.getElementById('bdp-pill-mias')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.menu);
+  const btn = document.getElementById('bdp-pill-mias');
+  __bdpFilterMias = !__bdpFilterMias;
+  if (__bdpFilterMias) btn.classList.add('active');
+  else btn.classList.remove('active');
+  applyBDPredialFilters_();
+});
+
+/* ── Filtro de texto ───────────────────────────────────── */
+document.getElementById('bdp-filter')?.addEventListener('input', () => {
+  applyBDPredialFilters_();
+});
+
+/* ── MIS EXPEDIENTES (columna I de USUARIOS) ───────────── */
+document.getElementById('btn-bdp-mis-exp')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  try {
+    if (!currentUser) {
+      Swal.fire({ icon:'warning', title:'Sesión inválida' });
+      return;
+    }
+    const res = await apiGet('getmisexpedienteslink', { documento: currentUser.documento });
+    const link = String(res?.link || '').trim();
+    if (!link) {
+      Swal.fire({ icon:'info', title:'Sin enlace', text:'No tienes enlace de expedientes configurado en la hoja USUARIOS (columna I).' });
+      return;
+    }
+    window.open(link, '_blank', 'noopener');
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
+  }
+});
+
+/* ── Placeholders Fase 3 / 4 ───────────────────────────── */
+document.getElementById('btn-bdp-agregar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  Swal.fire({ icon:'info', title:'Agregar Expediente', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+});
+
+document.getElementById('btn-bdp-panel')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  Swal.fire({ icon:'info', title:'Panel 📊', text:'Disponible en Fase 4.', timer:1400, showConfirmButton:false });
+});
+
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
 let __APP_VERSION_LOADED = '';
 let __versionCheckInFlight = false;
