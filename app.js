@@ -7524,6 +7524,668 @@ renderBDPredial_ = function(items) {
   });
 })();
 
+   /* ============================================================
+   BD PREDIAL — Fase 4: PANEL 📊
+   ============================================================ */
+
+let __bdppTabActual = 'resumen';
+let __bdppCharts    = {};
+let __bdppData      = [];
+
+/* ── Paleta consistente ──────────────────────────────── */
+const BDPP_COLORS = {
+  ALTA:   '#dc2626',
+  MEDIA:  '#f97316',
+  BAJA:   '#16a34a',
+  PEND:   '#f97316',
+  ALDIA:  '#16a34a',
+  ACCENT: ['#1e40af','#15803d','#6d28d9','#c2410c','#0891b2','#be185d','#4338ca','#65a30d','#a16207','#7c2d12']
+};
+
+/* ── Destruir chart ──────────────────────────────────── */
+function bdppDestroyChart_(key) {
+  try {
+    if (__bdppCharts[key]) {
+      __bdppCharts[key].destroy();
+      delete __bdppCharts[key];
+    }
+  } catch(_) {}
+}
+function bdppDestroyAll_() {
+  Object.keys(__bdppCharts).forEach(k => bdppDestroyChart_(k));
+}
+
+/* ── Abrir panel ─────────────────────────────────────── */
+async function abrirBDPPanel_() {
+  if (!canVerPanelPredial_()) {
+    Swal.fire({ icon:'warning', title:'Solo SUPER USUARIO' });
+    return;
+  }
+  playSoundOnce(SOUNDS.menu);
+  showView('view-bdp-panel');
+  bdppShowTab_('resumen');
+
+  try {
+    const data = await apiGet('listpredial');
+    __bdppData = Array.isArray(data) ? data : [];
+
+    const sub = document.getElementById('bdpp-subtitle');
+    if (sub) {
+      const ts = new Date();
+      sub.textContent = `${__bdppData.length} expedientes · Actualizado ` +
+        `${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
+    }
+    bdppRenderResumen_();
+  } catch (e) {
+    Swal.fire({ icon:'error', title:'Error al cargar datos', text:String(e.message||e) });
+  }
+}
+
+/* ── Cambio de pestaña ───────────────────────────────── */
+function bdppShowTab_(tab) {
+  __bdppTabActual = tab;
+  const tabs = ['resumen','cartera','actuaciones','equipo'];
+  tabs.forEach(t => {
+    const view = document.getElementById('bdpp-view-' + t);
+    const btn  = document.getElementById('bdpp-tab-' + t);
+    if (!view || !btn) return;
+    const active = (t === tab);
+    view.style.display = active ? '' : 'none';
+    btn.classList.toggle('active', active);
+    if (active) {
+      view.classList.remove('panel-animate');
+      void view.offsetWidth;
+      view.classList.add('panel-animate');
+    }
+  });
+  if (!__bdppData?.length) return;
+  switch (tab) {
+    case 'resumen':     bdppRenderResumen_();     break;
+    case 'cartera':     bdppRenderCartera_();     break;
+    case 'actuaciones': bdppRenderActuaciones_(); break;
+    case 'equipo':      bdppRenderEquipo_();      break;
+  }
+}
+
+function bdppGoBack_() {
+  playSoundOnce(SOUNDS.back);
+  bdppDestroyAll_();
+  showView('view-bd-predial');
+}
+
+/* ── Helpers de cálculo ──────────────────────────────── */
+function bdppFmtPesos_(n) {
+  return '$ ' + (Number(n) || 0).toLocaleString('es-CO');
+}
+function bdppFmtPesosCorto_(n) {
+  const v = Number(n) || 0;
+  if (v >= 1e9) return '$ ' + (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6) return '$ ' + (v / 1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return '$ ' + (v / 1e3).toFixed(0) + 'K';
+  return '$ ' + v.toFixed(0);
+}
+function bdppGroupCount_(rows, key) {
+  const map = {};
+  rows.forEach(r => {
+    const v = String(r[key] || '').trim().toUpperCase() || 'SIN DATO';
+    map[v] = (map[v] || 0) + 1;
+  });
+  return map;
+}
+function bdppGroupSum_(rows, key, sumKey) {
+  const map = {};
+  rows.forEach(r => {
+    const v = String(r[key] || '').trim().toUpperCase() || 'SIN DATO';
+    map[v] = (map[v] || 0) + (Number(r[sumKey]) || 0);
+  });
+  return map;
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB: RESUMEN
+══════════════════════════════════════════════════════ */
+function bdppRenderResumen_() {
+  const rows = __bdppData;
+  const total = rows.length;
+  const totalDeuda = rows.reduce((a, r) => a + (Number(r.valor_deuda) || 0), 0);
+  const pend = rows.filter(r => normalizeText_(r.estado_proceso||'') === 'PENDIENTE').length;
+  const alDia = rows.filter(r => normalizeText_(r.estado_proceso||'') === 'AL DIA').length;
+  const altas = rows.filter(r => normalizeText_(r.clasificacion||'') === 'ALTA').length;
+  const promDeuda = total > 0 ? Math.round(totalDeuda / total) : 0;
+
+  /* KPIs */
+  const kpiWrap = document.getElementById('bdpp-kpis-resumen');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { value: total,                  label:'Total Expedientes', sub:'registrados',          cls:'' },
+      { value: bdppFmtPesosCorto_(totalDeuda), label:'Cartera Total', sub:'monto adeudado',   cls:'kpi-blue' },
+      { value: bdppFmtPesosCorto_(promDeuda),  label:'Deuda Promedio', sub:'por expediente',  cls:'' },
+      { value: altas,                  label:'Clasif. ALTA',      sub:'requieren prioridad',  cls:'kpi-rojo' },
+      { value: pend,                   label:'Pendientes',        sub:'estado del proceso',   cls:'kpi-naranja' },
+      { value: alDia,                  label:'Al Día',            sub:'estado del proceso',   cls:'kpi-verde' }
+    ].forEach(k => {
+      const vs = String(k.value);
+      const isLong = vs.length > 6;
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287026/barras_pinzze.png" alt="" />
+        <div class="kpi-value" style="${isLong?'font-size:1.1rem;text-align:center;':''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* Donut clasificación */
+  bdppDestroyChart_('clasif');
+  const ctxC = document.getElementById('bdpp-chart-clasif');
+  if (ctxC) {
+    const map = bdppGroupCount_(rows, 'clasificacion');
+    const labels = ['ALTA','MEDIA','BAJA'].filter(k => map[k]);
+    const data   = labels.map(k => map[k]);
+    const colors = labels.map(k => BDPP_COLORS[k] || '#94a3b8');
+
+    __bdppCharts['clasif'] = new Chart(ctxC, {
+      type: 'doughnut',
+      plugins: [window.ChartDataLabels || {}],
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 10 }] },
+      options: bdppDoughnutOpts_()
+    });
+  }
+
+  /* Donut estado proceso */
+  bdppDestroyChart_('estado');
+  const ctxE = document.getElementById('bdpp-chart-estado');
+  if (ctxE) {
+    const map = bdppGroupCount_(rows, 'estado_proceso');
+    const labels = Object.keys(map);
+    const data   = labels.map(k => map[k]);
+    const colors = labels.map(k => k === 'PENDIENTE' ? BDPP_COLORS.PEND : k === 'AL DIA' ? BDPP_COLORS.ALDIA : '#6b7280');
+
+    __bdppCharts['estado'] = new Chart(ctxE, {
+      type: 'doughnut',
+      plugins: [window.ChartDataLabels || {}],
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 10 }] },
+      options: bdppDoughnutOpts_()
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB: CARTERA
+══════════════════════════════════════════════════════ */
+function bdppRenderCartera_() {
+  const rows = __bdppData;
+  const totalDeuda = rows.reduce((a, r) => a + (Number(r.valor_deuda) || 0), 0);
+
+  const sumPorClasif = bdppGroupSum_(rows, 'clasificacion', 'valor_deuda');
+  const montoAlta  = sumPorClasif['ALTA']  || 0;
+  const montoMedia = sumPorClasif['MEDIA'] || 0;
+  const montoBaja  = sumPorClasif['BAJA']  || 0;
+  const maxDeuda   = rows.length ? Math.max(...rows.map(r => Number(r.valor_deuda) || 0)) : 0;
+
+  /* KPIs cartera */
+  const kpiWrap = document.getElementById('bdpp-kpis-cartera');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { value: bdppFmtPesosCorto_(totalDeuda), label:'Cartera Total',      sub:'todos los expedientes', cls:'kpi-blue' },
+      { value: bdppFmtPesosCorto_(montoAlta),  label:'Cartera ALTA',       sub:'monto clasificación alta', cls:'kpi-rojo' },
+      { value: bdppFmtPesosCorto_(montoMedia), label:'Cartera MEDIA',      sub:'monto clasificación media', cls:'kpi-naranja' },
+      { value: bdppFmtPesosCorto_(montoBaja),  label:'Cartera BAJA',       sub:'monto clasificación baja', cls:'kpi-verde' },
+      { value: bdppFmtPesosCorto_(maxDeuda),   label:'Deuda más alta',     sub:'expediente top',         cls:'' }
+    ].forEach(k => {
+      const vs = String(k.value);
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287585/target_rmpes0.webp" alt="" />
+        <div class="kpi-value" style="${vs.length>6?'font-size:1.1rem;text-align:center;':''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* Top 10 deudores */
+  const topWrap = document.getElementById('bdpp-top-deudores');
+  if (topWrap) {
+    topWrap.innerHTML = '';
+    const sorted = rows.slice()
+      .sort((a, b) => (Number(b.valor_deuda)||0) - (Number(a.valor_deuda)||0))
+      .slice(0, 10);
+
+    if (!sorted.length) {
+      topWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
+    } else {
+      const medals = ['🥇','🥈','🥉'];
+      const maxVal = Number(sorted[0].valor_deuda) || 1;
+      sorted.forEach((r, idx) => {
+        const v = Number(r.valor_deuda) || 0;
+        const pct = Math.round((v / maxVal) * 100);
+        const initials = String(r.nombres||'').split(' ').slice(0,2).map(w => w[0]||'').join('');
+        const posCls = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+        const posSym = idx < 3 ? medals[idx] : (idx + 1);
+        const clasif = (r.clasificacion||'').toUpperCase();
+        const colorClasif = BDPP_COLORS[clasif] || '#6b7280';
+
+        const item = document.createElement('div');
+        item.className = 'ranking-item';
+        item.innerHTML = `
+          <div class="ranking-pos ${posCls}">${posSym}</div>
+          <div class="ranking-avatar" style="background:linear-gradient(135deg,${colorClasif},${colorClasif});">${initials}</div>
+          <div class="ranking-info">
+            <div class="ranking-name" title="${escapeHtml_(r.nombres||'')}">${escapeHtml_(r.nombres||'')}</div>
+            <div class="ranking-detail">
+              <span style="color:${colorClasif};font-weight:800;">${clasif}</span> ·
+              Exp: ${escapeHtml_(r.no_exp_fisico||'—')} ·
+              <span style="font-weight:700;">${bdppFmtPesos_(v)}</span>
+              <div style="height:4px;background:rgba(6,64,43,.08);border-radius:999px;margin-top:4px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:${colorClasif};border-radius:999px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="ranking-count" style="font-size:.78rem;">${bdppFmtPesosCorto_(v)}</div>
+        `;
+        topWrap.appendChild(item);
+      });
+    }
+  }
+
+  /* Chart monto por clasificación */
+  bdppDestroyChart_('monto-clasif');
+  const ctx = document.getElementById('bdpp-chart-monto-clasif');
+  if (ctx) {
+    const labels = ['ALTA','MEDIA','BAJA'].filter(k => sumPorClasif[k]);
+    const data   = labels.map(k => sumPorClasif[k] || 0);
+    const colors = labels.map(k => BDPP_COLORS[k]);
+
+    __bdppCharts['monto-clasif'] = new Chart(ctx, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors, borderRadius: 10, borderSkipped: false }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (ctx) => ' ' + bdppFmtPesos_(ctx.parsed.y) }
+          },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 13 },
+            anchor: 'center', align: 'center',
+            formatter: v => v > 0 ? bdppFmtPesosCorto_(v) : '',
+            textStrokeColor: 'rgba(0,0,0,.35)', textStrokeWidth: 3
+          }
+        },
+        scales: {
+          x: { ticks:{ color:'#06402B', font:{weight:'700', size:13} }, grid:{ display:false } },
+          y: {
+            beginAtZero: true,
+            ticks: { color:'#3d5248', font:{weight:'600'}, callback: v => bdppFmtPesosCorto_(v) },
+            grid:  { color:'rgba(6,64,43,.07)' }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB: ACTUACIONES
+══════════════════════════════════════════════════════ */
+function bdppRenderActuaciones_() {
+  const rows = __bdppData;
+  const countActuacion = bdppGroupCount_(rows, 'actuacion');
+  const sumActuacion   = bdppGroupSum_(rows, 'actuacion', 'valor_deuda');
+
+  /* Orden lógico de actuaciones */
+  const ORDER = ['NINGUNA','ACUERDO DE PAGO','COBRO PERSUASIVO','COBRO COACTIVO',
+                 'EMBARGO','DESEMBARGO','LIQUIDACION OFICIAL','MANDAMIENTO DE PAGO',
+                 'PRESCRIPCION','INSOLVENCIA'];
+
+  const sinActuacion = countActuacion['NINGUNA'] || 0;
+  const cobrando = (countActuacion['COBRO PERSUASIVO'] || 0) +
+                   (countActuacion['COBRO COACTIVO']   || 0);
+  const acuerdos = countActuacion['ACUERDO DE PAGO'] || 0;
+  const embargos = countActuacion['EMBARGO'] || 0;
+  const mandam   = countActuacion['MANDAMIENTO DE PAGO'] || 0;
+
+  /* KPIs */
+  const kpiWrap = document.getElementById('bdpp-kpis-actuaciones');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { value: rows.length,    label:'Total Expedientes', sub:'todos',                 cls:'' },
+      { value: sinActuacion,   label:'Sin Actuación',     sub:'requieren primer paso', cls:'kpi-rojo' },
+      { value: cobrando,       label:'En Cobro',          sub:'persuasivo + coactivo', cls:'kpi-naranja' },
+      { value: acuerdos,       label:'Acuerdos de Pago',  sub:'expedientes',           cls:'kpi-verde' },
+      { value: embargos,       label:'Embargos',          sub:'medidas cautelares',    cls:'kpi-rojo' },
+      { value: mandam,         label:'Mandam. de Pago',   sub:'expedientes',           cls:'kpi-blue' }
+    ].forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp" alt="" />
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* Chart conteo por actuación */
+  bdppDestroyChart_('actuacion');
+  const ctx1 = document.getElementById('bdpp-chart-actuacion');
+  if (ctx1) {
+    const labels = ORDER.filter(k => countActuacion[k]);
+    const data   = labels.map(k => countActuacion[k]);
+    const colors = labels.map((_, i) => BDPP_COLORS.ACCENT[i % BDPP_COLORS.ACCENT.length]);
+
+    __bdppCharts['actuacion'] = new Chart(ctx1, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors, borderRadius: 8, borderSkipped: false }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.x + ' expedientes' } },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 12 },
+            anchor: 'center', align: 'center',
+            formatter: v => v > 0 ? v : '',
+            textStrokeColor: 'rgba(0,0,0,.35)', textStrokeWidth: 3
+          }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks:{ precision:0, color:'#3d5248', font:{weight:'600'} }, grid:{ color:'rgba(6,64,43,.07)' } },
+          y: { ticks:{ color:'#06402B', font:{weight:'700', size:11} }, grid:{ display:false } }
+        }
+      }
+    });
+  }
+
+  /* Chart monto por actuación */
+  bdppDestroyChart_('monto-actuacion');
+  const ctx2 = document.getElementById('bdpp-chart-monto-actuacion');
+  if (ctx2) {
+    const labels = ORDER.filter(k => sumActuacion[k]);
+    const data   = labels.map(k => sumActuacion[k]);
+    const colors = labels.map((_, i) => BDPP_COLORS.ACCENT[i % BDPP_COLORS.ACCENT.length]);
+
+    __bdppCharts['monto-actuacion'] = new Chart(ctx2, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + bdppFmtPesos_(ctx.parsed.x) } },
+          datalabels: {
+            color: '#fff',
+            font: { weight: '900', size: 11 },
+            anchor: 'center', align: 'center',
+            formatter: v => v > 0 ? bdppFmtPesosCorto_(v) : '',
+            textStrokeColor: 'rgba(0,0,0,.35)', textStrokeWidth: 3
+          }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks:{ color:'#3d5248', font:{weight:'600'}, callback: v => bdppFmtPesosCorto_(v) }, grid:{ color:'rgba(6,64,43,.07)' } },
+          y: { ticks:{ color:'#06402B', font:{weight:'700', size:11} }, grid:{ display:false } }
+        }
+      }
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB: EQUIPO
+══════════════════════════════════════════════════════ */
+function bdppRenderEquipo_() {
+  const rows = __bdppData;
+
+  /* Agrupar por sustanciador */
+  const bySust = {};
+  rows.forEach(r => {
+    const n = String(r.sustanciador || 'SIN ASIGNAR').trim().toUpperCase();
+    if (!bySust[n]) bySust[n] = { total:0, pend:0, alDia:0, alta:0, media:0, baja:0, monto:0 };
+    bySust[n].total++;
+    bySust[n].monto += Number(r.valor_deuda) || 0;
+    const est = normalizeText_(r.estado_proceso || '');
+    if (est === 'PENDIENTE') bySust[n].pend++;
+    if (est === 'AL DIA')    bySust[n].alDia++;
+    const cla = normalizeText_(r.clasificacion || '');
+    if (cla === 'ALTA')  bySust[n].alta++;
+    if (cla === 'MEDIA') bySust[n].media++;
+    if (cla === 'BAJA')  bySust[n].baja++;
+  });
+
+  const sorted = Object.entries(bySust).sort((a, b) => b[1].total - a[1].total);
+
+  /* KPIs */
+  const totalSust  = sorted.length;
+  const promPorSust= totalSust ? Math.round(rows.length / totalSust) : 0;
+  const topSust    = sorted[0]?.[0] || '—';
+  const topSustCnt = sorted[0]?.[1]?.total || 0;
+  const topSustMon = sorted[0]?.[1]?.monto || 0;
+
+  const kpiWrap = document.getElementById('bdpp-kpis-equipo');
+  if (kpiWrap) {
+    kpiWrap.innerHTML = '';
+    [
+      { value: totalSust,                       label:'Sustanciadores',    sub:'con expedientes',     cls:'' },
+      { value: promPorSust,                     label:'Promedio',          sub:'expedientes / sust.', cls:'kpi-blue' },
+      { value: topSust.split(' ').slice(0,2).join(' '), label:'Top Sustanciador', sub:`${topSustCnt} expedientes`, cls:'kpi-verde' },
+      { value: bdppFmtPesosCorto_(topSustMon),  label:'Cartera Top',       sub:'sustanciador #1',     cls:'kpi-naranja' }
+    ].forEach(k => {
+      const vs = String(k.value);
+      const isLong = vs.length > 10;
+      const el = document.createElement('div');
+      el.className = 'kpi-card ' + k.cls;
+      el.innerHTML = `
+        <img class="kpi-icon" src="https://res.cloudinary.com/dqqeavica/image/upload/v1776287377/usuarios_dkzfqk.webp" alt="" />
+        <div class="kpi-value" style="${isLong?'font-size:.82rem;line-height:1.2;text-align:center;':''}">${escapeHtml_(vs)}</div>
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      `;
+      kpiWrap.appendChild(el);
+    });
+  }
+
+  /* Ranking */
+  const rankWrap = document.getElementById('bdpp-ranking-sust');
+  if (rankWrap) {
+    rankWrap.innerHTML = '';
+    if (!sorted.length) {
+      rankWrap.innerHTML = '<div class="panel-empty">Sin datos.</div>';
+    } else {
+      const medals = ['🥇','🥈','🥉'];
+      sorted.forEach(([nombre, s], idx) => {
+        const initials = nombre.split(' ').slice(0,2).map(w => w[0]||'').join('');
+        const posCls = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+        const posSym = idx < 3 ? medals[idx] : (idx + 1);
+
+        const parts = [];
+        if (s.alta)  parts.push(`<span style="color:#dc2626;font-weight:800;">ALTA: ${s.alta}</span>`);
+        if (s.media) parts.push(`<span style="color:#f97316;font-weight:800;">MEDIA: ${s.media}</span>`);
+        if (s.baja)  parts.push(`<span style="color:#16a34a;font-weight:800;">BAJA: ${s.baja}</span>`);
+        if (s.pend)  parts.push(`<span style="color:#f97316;">Pend: ${s.pend}</span>`);
+        if (s.alDia) parts.push(`<span style="color:#16a34a;">Al día: ${s.alDia}</span>`);
+
+        const item = document.createElement('div');
+        item.className = 'ranking-item';
+        item.innerHTML = `
+          <div class="ranking-pos ${posCls}">${posSym}</div>
+          <div class="ranking-avatar">${initials}</div>
+          <div class="ranking-info">
+            <div class="ranking-name">${escapeHtml_(nombre)}</div>
+            <div class="ranking-detail" style="font-size:.66rem;line-height:1.45;">
+              ${parts.join(' · ')}
+              <div style="margin-top:2px;color:var(--primary);font-weight:800;">
+                ${bdppFmtPesos_(s.monto)}
+              </div>
+            </div>
+          </div>
+          <div class="ranking-count">${s.total}</div>
+        `;
+        rankWrap.appendChild(item);
+      });
+    }
+  }
+
+  /* Chart carga por sustanciador (stack alta/media/baja) */
+  bdppDestroyChart_('sust');
+  const ctx1 = document.getElementById('bdpp-chart-sust');
+  if (ctx1 && sorted.length) {
+    const labels = sorted.map(([n]) => {
+      const parts = n.split(' ');
+      return parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1] : n;
+    });
+    const dAlta  = sorted.map(([,s]) => s.alta);
+    const dMedia = sorted.map(([,s]) => s.media);
+    const dBaja  = sorted.map(([,s]) => s.baja);
+
+    __bdppCharts['sust'] = new Chart(ctx1, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: {
+        labels,
+        datasets: [
+          { label:'ALTA',  data:dAlta,  backgroundColor: BDPP_COLORS.ALTA,  borderRadius:6, stack:'s' },
+          { label:'MEDIA', data:dMedia, backgroundColor: BDPP_COLORS.MEDIA, borderRadius:6, stack:'s' },
+          { label:'BAJA',  data:dBaja,  backgroundColor: BDPP_COLORS.BAJA,  borderRadius:6, stack:'s' }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position:'bottom', labels:{ font:{weight:'700', size:11}, color:'#3d5248', boxWidth:12, padding:8 } },
+          datalabels: {
+            color:'#fff', anchor:'center', align:'center',
+            font:{weight:'900', size:11},
+            formatter: v => v > 0 ? v : '',
+            textStrokeColor:'rgba(0,0,0,.35)', textStrokeWidth:3
+          }
+        },
+        scales: {
+          x: { stacked:true, beginAtZero:true, ticks:{precision:0, color:'#3d5248', font:{weight:'600'}}, grid:{color:'rgba(6,64,43,.07)'} },
+          y: { stacked:true, ticks:{color:'#06402B', font:{weight:'700', size:11}}, grid:{display:false} }
+        }
+      }
+    });
+  }
+
+  /* Chart monto por sustanciador */
+  bdppDestroyChart_('monto-sust');
+  const ctx2 = document.getElementById('bdpp-chart-monto-sust');
+  if (ctx2 && sorted.length) {
+    const labels = sorted.map(([n]) => {
+      const parts = n.split(' ');
+      return parts.length >= 2 ? parts[0] + ' ' + parts[parts.length-1] : n;
+    });
+    const montos = sorted.map(([,s]) => s.monto);
+    const colors = sorted.map((_, i) => BDPP_COLORS.ACCENT[i % BDPP_COLORS.ACCENT.length]);
+
+    __bdppCharts['monto-sust'] = new Chart(ctx2, {
+      type: 'bar',
+      plugins: [window.ChartDataLabels || {}],
+      data: { labels, datasets: [{ data: montos, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + bdppFmtPesos_(ctx.parsed.y) } },
+          datalabels: {
+            color:'#fff', anchor:'center', align:'center',
+            font:{weight:'900', size:11},
+            formatter: v => v > 0 ? bdppFmtPesosCorto_(v) : '',
+            textStrokeColor:'rgba(0,0,0,.35)', textStrokeWidth:3
+          }
+        },
+        scales: {
+          x: { ticks:{color:'#06402B', font:{weight:'700', size:11}, maxRotation:30}, grid:{display:false} },
+          y: { beginAtZero:true, ticks:{color:'#3d5248', font:{weight:'600'}, callback: v => bdppFmtPesosCorto_(v) }, grid:{color:'rgba(6,64,43,.07)'} }
+        }
+      }
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   Opciones comunes para doughnuts
+══════════════════════════════════════════════════════ */
+function bdppDoughnutOpts_() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font:{weight:'700', size:12}, color:'#3d5248', boxWidth:14, padding:10 }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(255,255,255,.97)',
+        titleColor: '#06402B', bodyColor:'#3d5248',
+        borderColor: 'rgba(6,64,43,.15)', borderWidth: 1.5,
+        padding: 10, cornerRadius: 10,
+        callbacks: {
+          label: (ctx) => {
+            const total = ctx.dataset.data.reduce((a,b) => a + b, 0) || 1;
+            const pct = Math.round((ctx.parsed / total) * 100);
+            return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+          }
+        }
+      },
+      datalabels: {
+        color: '#fff',
+        font: { weight:'900', size:13 },
+        formatter: (v, ctx) => {
+          const total = ctx.dataset.data.reduce((a,b) => a + b, 0) || 1;
+          const pct = Math.round(v / total * 100);
+          return pct >= 5 ? pct + '%' : '';
+        },
+        textStrokeColor: 'rgba(0,0,0,.4)', textStrokeWidth: 3
+      }
+    }
+  };
+}
+
+/* ── Conectar botón PANEL del header de BD Predial ───── */
+(function rebindBDPPanel_() {
+  const btn = document.getElementById('btn-bdp-panel');
+  if (!btn) return;
+  const clone = btn.cloneNode(true);
+  btn.parentNode.replaceChild(clone, btn);
+  clone.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.back);
+    abrirBDPPanel_();
+  });
+})();
+
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
 let __APP_VERSION_LOADED = '';
 let __versionCheckInFlight = false;
