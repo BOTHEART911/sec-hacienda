@@ -802,6 +802,12 @@ try{
   if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
 }catch(_){}
 
+   // ✅ Mostrar botón BASE DE DATOS PREDIAL
+try{
+  const bBd = document.getElementById('btn-bd-predial');
+  if(bBd) bBd.style.display = canSeeBDPredial_() ? '' : 'none';
+}catch(_){}
+
 try{
   const bPend = document.getElementById('btn-pendientes');
   if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
