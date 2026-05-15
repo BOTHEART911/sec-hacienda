@@ -6440,12 +6440,45 @@ function renderBDPredial_(items) {
   /* 4. UNA sola inserción al DOM (1 reflow en vez de N) */
   wrap.appendChild(frag);
 
-  /* 5. UNA SOLA suscripción Firebase para TODOS los badges */
-  if (idsParaBadge.length) {
+/* 5. UNA SOLA suscripción Firebase para TODOS los badges
+        Solo (re)suscribimos si el conjunto de IDs cambió */
+  const idsKey = idsParaBadge.slice().sort().join(',');
+  if (window.__bdpChatBadgeIdsKey !== idsKey) {
+    /* Cancelar suscripción anterior */
+    if (window.__bdpChatBadgeUnsubs) {
+      window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
+    }
+    window.__bdpChatBadgeUnsubs = [];
+    window.__bdpChatBadgeIdsKey = idsKey;
+
+    if (idsParaBadge.length) {
+      initFirebase_().then(db => {
+        if (!db) return;
+        const refRoot = db.ref('chats-predial');
+        const handler = refRoot.on('value', snap => {
+          const data = snap.val() || {};
+          for (const id of idsParaBadge) {
+            const badge = document.getElementById('bdp-chat-badge-' + id);
+            if (!badge) continue;
+            const msgs = (data[id] && data[id].mensajes) || {};
+            const n = Object.keys(msgs).length;
+            if (n > 0) {
+              badge.textContent = n > 99 ? '99+' : String(n);
+              badge.style.display = '';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+        });
+        window.__bdpChatBadgeUnsubs.push(() => refRoot.off('value', handler));
+      });
+    }
+  } else {
+    /* Mismo conjunto de IDs: refrescar referencia visual de badges
+       (los IDs en DOM cambiaron de instancia tras el re-render) */
     initFirebase_().then(db => {
       if (!db) return;
-      const refRoot = db.ref('chats-predial');
-      const handler = refRoot.on('value', snap => {
+      db.ref('chats-predial').once('value').then(snap => {
         const data = snap.val() || {};
         for (const id of idsParaBadge) {
           const badge = document.getElementById('bdp-chat-badge-' + id);
@@ -6460,10 +6493,8 @@ function renderBDPredial_(items) {
           }
         }
       });
-      window.__bdpChatBadgeUnsubs.push(() => refRoot.off('value', handler));
     });
   }
-}
 
 function _bdpMkBtn_(src, title) {
   const btn = document.createElement('button');
@@ -6484,11 +6515,15 @@ document.getElementById('btn-bd-predial')?.addEventListener('click', () => {
 /* ── REGRESAR ─────────────────────────────────────────── */
 document.getElementById('btn-bdp-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
-  /* Cancelar listeners de badges firebase */
   if (window.__bdpChatBadgeUnsubs) {
     window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
     window.__bdpChatBadgeUnsubs = [];
   }
+  if (window.__bdpDetBadgeUnsub) {
+    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
+    window.__bdpDetBadgeUnsub = null;
+  }
+  window.__bdpChatBadgeIdsKey = null;
   showView('view-inicio');
 });
 
@@ -6539,7 +6574,7 @@ document.getElementById('bdp-pill-mias')?.addEventListener('click', () => {
 let __bdpFilterTimer = null;
 document.getElementById('bdp-filter')?.addEventListener('input', () => {
   clearTimeout(__bdpFilterTimer);
-  __bdpFilterTimer = setTimeout(applyBDPredialFilters_, 180);
+   __bdpFilterTimer = setTimeout(applyBDPredialFilters_, 350);
 });
 
 /* ── MIS EXPEDIENTES (columna I de USUARIOS) ───────────── */
@@ -7130,16 +7165,22 @@ function abrirBDPDetalle_(row) {
   });
   actions.appendChild(btnChat);
 
-  /* Badge live del chat */
+/* Badge live del chat — con cancelación previa para no acumular listeners */
+  if (window.__bdpDetBadgeUnsub) {
+    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
+    window.__bdpDetBadgeUnsub = null;
+  }
   initFirebase_().then(db => {
     if (!db) return;
     const ref = db.ref('chats-predial/' + row.id_predial + '/mensajes');
-    ref.once('value').then(snap => {
+    const handler = ref.on('value', snap => {
       const badge = document.getElementById('bdp-det-chat-badge');
       if (!badge) return;
       const n = snap.numChildren();
       if (n > 0) { badge.textContent = n > 99 ? '99+' : String(n); badge.style.display = ''; }
+      else { badge.style.display = 'none'; }
     });
+    window.__bdpDetBadgeUnsub = () => ref.off('value', handler);
   });
 
   /* REBOTAR */
@@ -7195,6 +7236,10 @@ function bdpDetSection_(title, pairs) {
 
 document.getElementById('btn-bdp-det-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
+  if (window.__bdpDetBadgeUnsub) {
+    try { window.__bdpDetBadgeUnsub(); } catch(_) {}
+    window.__bdpDetBadgeUnsub = null;
+  }
   showView('view-bd-predial');
 });
 
