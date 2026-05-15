@@ -974,6 +974,51 @@
   </div>
 </div>
 
+    <!-- Modal Picker AÑO (para DEBE DESDE) -->
+<div id="bdp-anio-modal" class="proc-picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px;font-family:'Sora',sans-serif;color:var(--primary);">
+      Selecciona el año
+    </h3>
+    <div style="display:flex; justify-content:center; margin:12px 0 16px;">
+      <select id="bdp-anio-select" size="10" style="height:220px; min-width:120px;"></select>
+    </div>
+    <div class="picker-actions">
+      <button type="button" class="btn btn-cancel" onclick="cancelarBDPAnio()">Cancelar</button>
+      <button type="button" class="btn btn-ok"     onclick="confirmarBDPAnio()">Ok</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Picker FECHA (para fechas opcionales 2026) -->
+<div id="bdp-fecha-modal" class="proc-picker-modal" aria-hidden="true">
+  <div class="picker-box">
+    <h3 style="margin:0 0 8px;font-family:'Sora',sans-serif;color:var(--primary);">
+      Selecciona la fecha
+    </h3>
+    <div class="picker-grid">
+      <div>
+        <small>Día</small>
+        <select id="bdp-pick-dia" size="10"></select>
+      </div>
+      <div>
+        <small>Mes</small>
+        <select id="bdp-pick-mes" size="12"></select>
+      </div>
+      <div>
+        <small>Año</small>
+        <select id="bdp-pick-anio" size="3" disabled>
+          <option selected>2026</option>
+        </select>
+      </div>
+    </div>
+    <div class="picker-actions">
+      <button type="button" class="btn btn-cancel" onclick="cancelarBDPFecha()">Cancelar</button>
+      <button type="button" class="btn btn-ok"     onclick="confirmarBDPFecha()">Ok</button>
+    </div>
+  </div>
+</div>
+
     <!-- ============================================================
      MODAL CHAT TIEMPO REAL
      ============================================================ -->
@@ -1352,6 +1397,245 @@
     <div id="bdp-list" class="sol-list"></div>
   </div>
 </section>
+
+    <!-- ============================================================
+     VISTA AGREGAR / EDITAR EXPEDIENTE PREDIAL
+     ============================================================ -->
+<section id="view-bdp-form" class="view">
+  <div class="card narrow">
+    <h2 id="bdp-form-title" style="color:var(--primary);">AGREGAR EXPEDIENTE</h2>
+    <div id="bdp-form-badge" style="text-align:center;margin-bottom:10px;"></div>
+
+    <!-- ── Bloque SUPER USUARIO ── -->
+    <div id="bdp-super-fields">
+
+      <label>Nombres del propietario <span style="color:#dc2626;">*</span></label>
+      <input id="bdp-nombres" type="text" placeholder="Se guarda en mayúscula" />
+
+      <label>NIT o Cédula <span style="color:#dc2626;">*</span></label>
+      <input id="bdp-nit" type="text" inputmode="numeric" placeholder="Sin puntos ni espacios" />
+
+      <label>Correo electrónico</label>
+      <input id="bdp-correo" type="email" placeholder="opcional" />
+
+      <label>Dirección del predio <span style="color:#dc2626;">*</span></label>
+      <input id="bdp-direccion" type="text" placeholder="Calle / Carrera / Barrio…" />
+
+      <label>Matrícula <span class="muted">(opcional)</span></label>
+      <div class="input-icon-wrap">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--primary);pointer-events:none;">357-</span>
+        <input id="bdp-matricula" type="text" inputmode="numeric" placeholder="solo el número" style="padding-left:50px;" />
+      </div>
+
+      <label>Ficha Catastral <span class="muted">(12-15 dígitos, opcional)</span></label>
+      <input id="bdp-ficha" type="text" inputmode="numeric" placeholder="solo dígitos" />
+
+      <label>¿Escaneado? <span style="color:#dc2626;">*</span></label>
+      <select id="bdp-escaneado">
+        <option value="NO" selected>NO</option>
+        <option value="SI">SI</option>
+      </select>
+
+      <label>Debe Desde <span style="color:#dc2626;">*</span></label>
+      <input id="bdp-debe-desde" type="text" placeholder="Selecciona año…" readonly
+        onclick="abrirBDPAnio_()" style="cursor:pointer;" />
+      <input id="bdp-debe-desde-raw" type="hidden" />
+
+      <label>Deuda Hasta</label>
+      <input id="bdp-deuda-hasta" type="text" readonly
+        style="background:rgba(6,64,43,.04); cursor:not-allowed;" />
+
+      <label>Valor Deuda <span style="color:#dc2626;">*</span></label>
+      <input id="bdp-valor-deuda" type="text" inputmode="numeric" placeholder="$ 0" />
+      <div id="bdp-clasif-preview" class="muted" style="margin-top:4px; font-size:.78rem;"></div>
+
+      <label>No. Exp. Físico <span style="color:#dc2626;">*</span></label>
+      <div style="display:grid; grid-template-columns: 80px 1fr; gap:8px;">
+        <select id="bdp-exp-letra">
+          <option value="">Letra…</option>
+        </select>
+        <input id="bdp-exp-numero" type="text" inputmode="numeric" maxlength="4" placeholder="4 dígitos" />
+      </div>
+      <p class="muted" style="font-size:.72rem;margin:4px 0 0;">Ej: A0001. No puede haber duplicados.</p>
+
+      <label>Sustanciador <span style="color:#dc2626;">*</span></label>
+      <select id="bdp-sustanciador">
+        <option value="" disabled selected>Selecciona…</option>
+        <option value="DIEGO FERNANDO GARCIA">DIEGO FERNANDO GARCIA</option>
+        <option value="LEESLIE JULIET GOMEZ QUINTERO">LEESLIE JULIET GOMEZ QUINTERO</option>
+        <option value="ANDREA KATERINE LAMAR RODRIGUEZ">ANDREA KATERINE LAMAR RODRIGUEZ</option>
+        <option value="LUIS GABRIEL RAMIREZ RAMIREZ">LUIS GABRIEL RAMIREZ RAMIREZ</option>
+        <option value="LUIS GILBERTO MOYA ROMERO">LUIS GILBERTO MOYA ROMERO</option>
+      </select>
+
+      <label>Asistente</label>
+      <input id="bdp-asistente" type="text" readonly
+        placeholder="Se asigna automáticamente"
+        style="background:rgba(6,64,43,.04);" />
+      <input id="bdp-contacto-sust"  type="hidden" />
+      <input id="bdp-contacto-asist" type="hidden" />
+      <input id="bdp-asignador"      type="hidden" />
+      <input id="bdp-contacto-asignador" type="hidden" />
+
+    </div>
+
+    <!-- ── Bloque AMBOS roles ── -->
+    <label>Bitácora <span style="color:#dc2626;">*</span></label>
+    <textarea id="bdp-bitacora" rows="4" placeholder="Registra actuaciones, fechas y observaciones"></textarea>
+
+    <label>Actuación <span style="color:#dc2626;">*</span></label>
+    <select id="bdp-actuacion">
+      <option value="NINGUNA" selected>NINGUNA</option>
+      <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
+      <option value="COBRO PERSUASIVO">COBRO PERSUASIVO</option>
+      <option value="COBRO COACTIVO">COBRO COACTIVO</option>
+      <option value="EMBARGO">EMBARGO</option>
+      <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
+      <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
+      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="INSOLVENCIA">INSOLVENCIA</option>
+    </select>
+
+    <label>Estado del Proceso <span style="color:#dc2626;">*</span></label>
+    <select id="bdp-estado-proceso">
+      <option value="PENDIENTE" selected>PENDIENTE</option>
+      <option value="AL DIA">AL DÍA</option>
+    </select>
+
+    <!-- ── Más campos opcionales SUPER USUARIO ── -->
+    <div id="bdp-extra-fields">
+
+      <h3 style="margin-top:18px; color:var(--primary); text-align:left;">📋 Persuasivo / Notificaciones</h3>
+
+      <label>Oficio Persuasivo <span class="muted">(opcional)</span></label>
+      <input id="bdp-oficio-persuas" type="text" />
+
+      <label>Fecha Oficio Persuasivo <span class="muted">(opcional)</span></label>
+      <input id="bdp-fecha-oficio-persuas" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirBDPFecha_('fecha-oficio-persuas')" style="cursor:pointer;" />
+
+      <label>Fecha Entrega <span class="muted">(opcional)</span></label>
+      <input id="bdp-fecha-entrega" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirBDPFecha_('fecha-entrega')" style="cursor:pointer;" />
+
+      <label>Resolución Liquidación <span class="muted">(opcional)</span></label>
+      <input id="bdp-resol-liquidac" type="text" />
+
+      <label>Fecha Resolución <span class="muted">(opcional)</span></label>
+      <input id="bdp-fecha-resolucion" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirBDPFecha_('fecha-resolucion')" style="cursor:pointer;" />
+
+      <label>Oficio Citación <span class="muted">(opcional)</span></label>
+      <input id="bdp-oficio-citacion" type="text" />
+
+      <label>Fecha Oficio <span class="muted">(opcional)</span></label>
+      <input id="bdp-fecha-oficio" type="text" placeholder="dd/mm/2026" readonly
+        onclick="abrirBDPFecha_('fecha-oficio')" style="cursor:pointer;" />
+
+      <label>Notif. Citación</label>
+      <select id="bdp-notif-citacion"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>Notif. Electrónica</label>
+      <select id="bdp-notif-electr"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>Notif. Personal</label>
+      <select id="bdp-notif-personal"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>Notif. Aviso</label>
+      <select id="bdp-notif-aviso"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>Publicación Web</label>
+      <select id="bdp-publicacion-web"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>Ejecutoria <span class="muted">(opcional)</span></label>
+      <input id="bdp-ejecutoria" type="text" />
+
+      <label>Mandamiento de Pago</label>
+      <select id="bdp-mandam-pago"><option value="NO" selected>NO</option><option value="SI">SI</option></select>
+
+      <label>F-MP <span class="muted">(opcional)</span></label>
+      <input id="bdp-f-mp" type="text" />
+    </div>
+
+    <div class="btn-row" style="margin-top:16px;">
+      <button id="btn-bdp-form-guardar" class="btn-primary">Guardar</button>
+      <button id="btn-bdp-form-back" class="danger">Regresar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     VISTA VER DETALLES EXPEDIENTE PREDIAL
+     ============================================================ -->
+<section id="view-bdp-detalle" class="view">
+  <div class="card" style="max-width:900px;">
+
+    <h2 style="color:var(--primary); margin-bottom:8px;">DETALLE DEL EXPEDIENTE</h2>
+
+    <!-- Header con clasificación, actuación, estado -->
+    <div id="bdp-det-header" class="proc-detalle-header"></div>
+
+    <!-- Cuerpo -->
+    <div id="bdp-det-body" style="margin-top:12px;"></div>
+
+    <!-- Acciones -->
+    <div class="btn-row" id="bdp-det-actions" style="margin-top:16px; flex-wrap:wrap; gap:10px;"></div>
+
+    <div class="btn-row" style="margin-top:10px;">
+      <button id="btn-bdp-det-back" class="danger">REGRESAR</button>
+    </div>
+  </div>
+</section>
+
+<!-- Modal DECISIÓN (cambiar Actuación) -->
+<div id="modal-bdp-decision" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card narrow" style="margin:0;width:min(560px,100%);">
+    <h2 style="color:var(--primary);">DECISIÓN</h2>
+    <p class="helper" style="margin-top:0;">Cambia la actuación del expediente. Se notificará al sustanciador.</p>
+    <div id="bdp-dec-context" style="text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);margin-bottom:10px;"></div>
+
+    <label>Nueva Actuación</label>
+    <select id="bdp-dec-actuacion">
+      <option value="NINGUNA">NINGUNA</option>
+      <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
+      <option value="COBRO PERSUASIVO">COBRO PERSUASIVO</option>
+      <option value="COBRO COACTIVO">COBRO COACTIVO</option>
+      <option value="EMBARGO">EMBARGO</option>
+      <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
+      <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
+      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="INSOLVENCIA">INSOLVENCIA</option>
+    </select>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="btn-bdp-dec-guardar" class="btn-primary">Confirmar</button>
+      <button id="btn-bdp-dec-cancelar" class="danger">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal REBOTAR (objeción al asignador) -->
+<div id="modal-bdp-rebotar" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card narrow" style="margin:0;width:min(560px,100%);">
+    <h2 style="color:var(--primary);">REBOTAR EXPEDIENTE</h2>
+    <p class="helper" style="margin-top:0;">Envía objeción al asignador. No realiza ningún cambio en el expediente.</p>
+    <div id="bdp-reb-context" style="text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);margin-bottom:10px;"></div>
+
+    <label>Justificación</label>
+    <textarea id="bdp-reb-justif" rows="5" placeholder="Explica la razón de la objeción"></textarea>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button id="btn-bdp-reb-guardar" class="btn-primary">Enviar objeción</button>
+      <button id="btn-bdp-reb-cancelar" class="danger">Cancelar</button>
+    </div>
+  </div>
+</div>
 
   <!-- Cierre del Container -->
   </div> 
