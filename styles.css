@@ -2625,3 +2625,14 @@ button:active { transform: translateY(0) scale(.98); }
   max-height: 280px;
   overflow-y: auto;
 }
+
+/* Panel BD Predial: toolbar wrap en móvil */
+@media (max-width: 600px) {
+  #view-bdp-panel .panel-toolbar .panel-tab {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+    font-size: .74rem;
+    padding: 7px 10px;
+  }
+  #view-bdp-panel .panel-toolbar .panel-tab img { width: 16px; height: 16px; }
+}
