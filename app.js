@@ -6267,6 +6267,14 @@ function renderBDPredial_(items) {
   const wrap = document.getElementById('bdp-list');
   const countEl = document.getElementById('bdp-count');
   if (!wrap) return;
+
+  /* 1. Cancelar listeners Firebase anteriores ANTES de tocar el DOM */
+  if (window.__bdpChatBadgeUnsubs) {
+    window.__bdpChatBadgeUnsubs.forEach(fn => { try { fn(); } catch(_) {} });
+  }
+  window.__bdpChatBadgeUnsubs = [];
+
+  /* 2. Vaciar */
   wrap.innerHTML = '';
   if (countEl) countEl.textContent = String(items.length);
 
@@ -6274,6 +6282,10 @@ function renderBDPredial_(items) {
     wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1; margin-top:20px;">No hay expedientes que coincidan con los filtros.</p>';
     return;
   }
+
+  /* 3. Render en un DocumentFragment para evitar reflows intermedios */
+  const frag = document.createDocumentFragment();
+  const idsParaBadge = [];   // ← acumulamos para hacer 1 SOLA suscripción Firebase
 
   for (const row of items) {
     const clasif = (row.clasificacion || 'BAJA').toUpperCase();
@@ -6308,7 +6320,6 @@ function renderBDPredial_(items) {
     /* GRID datos secundarios */
     const grid = document.createElement('div');
     grid.className = 'bdp-grid';
-
     const fichaTxt = bdpCleanFicha_(row.ficha_catastral);
     grid.innerHTML = `
       <div><b>Ficha Catastral</b>${escapeHtml_(fichaTxt || '—')}</div>
@@ -6343,28 +6354,12 @@ function renderBDPredial_(items) {
     btnChat.addEventListener('click', () => {
       playSoundOnce(SOUNDS.menu);
       __bdpSelected = row;
-      Swal.fire({ icon:'info', title:'Chat', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+      abrirBDPChat_(row);
     });
     actions.appendChild(btnChat);
 
-    /* Badge live de mensajes */
-    initFirebase_().then(db => {
-      if (!db) return;
-      const refMsg = db.ref('chats-predial/' + row.id_predial + '/mensajes');
-      const handler = refMsg.on('value', snap => {
-        const badge = document.getElementById('bdp-chat-badge-' + row.id_predial);
-        if (!badge) return;
-        const n = snap.numChildren();
-        if (n > 0) {
-          badge.textContent = n > 99 ? '99+' : String(n);
-          badge.style.display = '';
-        } else {
-          badge.style.display = 'none';
-        }
-      });
-      if (!window.__bdpChatBadgeUnsubs) window.__bdpChatBadgeUnsubs = [];
-      window.__bdpChatBadgeUnsubs.push(() => refMsg.off('value', handler));
-    });
+    /* Acumular id para suscripción Firebase global (1 sola, no 1 por tarjeta) */
+    idsParaBadge.push(row.id_predial);
 
     /* ELIMINAR */
     if (canEliminarPredial_()) {
@@ -6406,7 +6401,7 @@ function renderBDPredial_(items) {
     btnVer.addEventListener('click', () => {
       playSoundOnce(SOUNDS.menu);
       __bdpSelected = row;
-      Swal.fire({ icon:'info', title:'Ver Detalles', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+      abrirBDPDetalle_(row);
     });
     actions.appendChild(btnVer);
 
@@ -6418,11 +6413,11 @@ function renderBDPredial_(items) {
     btnEdit.addEventListener('click', () => {
       playSoundOnce(SOUNDS.menu);
       __bdpSelected = row;
-      Swal.fire({ icon:'info', title:'Editar', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+      abrirBDPEditar_(row);
     });
     actions.appendChild(btnEdit);
 
-    /* DECISIÓN (solo super usuario) */
+    /* DECISIÓN */
     if (canDecisionPredial_()) {
       const btnDec = _bdpMkBtn_(
         'https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp',
@@ -6433,13 +6428,40 @@ function renderBDPredial_(items) {
       btnDec.addEventListener('click', () => {
         playSoundOnce(SOUNDS.menu);
         __bdpSelected = row;
-        Swal.fire({ icon:'info', title:'Decisión', text:'Disponible en Fase 3.', timer:1400, showConfirmButton:false });
+        abrirBDPDecision_(row);
       });
       actions.appendChild(btnDec);
     }
 
     card.appendChild(actions);
-    wrap.appendChild(card);
+    frag.appendChild(card);
+  }
+
+  /* 4. UNA sola inserción al DOM (1 reflow en vez de N) */
+  wrap.appendChild(frag);
+
+  /* 5. UNA SOLA suscripción Firebase para TODOS los badges */
+  if (idsParaBadge.length) {
+    initFirebase_().then(db => {
+      if (!db) return;
+      const refRoot = db.ref('chats-predial');
+      const handler = refRoot.on('value', snap => {
+        const data = snap.val() || {};
+        for (const id of idsParaBadge) {
+          const badge = document.getElementById('bdp-chat-badge-' + id);
+          if (!badge) continue;
+          const msgs = (data[id] && data[id].mensajes) || {};
+          const n = Object.keys(msgs).length;
+          if (n > 0) {
+            badge.textContent = n > 99 ? '99+' : String(n);
+            badge.style.display = '';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      });
+      window.__bdpChatBadgeUnsubs.push(() => refRoot.off('value', handler));
+    });
   }
 }
 
@@ -7452,65 +7474,7 @@ async function bdpEnviarMensaje_() {
   }
 }
 
-/* ── Conectar tarjetas con los flujos reales (override Fase 2) ── */
-const __bdpOrigRender = renderBDPredial_;
-renderBDPredial_ = function(items) {
-  __bdpOrigRender(items);
-  /* Reasignar handlers de los botones VER / EDITAR / DECISION / CHAT
-     después del render, leyendo de nuevo las tarjetas para mapear cada
-     botón a su fila */
-  const wrap = document.getElementById('bdp-list');
-  if (!wrap) return;
-  const cards = wrap.querySelectorAll('.bdp-card');
-  cards.forEach((card, idx) => {
-    const row = items[idx];
-    if (!row) return;
-    const btns = card.querySelectorAll('.bdp-icon-btn');
-    btns.forEach(btn => {
-      const title = btn.getAttribute('title') || '';
-      /* Reasignar VER */
-      if (title === 'Ver detalles') {
-        const clone = btn.cloneNode(true);
-        btn.parentNode.replaceChild(clone, btn);
-        clone.addEventListener('click', () => {
-          playSoundOnce(SOUNDS.menu);
-          __bdpSelected = row;
-          abrirBDPDetalle_(row);
-        });
-      }
-      /* Reasignar EDITAR */
-      if (title === 'Editar expediente') {
-        const clone = btn.cloneNode(true);
-        btn.parentNode.replaceChild(clone, btn);
-        clone.addEventListener('click', () => {
-          playSoundOnce(SOUNDS.menu);
-          __bdpSelected = row;
-          abrirBDPEditar_(row);
-        });
-      }
-      /* Reasignar DECISIÓN */
-      if (title === 'Decisión (cambiar Actuación)') {
-        const clone = btn.cloneNode(true);
-        btn.parentNode.replaceChild(clone, btn);
-        clone.addEventListener('click', () => {
-          playSoundOnce(SOUNDS.menu);
-          __bdpSelected = row;
-          abrirBDPDecision_(row);
-        });
-      }
-      /* Reasignar CHAT */
-      if (title === 'Chat de expediente') {
-        /* Mantener badge: solo reemplazar listeners conservando innerHTML */
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', () => {
-          playSoundOnce(SOUNDS.menu);
-          abrirBDPChat_(row);
-        });
-      }
-    });
-  });
-};
+
 
 /* ── Reemplazar botón AGREGAR del placeholder Fase 2 ──── */
 (function rebindBDPAgregar_() {
