@@ -7619,10 +7619,32 @@ function bdppFmtPesos_(n) {
 }
 function bdppFmtPesosCorto_(n) {
   const v = Number(n) || 0;
-  if (v >= 1e12) return '$ ' + (v / 1e12).toFixed(1) + 'B';   // Billones (millón de millones)
-  if (v >= 1e6)  return '$ ' + (v / 1e6).toFixed(1)  + 'MM';  // Miles de millones y millones
-  if (v >= 1e3)  return '$ ' + (v / 1e3).toFixed(0)  + 'K';
-  return '$ ' + v.toFixed(0);
+
+  // 1.000 millones o más → abreviar a "MM" mostrando miles de millones (truncado a millón)
+  if (v >= 1e9) {
+    const millones = Math.floor(v / 1e6);     // ej: 7.384.018.200 → 7384
+    const milesMM  = Math.floor(millones / 1000);
+    const restoMM  = millones % 1000;
+    let out = milesMM.toLocaleString('es-CO');
+    if (restoMM > 0) {
+      out += '.' + String(restoMM).padStart(3, '0');
+    }
+    return '$ ' + out + ' MM';
+  }
+
+  // 1 millón a 999 millones → "M" (millones)
+  if (v >= 1e6) {
+    const millones = Math.floor(v / 1e6);     // ej: 35.000.000 → 35
+    const milesResto = Math.floor((v % 1e6) / 1000); // ej: 1.250.000 → 250
+    let out = millones.toLocaleString('es-CO');
+    if (milesResto > 0) {
+      out += '.' + String(milesResto).padStart(3, '0');
+    }
+    return '$ ' + out + ' M';
+  }
+
+  // Menos de 1 millón → completo
+  return '$ ' + v.toLocaleString('es-CO');
 }
 function bdppGroupCount_(rows, key) {
   const map = {};
