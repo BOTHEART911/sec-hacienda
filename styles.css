@@ -2366,3 +2366,202 @@ button:active { transform: translateY(0) scale(.98); }
   word-break: normal !important;
   overflow-wrap: break-word;
 }
+
+/* ============================================================
+   BASE DE DATOS PREDIAL — Estilos
+   ============================================================ */
+
+/* Etiqueta arriba de cada grupo de pastillas */
+.bdp-pills-label {
+  font-family: 'Sora', sans-serif;
+  font-size: .72rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin: 10px 0 4px;
+  text-align: left;
+  padding-left: 4px;
+}
+
+/* Tarjeta de expediente */
+.bdp-card {
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(6,64,43,.12);
+  border-left: 6px solid #16a34a;
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: 0 4px 18px rgba(6,64,43,.10);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform .15s, box-shadow .15s;
+}
+.bdp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(6,64,43,.16);
+}
+.bdp-card.clasif-ALTA  { border-left-color: #dc2626; background: linear-gradient(135deg, rgba(254,226,226,.85), rgba(255,255,255,.92)); }
+.bdp-card.clasif-MEDIA { border-left-color: #f97316; background: linear-gradient(135deg, rgba(255,237,213,.85), rgba(255,255,255,.92)); }
+.bdp-card.clasif-BAJA  { border-left-color: #16a34a; background: linear-gradient(135deg, rgba(220,252,231,.85), rgba(255,255,255,.92)); }
+
+/* Cabecera tarjeta */
+.bdp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bdp-head-left { flex: 1 1 0; min-width: 0; }
+.bdp-head-right { flex: 0 0 auto; text-align: right; }
+
+.bdp-nombres {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--primary);
+  margin: 0;
+  word-break: break-word;
+}
+.bdp-direccion {
+  font-size: .80rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+.bdp-valor-deuda {
+  font-family: 'Sora', sans-serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--primary);
+  line-height: 1;
+}
+.bdp-clasif-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: .68rem;
+  letter-spacing: .5px;
+  color: #fff;
+  margin-top: 4px;
+}
+.bdp-clasif-badge.ALTA  { background: linear-gradient(135deg,#dc2626,#b91c1c); }
+.bdp-clasif-badge.MEDIA { background: linear-gradient(135deg,#f97316,#ea580c); }
+.bdp-clasif-badge.BAJA  { background: linear-gradient(135deg,#16a34a,#15803d); }
+
+/* Fila datos secundarios */
+.bdp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 6px 12px;
+  font-size: .80rem;
+  color: var(--text-sub);
+}
+.bdp-grid > div { min-width: 0; overflow-wrap: break-word; }
+.bdp-grid b {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  display: block;
+  margin-bottom: 1px;
+}
+
+/* Pastilla ACTUACION */
+.bdp-actuacion {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: .72rem;
+  letter-spacing: .3px;
+  color: #fff;
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+.bdp-actuacion.act-NINGUNA              { background: linear-gradient(135deg,#9ca3af,#6b7280); }
+.bdp-actuacion.act-ACUERDO\ DE\ PAGO,
+.bdp-actuacion.act-ACUERDO_DE_PAGO      { background: linear-gradient(135deg,#16a34a,#15803d); }
+.bdp-actuacion.act-COBRO\ PERSUASIVO,
+.bdp-actuacion.act-COBRO_PERSUASIVO     { background: linear-gradient(135deg,#0ea5e9,#0284c7); }
+.bdp-actuacion.act-COBRO\ COACTIVO,
+.bdp-actuacion.act-COBRO_COACTIVO       { background: linear-gradient(135deg,#7c3aed,#5b21b6); }
+.bdp-actuacion.act-EMBARGO              { background: linear-gradient(135deg,#dc2626,#b91c1c); }
+.bdp-actuacion.act-DESEMBARGO           { background: linear-gradient(135deg,#0d9488,#0f766e); }
+.bdp-actuacion.act-LIQUIDACION\ OFICIAL,
+.bdp-actuacion.act-LIQUIDACION_OFICIAL  { background: linear-gradient(135deg,#f59e0b,#d97706); }
+.bdp-actuacion.act-MANDAMIENTO\ DE\ PAGO,
+.bdp-actuacion.act-MANDAMIENTO_DE_PAGO  { background: linear-gradient(135deg,#ef4444,#dc2626); }
+.bdp-actuacion.act-PRESCRIPCION         { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.bdp-actuacion.act-INSOLVENCIA          { background: linear-gradient(135deg,#1f2937,#111827); }
+
+/* Pastilla ESTADO PROCESO */
+.bdp-estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: .68rem;
+  letter-spacing: .4px;
+  color: #fff;
+}
+.bdp-estado.est-PENDIENTE { background: linear-gradient(135deg,#f97316,#ea580c); }
+.bdp-estado.est-AL-DIA    { background: linear-gradient(135deg,#16a34a,#15803d); }
+
+/* Acciones */
+.bdp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(6,64,43,.08);
+}
+.bdp-icon-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(6,64,43,.15);
+  background: rgba(255,255,255,.92);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .15s; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(6,64,43,.08);
+}
+.bdp-icon-btn:hover {
+  background: #fff;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6,64,43,.14);
+}
+.bdp-icon-btn img { width: 24px; height: 24px; object-fit: contain; }
+.bdp-icon-btn.danger-icon {
+  background: rgba(220,38,38,.06);
+  border-color: rgba(220,38,38,.30);
+}
+.bdp-icon-btn.danger-icon:hover {
+  background: rgba(220,38,38,.14);
+  border-color: rgba(220,38,38,.55);
+}
+
+/* Grid desktop */
+@media (min-width: 900px) {
+  #bdp-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .bdp-valor-deuda { font-size: 1rem; }
+  .bdp-nombres { font-size: .92rem; }
+}
