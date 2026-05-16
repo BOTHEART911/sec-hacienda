@@ -6137,6 +6137,7 @@ function esSustanciadorPredial_() {
 let __bdpListCache       = [];
 let __bdpFilterClasif    = 'ALL';
 let __bdpFilterActuacion = 'ALL';
+let __bdpFilterSustanciador = 'ALL'; 
 let __bdpFilterEstado    = 'ALL';
 let __bdpFilterMias      = false;
 let __bdpSelected        = null;
@@ -6176,6 +6177,7 @@ async function abrirBDPredial_() {
   /* Reset filtros */
   __bdpFilterClasif    = 'ALL';
   __bdpFilterActuacion = 'ALL';
+ __bdpFilterSustanciador = 'ALL';
   __bdpFilterEstado    = 'ALL';
   __bdpFilterMias      = false;
   __bdpSelected        = null;
@@ -6186,6 +6188,8 @@ async function abrirBDPredial_() {
   document.querySelectorAll('#bdp-pills-estado    .proc-status-pill').forEach(b => b.classList.remove('active'));
   document.querySelector('#bdp-pills-clasif    [data-clasif="ALL"]')?.classList.add('active');
   document.querySelector('#bdp-pills-actuacion [data-actuacion="ALL"]')?.classList.add('active');
+  document.querySelectorAll('#bdp-pills-sustanciador .proc-status-pill').forEach(b => b.classList.remove('active'));
+  document.querySelector('#bdp-pills-sustanciador [data-sustanciador="ALL"]')?.classList.add('active');
   document.querySelector('#bdp-pills-estado    [data-estado="ALL"]')?.classList.add('active');
   document.getElementById('bdp-pill-mias')?.classList.remove('active');
 
@@ -6253,6 +6257,11 @@ function applyBDPredialFilters_() {
   if (__bdpFilterActuacion !== 'ALL') {
     filtered = filtered.filter(r =>
       normalizeText_(r.actuacion || '') === __bdpFilterActuacion
+    );
+  }
+  if (__bdpFilterSustanciador !== 'ALL') {
+    filtered = filtered.filter(r =>
+      normalizeText_(r.sustanciador || '') === __bdpFilterSustanciador
     );
   }
   if (__bdpFilterEstado !== 'ALL') {
@@ -6439,6 +6448,17 @@ document.querySelectorAll('#bdp-pills-actuacion .proc-status-pill').forEach(btn 
     document.querySelectorAll('#bdp-pills-actuacion .proc-status-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     __bdpFilterActuacion = btn.dataset.actuacion || 'ALL';
+    applyBDPredialFilters_();
+  });
+});
+
+/* ── Pastillas filtro SUSTANCIADOR ─────────────────────── */
+document.querySelectorAll('#bdp-pills-sustanciador .proc-status-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    playSoundOnce(SOUNDS.menu);
+    document.querySelectorAll('#bdp-pills-sustanciador .proc-status-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    __bdpFilterSustanciador = normalizeText_(btn.dataset.sustanciador || 'ALL');
     applyBDPredialFilters_();
   });
 });
