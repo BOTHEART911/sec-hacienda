@@ -6642,10 +6642,10 @@ function bdpUpdateClasifPreview_() {
   const out = document.getElementById('bdp-clasif-preview');
   if (!out) return;
   let label = '', color = '';
-  if (v <= 0)                   { label = ''; color = ''; }
+   if (v <= 0)                   { label = ''; color = ''; }
   else if (v >= 10527174)       { label = 'ALTA';  color = '#dc2626'; }
-  else if (v <= 2671074)        { label = 'BAJA';  color = '#16a34a'; }
-  else                          { label = 'MEDIA'; color = '#f97316'; }
+  else if (v < 2671074)         { label = 'BAJA';  color = '#16a34a'; }
+  else                         { label = 'MEDIA'; color = '#f97316'; }
   out.innerHTML = label
     ? `Clasificación automática: <b style="color:${color};">${label}</b>`
     : '';
