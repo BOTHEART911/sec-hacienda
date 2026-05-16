@@ -6277,167 +6277,127 @@ function applyBDPredialFilters_() {
   renderBDPredial_(filtered);
 }
 
-/* ── Render de tarjetas (OPTIMIZADO - sin chat) ──────── */
+/* ── Render de tarjetas — PAGINADO (reemplaza la versión anterior) ── */
+let   __bdpFilteredCache = [];   // resultado actual de los filtros
+let   __bdpPage          = 0;    // página visible
+const __BDP_PAGE_SIZE    = 100;  // tarjetas por página
+
+/* Punto de entrada que ya usa applyBDPredialFilters_ — NO cambia su firma */
 function renderBDPredial_(items) {
-  const wrap = document.getElementById('bdp-list');
+  __bdpFilteredCache = Array.isArray(items) ? items : [];
+  __bdpPage = 0;
+  bdpPaintPage_();
+}
+
+/* Pinta SOLO la página actual (máx __BDP_PAGE_SIZE tarjetas en el DOM) */
+function bdpPaintPage_() {
+  const wrap    = document.getElementById('bdp-list');
   const countEl = document.getElementById('bdp-count');
   if (!wrap) return;
 
-  /* Vaciar de forma rápida */
-  wrap.textContent = '';
-  if (countEl) countEl.textContent = String(items.length);
+  const items = __bdpFilteredCache;
+  const total = items.length;
+  if (countEl) countEl.textContent = String(total);
 
-  if (!items.length) {
+  if (!total) {
     wrap.innerHTML = '<p class="muted center" style="grid-column:1/-1; margin-top:20px;">No hay expedientes que coincidan con los filtros.</p>';
     return;
   }
 
-  /* Permisos calculados UNA sola vez fuera del loop */
+  const totalPages = Math.ceil(total / __BDP_PAGE_SIZE);
+  if (__bdpPage > totalPages - 1) __bdpPage = totalPages - 1;
+  if (__bdpPage < 0)              __bdpPage = 0;
+
+  const start = __bdpPage * __BDP_PAGE_SIZE;
+  const slice = items.slice(start, start + __BDP_PAGE_SIZE);
+
   const puedeEliminar = canEliminarPredial_();
   const puedeDecision = canDecisionPredial_();
+  const pager = bdpPagerHTML_(__bdpPage, totalPages);
 
-  /* Render en DocumentFragment para evitar reflows intermedios */
-  const frag = document.createDocumentFragment();
-
-  for (const row of items) {
-    const clasif     = (row.clasificacion || 'BAJA').toUpperCase();
-    const actuacion  = (row.actuacion || 'NINGUNA').toUpperCase();
-    const estadoProc = (row.estado_proceso || 'PENDIENTE').toUpperCase();
-
-    const card = document.createElement('div');
-    card.className = 'bdp-card clasif-' + clasif;
-
-    /* HEAD */
-    const head = document.createElement('div');
-    head.className = 'bdp-head';
-
-    const headLeft = document.createElement('div');
-    headLeft.className = 'bdp-head-left';
-    headLeft.innerHTML = `
-      <p class="bdp-nombres">${escapeHtml_(row.nombres || '')}</p>
-      <p class="bdp-direccion">📍 ${escapeHtml_(row.direccion_predio || 'Sin dirección')}</p>
-    `;
-
-    const headRight = document.createElement('div');
-    headRight.className = 'bdp-head-right';
-    headRight.innerHTML = `
-      <div class="bdp-valor-deuda">${bdpFormatPesos_(row.valor_deuda)}</div>
-      <span class="bdp-clasif-badge ${clasif}">${clasif}</span>
-    `;
-
-    head.appendChild(headLeft);
-    head.appendChild(headRight);
-    card.appendChild(head);
-
-    /* GRID datos secundarios */
-    const grid = document.createElement('div');
-    grid.className = 'bdp-grid';
-    const fichaTxt = bdpCleanFicha_(row.ficha_catastral);
-    grid.innerHTML = `
-      <div><b>Ficha Catastral</b>${escapeHtml_(fichaTxt || '—')}</div>
-      <div><b>N° Exp. Físico</b>${escapeHtml_(row.no_exp_fisico || '—')}</div>
-      <div><b>Sustanciador</b>${escapeHtml_(row.sustanciador || '—')}</div>
-      <div><b>Asignador</b>${escapeHtml_(row.asignador || '—')}</div>
-      <div><b>Debe desde</b>${escapeHtml_(bdpFormatDebeDesde_(row.debe_desde))}</div>
-      <div><b>Deuda hasta</b>${escapeHtml_(bdpFormatDebeDesde_(row.deuda_hasta))}</div>
-    `;
-    card.appendChild(grid);
-
-    /* Pastillas actuación + estado */
-    const pillsRow = document.createElement('div');
-    pillsRow.style.cssText = 'display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:4px;';
-    pillsRow.innerHTML = `
-      <span class="bdp-actuacion act-${actuacion.replace(/\s+/g,'_')}">${escapeHtml_(actuacion)}</span>
-      <span class="bdp-estado est-${estadoProc.replace(/\s+/g,'-')}">${escapeHtml_(estadoProc)}</span>
-    `;
-    card.appendChild(pillsRow);
-
-    /* Acciones */
-    const actions = document.createElement('div');
-    actions.className = 'bdp-actions';
-
-    /* ❌ CHAT ELIMINADO — ya no se crea botón ni listener Firebase */
-
-    /* ELIMINAR */
-    if (puedeEliminar) {
-      const btnDel = _bdpMkBtn_(
-        'https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp',
-        'Eliminar expediente'
-      );
-      btnDel.classList.add('danger-icon');
-      btnDel.addEventListener('click', async () => {
-        const ok = await Swal.fire({
-          icon:'warning',
-          title:'¿Eliminar expediente?',
-          html:`<b>${escapeHtml_(row.nombres || row.id_predial)}</b><br>
-                <b>Exp. Físico:</b> ${escapeHtml_(row.no_exp_fisico || '')}<br><br>
-                Esta acción es irreversible.`,
-          showCancelButton:true,
-          confirmButtonText:'Eliminar',
-          cancelButtonText:'Cancelar',
-          confirmButtonColor:'#dc2626'
-        });
-        if (!ok.isConfirmed) return;
-        try {
-          await apiPost('eliminarpredial', { id_predial: row.id_predial });
-          playSoundOnce(SOUNDS.success);
-          await loadBDPredial_();
-          Swal.fire({ icon:'success', title:'Eliminado', timer:1400, showConfirmButton:false });
-        } catch (e) {
-          Swal.fire({ icon:'error', title:'Error', text:String(e.message||e) });
-        }
-      });
-      actions.appendChild(btnDel);
-    }
-
-    /* VER */
-    const btnVer = _bdpMkBtn_(
-      'https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png',
-      'Ver detalles'
-    );
-    btnVer.addEventListener('click', () => {
-      playSoundOnce(SOUNDS.menu);
-      __bdpSelected = row;
-      abrirBDPDetalle_(row);
-    });
-    actions.appendChild(btnVer);
-
-    /* EDITAR */
-    const btnEdit = _bdpMkBtn_(
-      'https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp',
-      'Editar expediente'
-    );
-    btnEdit.addEventListener('click', () => {
-      playSoundOnce(SOUNDS.menu);
-      __bdpSelected = row;
-      abrirBDPEditar_(row);
-    });
-    actions.appendChild(btnEdit);
-
-    /* DECISIÓN */
-    if (puedeDecision) {
-      const btnDec = _bdpMkBtn_(
-        'https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp',
-        'Decisión (cambiar Actuación)'
-      );
-      btnDec.style.background = 'linear-gradient(135deg,#0a7a46,#06402B)';
-      btnDec.querySelector('img').style.filter = 'brightness(0) invert(1)';
-      btnDec.addEventListener('click', () => {
-        playSoundOnce(SOUNDS.menu);
-        __bdpSelected = row;
-        abrirBDPDecision_(row);
-      });
-      actions.appendChild(btnDec);
-    }
-
-    card.appendChild(actions);
-    frag.appendChild(card);
+  /* Toda la página como UN solo string → un único innerHTML */
+  let html = pager;
+  for (let i = 0; i < slice.length; i++) {
+    html += bdpCardHTML_(slice[i], start + i, puedeEliminar, puedeDecision);
   }
-
-  /* UNA sola inserción al DOM */
-  wrap.appendChild(frag);
+  html += pager;
+  wrap.innerHTML = html;
 }
 
+/* Tarjeta como string (sin createElement ni addEventListener por tarjeta) */
+function bdpCardHTML_(row, idx, puedeEliminar, puedeDecision) {
+  const clasif     = (row.clasificacion  || 'BAJA').toUpperCase();
+  const actuacion  = (row.actuacion      || 'NINGUNA').toUpperCase();
+  const estadoProc = (row.estado_proceso || 'PENDIENTE').toUpperCase();
+  const fichaTxt   = bdpCleanFicha_(row.ficha_catastral);
+
+  let acciones = '';
+  if (puedeEliminar) {
+    acciones +=
+      '<button type="button" class="bdp-icon-btn danger-icon" data-bdp-act="eliminar" title="Eliminar expediente">' +
+      '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775788435/Eliminar_jcmwso.webp" alt="Eliminar"></button>';
+  }
+  acciones +=
+    '<button type="button" class="bdp-icon-btn" data-bdp-act="ver" title="Ver detalles">' +
+    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Ver"></button>' +
+    '<button type="button" class="bdp-icon-btn" data-bdp-act="editar" title="Editar expediente">' +
+    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp" alt="Editar"></button>';
+  if (puedeDecision) {
+    acciones +=
+      '<button type="button" class="bdp-icon-btn" data-bdp-act="decision" title="Decisión (cambiar Actuación)" ' +
+      'style="background:linear-gradient(135deg,#0a7a46,#06402B);">' +
+      '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp" alt="Decisión" ' +
+      'style="filter:brightness(0) invert(1);"></button>';
+  }
+
+  return (
+    '<div class="bdp-card clasif-' + clasif + '" data-bdp-idx="' + idx + '">' +
+      '<div class="bdp-head">' +
+        '<div class="bdp-head-left">' +
+          '<p class="bdp-nombres">' + escapeHtml_(row.nombres || '') + '</p>' +
+          '<p class="bdp-direccion">📍 ' + escapeHtml_(row.direccion_predio || 'Sin dirección') + '</p>' +
+        '</div>' +
+        '<div class="bdp-head-right">' +
+          '<div class="bdp-valor-deuda">' + bdpFormatPesos_(row.valor_deuda) + '</div>' +
+          '<span class="bdp-clasif-badge ' + clasif + '">' + clasif + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="bdp-grid">' +
+        '<div><b>Ficha Catastral</b>' + escapeHtml_(fichaTxt || '—') + '</div>' +
+        '<div><b>N° Exp. Físico</b>' + escapeHtml_(row.no_exp_fisico || '—') + '</div>' +
+        '<div><b>Sustanciador</b>'  + escapeHtml_(row.sustanciador || '—') + '</div>' +
+        '<div><b>Asignador</b>'     + escapeHtml_(row.asignador || '—') + '</div>' +
+        '<div><b>Debe desde</b>'    + escapeHtml_(bdpFormatDebeDesde_(row.debe_desde)) + '</div>' +
+        '<div><b>Deuda hasta</b>'   + escapeHtml_(bdpFormatDebeDesde_(row.deuda_hasta)) + '</div>' +
+      '</div>' +
+      '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:4px;">' +
+        '<span class="bdp-actuacion act-' + actuacion.replace(/\s+/g,'_') + '">' + escapeHtml_(actuacion) + '</span>' +
+        '<span class="bdp-estado est-'    + estadoProc.replace(/\s+/g,'-') + '">' + escapeHtml_(estadoProc) + '</span>' +
+      '</div>' +
+      '<div class="bdp-actions">' + acciones + '</div>' +
+    '</div>'
+  );
+}
+
+/* Paginador (reutiliza .estad-pager-btn que YA existe en styles.css) */
+function bdpPagerHTML_(page, totalPages) {
+  if (totalPages <= 1) return '';
+  const b = (p, label, disabled) =>
+    '<button type="button" class="estad-pager-btn" data-bdp-page="' + p + '"' +
+    (disabled ? ' disabled' : '') + '>' + label + '</button>';
+  return (
+    '<div style="grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;' +
+    'justify-content:center;align-items:center;margin:6px 0;">' +
+      b(0, '« Primera', page === 0) +
+      b(page - 1, '‹ Ant.', page === 0) +
+      '<span style="font-weight:800;color:var(--primary);font-size:.82rem;padding:0 8px;">' +
+        'Página ' + (page + 1) + ' / ' + totalPages +
+      '</span>' +
+      b(page + 1, 'Sig. ›', page >= totalPages - 1) +
+      b(totalPages - 1, 'Última »', page >= totalPages - 1) +
+    '</div>'
+  );
+}
 
 function _bdpMkBtn_(src, title) {
   const btn = document.createElement('button');
@@ -6509,6 +6469,73 @@ let __bdpFilterTimer = null;
 document.getElementById('bdp-filter')?.addEventListener('input', () => {
   clearTimeout(__bdpFilterTimer);
    __bdpFilterTimer = setTimeout(applyBDPredialFilters_, 350);
+});
+
+/* ── Delegación de eventos BD Predial (UN solo listener, se registra 1 vez) ── */
+document.getElementById('bdp-list')?.addEventListener('click', async (e) => {
+
+  /* Paginador */
+  const pageBtn = e.target.closest('[data-bdp-page]');
+  if (pageBtn) {
+    if (pageBtn.disabled) return;
+    playSoundOnce(SOUNDS.menu);
+    __bdpPage = Number(pageBtn.dataset.bdpPage) || 0;
+    bdpPaintPage_();
+    document.getElementById('bdp-list')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    return;
+  }
+
+  /* Acciones de tarjeta */
+  const actBtn = e.target.closest('[data-bdp-act]');
+  if (!actBtn) return;
+  const cardEl = e.target.closest('[data-bdp-idx]');
+  if (!cardEl) return;
+  const row = __bdpFilteredCache[Number(cardEl.dataset.bdpIdx)];
+  if (!row) return;
+
+  const act = actBtn.dataset.bdpAct;
+
+  if (act === 'ver') {
+    playSoundOnce(SOUNDS.menu);
+    __bdpSelected = row;
+    abrirBDPDetalle_(row);
+    return;
+  }
+  if (act === 'editar') {
+    playSoundOnce(SOUNDS.menu);
+    __bdpSelected = row;
+    abrirBDPEditar_(row);
+    return;
+  }
+  if (act === 'decision') {
+    playSoundOnce(SOUNDS.menu);
+    __bdpSelected = row;
+    abrirBDPDecision_(row);
+    return;
+  }
+  if (act === 'eliminar') {
+    const ok = await Swal.fire({
+      icon:'warning',
+      title:'¿Eliminar expediente?',
+      html:'<b>' + escapeHtml_(row.nombres || row.id_predial) + '</b><br>' +
+           '<b>Exp. Físico:</b> ' + escapeHtml_(row.no_exp_fisico || '') + '<br><br>' +
+           'Esta acción es irreversible.',
+      showCancelButton:true,
+      confirmButtonText:'Eliminar',
+      cancelButtonText:'Cancelar',
+      confirmButtonColor:'#dc2626'
+    });
+    if (!ok.isConfirmed) return;
+    try {
+      await apiPost('eliminarpredial', { id_predial: row.id_predial });
+      playSoundOnce(SOUNDS.success);
+      await loadBDPredial_();
+      Swal.fire({ icon:'success', title:'Eliminado', timer:1400, showConfirmButton:false });
+    } catch (err) {
+      Swal.fire({ icon:'error', title:'Error', text:String(err.message || err) });
+    }
+    return;
+  }
 });
 
 /* ── MIS EXPEDIENTES (columna I de USUARIOS) ───────────── */
