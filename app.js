@@ -7472,7 +7472,7 @@ function bdppRenderResumen_() {
   const rows = __bdppData;
   const total = rows.length;
   const totalDeuda = rows.reduce((a, r) => a + (Number(r.valor_deuda) || 0), 0);
-  const pend = rows.filter(r => normalizeText_(r.estado_proceso||'') === 'PENDIENTE').length;
+  const sinEstado = rows.filter(r => normalizeText_(r.estado_proceso||'') === 'NINGUNO').length;
   const alDia = rows.filter(r => normalizeText_(r.estado_proceso||'') === 'AL DIA').length;
   const altas = rows.filter(r => normalizeText_(r.clasificacion||'') === 'ALTA').length;
   const promDeuda = total > 0 ? Math.round(totalDeuda / total) : 0;
@@ -7486,7 +7486,7 @@ function bdppRenderResumen_() {
       { value: bdppFmtPesosCorto_(totalDeuda), label:'Cartera Total', sub:'monto adeudado',   cls:'kpi-blue' },
       { value: bdppFmtPesosCorto_(promDeuda),  label:'Deuda Promedio', sub:'por expediente',  cls:'' },
       { value: altas,                  label:'Clasif. ALTA',      sub:'requieren prioridad',  cls:'kpi-rojo' },
-      { value: pend,                   label:'Pendientes',        sub:'estado del proceso',   cls:'kpi-naranja' },
+      { value: sinEstado,              label:'Sin Estado',        sub:'estado del proceso',   cls:'kpi-naranja' },
       { value: alDia,                  label:'Al Día',            sub:'estado del proceso',   cls:'kpi-verde' }
     ].forEach(k => {
       const vs = String(k.value);
@@ -7527,7 +7527,14 @@ function bdppRenderResumen_() {
     const map = bdppGroupCount_(rows, 'estado_proceso');
     const labels = Object.keys(map);
     const data   = labels.map(k => map[k]);
-    const colors = labels.map(k => k === 'PENDIENTE' ? BDPP_COLORS.PEND : k === 'AL DIA' ? BDPP_COLORS.ALDIA : '#6b7280');
+    const colors = labels.map(k => {
+      const key = normalizeText_(k);
+      if (key === 'AL DIA')                          return '#16a34a';
+      if (key === 'ACUERDO DE PAGO')                 return '#15803d';
+      if (key === 'COBRO PERSUASIVO/LIQUIDACION')    return '#0284c7';
+      if (key === 'COBRO COACTIVO')                  return '#7c3aed';
+      return '#9ca3af'; // NINGUNO y otros
+    });
 
     __bdppCharts['estado'] = new Chart(ctxE, {
       type: 'doughnut',
@@ -7673,28 +7680,28 @@ function bdppRenderActuaciones_() {
   const sumActuacion   = bdppGroupSum_(rows, 'actuacion', 'valor_deuda');
 
   /* Orden lógico de actuaciones */
-  const ORDER = ['NINGUNA','ACUERDO DE PAGO','COBRO PERSUASIVO','COBRO COACTIVO',
-                 'EMBARGO','DESEMBARGO','LIQUIDACION OFICIAL','MANDAMIENTO DE PAGO',
-                 'PRESCRIPCION','INSOLVENCIA'];
+const ORDER = ['NINGUNA','COMUNICACION PERSUASIVA','LIQUIDACION OFICIAL',
+                 'MANDAMIENTO DE PAGO','EMBARGO','SENTENCIA','DESEMBARGO',
+                 'INSOLVENCIA','PRESCRIPCION','REVOCATORIA DIRECTA'];
 
   const sinActuacion = countActuacion['NINGUNA'] || 0;
-  const cobrando = (countActuacion['COBRO PERSUASIVO'] || 0) +
-                   (countActuacion['COBRO COACTIVO']   || 0);
-  const acuerdos = countActuacion['ACUERDO DE PAGO'] || 0;
-  const embargos = countActuacion['EMBARGO'] || 0;
-  const mandam   = countActuacion['MANDAMIENTO DE PAGO'] || 0;
+  const persuasiva   = countActuacion['COMUNICACION PERSUASIVA'] || 0;
+  const liquidacion  = countActuacion['LIQUIDACION OFICIAL'] || 0;
+  const embargos     = countActuacion['EMBARGO'] || 0;
+  const mandam       = countActuacion['MANDAMIENTO DE PAGO'] || 0;
 
   /* KPIs */
   const kpiWrap = document.getElementById('bdpp-kpis-actuaciones');
   if (kpiWrap) {
     kpiWrap.innerHTML = '';
     [
-      { value: rows.length,    label:'Total Expedientes', sub:'todos',                 cls:'' },
-      { value: sinActuacion,   label:'Sin Actuación',     sub:'requieren primer paso', cls:'kpi-rojo' },
-      { value: cobrando,       label:'En Cobro',          sub:'persuasivo + coactivo', cls:'kpi-naranja' },
-      { value: acuerdos,       label:'Acuerdos de Pago',  sub:'expedientes',           cls:'kpi-verde' },
-      { value: embargos,       label:'Embargos',          sub:'medidas cautelares',    cls:'kpi-rojo' },
-      { value: mandam,         label:'Mandam. de Pago',   sub:'expedientes',           cls:'kpi-blue' }
+  [
+      { value: rows.length,    label:'Total Expedientes',  sub:'todos',                 cls:'' },
+      { value: sinActuacion,   label:'Sin Actuación',      sub:'requieren primer paso', cls:'kpi-rojo' },
+      { value: persuasiva,     label:'Comunic. Persuasiva',sub:'expedientes',           cls:'kpi-naranja' },
+      { value: liquidacion,    label:'Liquid. Oficial',    sub:'expedientes',           cls:'kpi-blue' },
+      { value: embargos,       label:'Embargos',           sub:'medidas cautelares',    cls:'kpi-rojo' },
+      { value: mandam,         label:'Mandam. de Pago',    sub:'expedientes',           cls:'kpi-blue' }
     ].forEach(k => {
       const el = document.createElement('div');
       el.className = 'kpi-card ' + k.cls;
@@ -7796,8 +7803,8 @@ function bdppRenderEquipo_() {
     bySust[n].total++;
     bySust[n].monto += Number(r.valor_deuda) || 0;
     const est = normalizeText_(r.estado_proceso || '');
-    if (est === 'PENDIENTE') bySust[n].pend++;
-    if (est === 'AL DIA')    bySust[n].alDia++;
+    if (est === 'NINGUNO') bySust[n].pend++;
+    if (est === 'AL DIA')  bySust[n].alDia++;
     const cla = normalizeText_(r.clasificacion || '');
     if (cla === 'ALTA')  bySust[n].alta++;
     if (cla === 'MEDIA') bySust[n].media++;
@@ -7853,7 +7860,7 @@ function bdppRenderEquipo_() {
         if (s.alta)  parts.push(`<span style="color:#dc2626;font-weight:800;">ALTA: ${s.alta}</span>`);
         if (s.media) parts.push(`<span style="color:#f97316;font-weight:800;">MEDIA: ${s.media}</span>`);
         if (s.baja)  parts.push(`<span style="color:#16a34a;font-weight:800;">BAJA: ${s.baja}</span>`);
-        if (s.pend)  parts.push(`<span style="color:#f97316;">Pend: ${s.pend}</span>`);
+       if (s.pend)  parts.push(`<span style="color:#f97316;">Sin estado: ${s.pend}</span>`);
         if (s.alDia) parts.push(`<span style="color:#16a34a;">Al día: ${s.alDia}</span>`);
 
         const item = document.createElement('div');
