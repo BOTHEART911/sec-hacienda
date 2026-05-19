@@ -6832,7 +6832,7 @@ __bdpFormMode = 'add';
   document.getElementById('bdp-estado-proceso').value = 'PENDIENTE';
   ['notif-citacion','notif-electr','notif-personal','notif-aviso','publicacion-web','mandam-pago']
     .forEach(k => { const el = document.getElementById('bdp-'+k); if (el) el.value = 'NO'; });
-  document.getElementById('bdp-sustanciador').value = '';
+  document.getElementById('bdp-sustanciador').value = 'NINGUNO';
   document.getElementById('bdp-exp-letra').value    = '';
 
   /* Deuda hasta automática */
