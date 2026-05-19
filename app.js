@@ -6759,7 +6759,7 @@ function abrirBDPFecha_(target) {
       dSel.appendChild(o);
     }
   }
-  if (mSel && !mSel.childElementCount) {
+if (mSel && !mSel.childElementCount) {
     const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     meses.forEach((nm, i) => {
@@ -6769,6 +6769,16 @@ function abrirBDPFecha_(target) {
       mSel.appendChild(o);
     });
   }
+  const ySel = document.getElementById('bdp-pick-anio');
+  if (ySel && !ySel.childElementCount) {
+    const anioActual = new Date().getFullYear();
+    for (let y = anioActual; y >= 2010; y--) {
+      const o = document.createElement('option');
+      o.value = String(y);
+      o.textContent = String(y);
+      ySel.appendChild(o);
+    }
+  }
   document.getElementById('bdp-fecha-modal').classList.add('open');
   document.getElementById('bdp-fecha-modal').setAttribute('aria-hidden', 'false');
 }
@@ -6777,9 +6787,10 @@ function cancelarBDPFecha() {
   document.getElementById('bdp-fecha-modal').setAttribute('aria-hidden', 'true');
 }
 function confirmarBDPFecha() {
-  const d = document.getElementById('bdp-pick-dia')?.value || '01';
+ const d = document.getElementById('bdp-pick-dia')?.value || '01';
   const m = document.getElementById('bdp-pick-mes')?.value || '01';
-  const val = `${d}/${m}/2026`;
+  const y = document.getElementById('bdp-pick-anio')?.value || String(new Date().getFullYear());
+  const val = `${d}/${m}/${y}`;
   const map = {
     'fecha-oficio-persuas': 'bdp-fecha-oficio-persuas',
     'fecha-entrega':        'bdp-fecha-entrega',
