@@ -1342,12 +1342,13 @@
 <div id="bdp-pills-actuacion" class="proc-status-filter">
       <button type="button" class="proc-status-pill active" data-actuacion="ALL">TODAS</button>
       <button type="button" class="proc-status-pill" data-actuacion="NINGUNA">NINGUNA</button>
-      <button type="button" class="proc-status-pill" data-actuacion="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</button>
-      <button type="button" class="proc-status-pill" data-actuacion="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</button>
+      <button type="button" class="proc-status-pill" data-actuacion="COMUNICACION PERSUASIVA">COMUNICACION PERSUASIVA</button>
+      <button type="button" class="proc-status-pill" data-actuacion="LIQUIDACION OFICIAL">LIQUIDACION OFICIAL</button>
       <button type="button" class="proc-status-pill" data-actuacion="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</button>
       <button type="button" class="proc-status-pill" data-actuacion="EMBARGO">EMBARGO</button>
       <button type="button" class="proc-status-pill" data-actuacion="SENTENCIA">SENTENCIA</button>
       <button type="button" class="proc-status-pill" data-actuacion="DESEMBARGO">DESEMBARGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="REVOCATORIA DIRECTA">REVOCATORIA DIRECTA</button>
       <button type="button" class="proc-status-pill" data-actuacion="INSOLVENCIA">INSOLVENCIA</button>
       <button type="button" class="proc-status-pill" data-actuacion="PRESCRIPCION">PRESCRIPCIÓN</button>
     </div>
@@ -1372,7 +1373,7 @@
       <button type="button" class="proc-status-pill" data-estado="ACUERDO DE PAGO">ACUERDO DE PAGO</button>
       <button type="button" class="proc-status-pill" data-estado="COBRO PERSUASIVO/LIQUIDACION">COBRO PERSUASIVO/LIQUIDACIÓN</button>
       <button type="button" class="proc-status-pill" data-estado="COBRO COACTIVO">COBRO COACTIVO</button>
-      <button type="button" class="proc-status-pill" data-estado="AL DIA">AL DÍA</button>
+      <button type="button" class="proc-status-pill" data-estado="AL DIA">AL DIA</button>
     </div>
 
     <!-- Pastilla "Solo las mías" (solo aparece si el usuario es sustanciador) -->
@@ -1498,21 +1499,22 @@
     <label>Actuación <span style="color:#dc2626;">*</span></label>
     <select id="bdp-actuacion">
       <option value="NINGUNA" selected>NINGUNA</option>
-      <option value="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</option>
-      <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
+      <option value="COMUNICACION PERSUASIVA">COMUNICACION PERSUASIVA</option>
+      <option value="LIQUIDACION OFICIAL">LIQUIDACION OFICIAL</option>
       <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
       <option value="EMBARGO">EMBARGO</option>
       <option value="SENTENCIA">SENTENCIA</option>
       <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="REVOCATORIA DIRECTA">REVOCATORIA DIRECTA</option>
       <option value="INSOLVENCIA">INSOLVENCIA</option>
-      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="PRESCRIPCION">PRESCRIPCION</option>
     </select>
 
     <label>Estado del Proceso <span style="color:#dc2626;">*</span></label>
     <select id="bdp-estado-proceso">
       <option value="NINGUNO" selected>NINGUNO</option>
       <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
-      <option value="COBRO PERSUASIVO/LIQUIDACION">COBRO PERSUASIVO/LIQUIDACIÓN</option>
+      <option value="COBRO PERSUASIVO/LIQUIDACION">COBRO PERSUASIVO/LIQUIDACION</option>
       <option value="COBRO COACTIVO">COBRO COACTIVO</option>
       <option value="AL DIA">AL DÍA</option>
     </select>
@@ -1614,14 +1616,15 @@
 <label>Nueva Actuación</label>
     <select id="bdp-dec-actuacion">
       <option value="NINGUNA">NINGUNA</option>
-      <option value="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</option>
-      <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
+      <option value="COMUNICACION PERSUASIVA">COMUNICACION PERSUASIVA</option>
+      <option value="LIQUIDACION OFICIAL">LIQUIDACION OFICIAL</option>
       <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
       <option value="EMBARGO">EMBARGO</option>
       <option value="SENTENCIA">SENTENCIA</option>
       <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="REVOCATORIA DIRECTA">REVOCATORIA DIRECTA</option>
       <option value="INSOLVENCIA">INSOLVENCIA</option>
-      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="PRESCRIPCION">PRESCRIPCION</option>
     </select>
 
     <div class="btn-row" style="margin-top:14px;">
