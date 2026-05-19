@@ -6379,9 +6379,15 @@ function bdpCardHTML_(row, idx, puedeEliminar, puedeDecision) {
         '<div><b>Debe desde</b>'    + escapeHtml_(bdpFormatDebeDesde_(row.debe_desde)) + '</div>' +
         '<div><b>Deuda hasta</b>'   + escapeHtml_(bdpFormatDebeDesde_(row.deuda_hasta)) + '</div>' +
       '</div>' +
-      '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:4px;">' +
-        '<span class="bdp-actuacion act-' + actuacion.replace(/\s+/g,'_') + '">' + escapeHtml_(actuacion) + '</span>' +
-        '<span class="bdp-estado est-'    + estadoProc.replace(/\s+/g,'-') + '">' + escapeHtml_(estadoProc) + '</span>' +
+   '<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; margin-top:4px;">' +
+        '<div style="display:flex; flex-direction:column; gap:2px;">' +
+          '<span class="bdp-pill-label">Actuación</span>' +
+          '<span class="bdp-actuacion act-' + actuacion.replace(/\s+/g,'_') + '">' + escapeHtml_(actuacion) + '</span>' +
+        '</div>' +
+        '<div style="display:flex; flex-direction:column; gap:2px;">' +
+          '<span class="bdp-pill-label">Estado</span>' +
+          '<span class="bdp-estado est-'    + estadoProc.replace(/\s+/g,'-') + '">' + escapeHtml_(estadoProc) + '</span>' +
+        '</div>' +
       '</div>' +
       '<div class="bdp-actions">' + acciones + '</div>' +
     '</div>'
@@ -7959,6 +7965,147 @@ function bdppDoughnutOpts_() {
     playSoundOnce(SOUNDS.back);
     abrirBDPPanel_();
   });
+})();
+
+
+     /* ============================================================
+   PAGINACIÓN — 100 tarjetas por página
+   ASIGNACIONES + ATENCIONES REGISTRADAS
+   (misma lógica de BASE DE DATOS PREDIAL)
+   ============================================================ */
+
+/* Helper genérico: construye el paginador */
+function buildGenericPager_(totalPages, pageActual, onGoToPage) {
+  const pager = document.createElement('div');
+  pager.style.cssText =
+    'grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;' +
+    'justify-content:center;align-items:center;margin:6px 0;';
+
+  const mkBtn = (page, label, disabled) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'estad-pager-btn';
+    b.textContent = label;
+    b.disabled = disabled;
+    if (!disabled) {
+      b.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.menu);
+        onGoToPage(page);
+      });
+    }
+    return b;
+  };
+
+  pager.appendChild(mkBtn(0, '« Primera', pageActual === 0));
+  pager.appendChild(mkBtn(pageActual - 1, '‹ Ant.', pageActual === 0));
+
+  const lbl = document.createElement('span');
+  lbl.style.cssText =
+    'font-weight:800;color:var(--primary);font-size:.82rem;padding:0 8px;';
+  lbl.textContent = 'Página ' + (pageActual + 1) + ' / ' + totalPages;
+  pager.appendChild(lbl);
+
+  pager.appendChild(mkBtn(pageActual + 1, 'Sig. ›', pageActual >= totalPages - 1));
+  pager.appendChild(mkBtn(totalPages - 1, 'Última »', pageActual >= totalPages - 1));
+
+  return pager;
+}
+
+/* ════════ AJUSTE 1 — PAGINACIÓN ASIGNACIONES ════════ */
+const __PROC_PAGE_SIZE = 100;
+let   __procPagedCache = [];
+let   __procPage       = 0;
+
+(function patchProcPagination_() {
+  // Captura la versión ACTUAL de renderProcList_ (con chat + expediente)
+  const __innerRenderProc = renderProcList_;
+
+  function procPaintPage_() {
+    const wrap = document.getElementById('proc-list');
+    if (!wrap) return;
+
+    const items      = __procPagedCache;
+    const total      = items.length;
+    const totalPages = Math.max(1, Math.ceil(total / __PROC_PAGE_SIZE));
+
+    if (__procPage > totalPages - 1) __procPage = totalPages - 1;
+    if (__procPage < 0)              __procPage = 0;
+
+    const start = __procPage * __PROC_PAGE_SIZE;
+    const slice = items.slice(start, start + __PROC_PAGE_SIZE);
+
+    // Renderiza SOLO la página actual (tarjetas + listeners + chat/expediente)
+    __innerRenderProc(slice);
+
+    // El contador refleja el TOTAL, no solo la página
+    const countEl = document.getElementById('proc-count');
+    if (countEl) countEl.textContent = String(total);
+
+    // Paginador arriba y abajo
+    if (totalPages > 1) {
+      const goTo = (p) => {
+        __procPage = p;
+        procPaintPage_();
+        document.getElementById('proc-list')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      wrap.insertBefore(buildGenericPager_(totalPages, __procPage, goTo), wrap.firstChild);
+      wrap.appendChild(buildGenericPager_(totalPages, __procPage, goTo));
+    }
+  }
+
+  // Nuevo renderProcList_ paginado
+  renderProcList_ = function(items) {
+    __procPagedCache = Array.isArray(items) ? items : [];
+    __procPage = 0;
+    procPaintPage_();
+  };
+})();
+
+/* ════════ AJUSTE 2 — PAGINACIÓN ATENCIONES REGISTRADAS ════════ */
+const __ATENC_PAGE_SIZE = 100;
+let   __atencPagedCache = [];
+let   __atencPage       = 0;
+
+(function patchAtencionesPagination_() {
+  const __innerRenderAtenc = renderAtenciones_;
+
+  function atencPaintPage_() {
+    const wrap = document.getElementById('atenc-wrap');
+    if (!wrap) return;
+
+    const items      = __atencPagedCache;
+    const total      = items.length;
+    const totalPages = Math.max(1, Math.ceil(total / __ATENC_PAGE_SIZE));
+
+    if (__atencPage > totalPages - 1) __atencPage = totalPages - 1;
+    if (__atencPage < 0)              __atencPage = 0;
+
+    const start = __atencPage * __ATENC_PAGE_SIZE;
+    const slice = items.slice(start, start + __ATENC_PAGE_SIZE);
+
+    __innerRenderAtenc(slice);
+
+    const countEl = document.getElementById('atenc-count');
+    if (countEl) countEl.textContent = String(total);
+
+    if (totalPages > 1) {
+      const goTo = (p) => {
+        __atencPage = p;
+        atencPaintPage_();
+        document.getElementById('atenc-wrap')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      wrap.insertBefore(buildGenericPager_(totalPages, __atencPage, goTo), wrap.firstChild);
+      wrap.appendChild(buildGenericPager_(totalPages, __atencPage, goTo));
+    }
+  }
+
+  renderAtenciones_ = function(items) {
+    __atencPagedCache = Array.isArray(items) ? items : [];
+    __atencPage = 0;
+    atencPaintPage_();
+  };
 })();
 
 /* ================== AUTO-ACTUALIZACIÓN (version.json) ================== */
