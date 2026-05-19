@@ -2512,6 +2512,7 @@ button:active { transform: translateY(0) scale(.98); }
 .bdp-actuacion.act-INSOLVENCIA          { background: linear-gradient(135deg,#1f2937,#111827); }
 .bdp-actuacion.act-COMUNICACION_PERSUASIVA { background: linear-gradient(135deg,#0ea5e9,#0284c7); }
 .bdp-actuacion.act-SENTENCIA               { background: linear-gradient(135deg,#1e40af,#1d4ed8); }
+.bdp-actuacion.act-REVOCATORIA_DIRECTA { background: linear-gradient(135deg,#be185d,#9d174d); }
 
 /* Pastilla ESTADO PROCESO */
 .bdp-estado {
