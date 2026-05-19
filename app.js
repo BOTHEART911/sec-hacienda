@@ -3010,6 +3010,7 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
     const _bitTextarea = (document.getElementById('edit-bitacora')?.value || '').trim();
     const _bitOriginal = String(window.__bitacoraOriginal || '').trim();
     const _nombreUser  = String(currentUser?.nombre || '').toUpperCase();
+    const _hoy         = formatDDMMYYYY_(new Date());
 
     if (!_bitTextarea) {
       payload.bitacora = '';
@@ -3020,13 +3021,13 @@ document.getElementById('btn-edit-asig-guardar')?.addEventListener('click', asyn
       // Se agregó texto al final
       const _nuevoTexto = _bitTextarea.slice(_bitOriginal.length).trim();
       payload.bitacora = _nuevoTexto
-        ? _bitOriginal + '\n' + _nombreUser + ': ' + _nuevoTexto
+        ? _bitOriginal + '\n' + _nombreUser + ' ' + _hoy + ': ' + _nuevoTexto
         : _bitOriginal;
     } else {
       // Bitácora vacía o reescrita totalmente → tratar todo como entrada nueva
-      payload.bitacora = _nombreUser + ': ' + _bitTextarea;
+      payload.bitacora = _nombreUser + ' ' + _hoy + ': ' + _bitTextarea;
     }
-  payload.etapa        = document.getElementById('edit-etapa')?.value        || '';
+ payload.etapa        = document.getElementById('edit-etapa')?.value        || '';
 
   // Archivos de respuesta: solo permitidos si estado es EN PROYECCIÓN o super
   const estadoActual = String(row.estado || '').toUpperCase();
@@ -6121,8 +6122,20 @@ function canSeeBDPredial_() {
          ASISTENTES_PREDIAL.includes(n);
 }
 
+const EDITORES_PREDIAL_TOTAL = [
+  'DIEGO FERNANDO GARCIA',
+  'OSCAR MAURICIO POLANIA GUERRA',
+  'ANDREA KATERINE LAMAR RODRIGUEZ'
+].map(s => normalizeText_(s));
+
+function canEditarTodoPredial_() {
+  if (!currentUser) return false;
+  if (currentUser.isSuper) return true;
+  return EDITORES_PREDIAL_TOTAL.includes(normalizeText_(currentUser.nombre || ''));
+}
+
 function canAgregarPredial_()   { return !!(currentUser && currentUser.isSuper); }
-function canEditarPredial_()    { return !!(currentUser && currentUser.isSuper); }
+function canEditarPredial_()    { return canEditarTodoPredial_(); }
 function canEliminarPredial_()  { return !!(currentUser && currentUser.isSuper); }
 function canDecisionPredial_()  { return !!(currentUser && currentUser.isSuper); }
 function canVerPanelPredial_()  { return !!(currentUser && currentUser.isSuper); }
@@ -6787,8 +6800,9 @@ function abrirBDPAgregar_() {
     Swal.fire({ icon:'warning', title:'Sin permiso' });
     return;
   }
-  __bdpFormMode = 'add';
+__bdpFormMode = 'add';
   __bdpFormRow  = null;
+  window.__bdpBitacoraOriginal = '';
   document.getElementById('bdp-form-title').textContent = 'AGREGAR EXPEDIENTE';
   document.getElementById('bdp-form-badge').innerHTML = '';
 
@@ -6837,6 +6851,7 @@ function abrirBDPEditar_(row) {
   }
   __bdpFormMode = 'edit';
   __bdpFormRow  = row;
+  window.__bdpBitacoraOriginal = row.bitacora || '';
 
   document.getElementById('bdp-form-title').textContent = 'EDITAR EXPEDIENTE';
   document.getElementById('bdp-form-badge').innerHTML =
@@ -6867,8 +6882,8 @@ function abrirBDPEditar_(row) {
   bdpUpdateClasifPreview_();
 
   /* Separar letra y número del exp físico */
-  const exp = String(row.no_exp_fisico || '').toUpperCase();
-  const mExp = exp.match(/^([A-Z])(\d{4})$/);
+ const exp = String(row.no_exp_fisico || '').toUpperCase();
+  const mExp = exp.match(/^([A-Z])-?(\d{4})$/);
   document.getElementById('bdp-exp-letra').value  = mExp ? mExp[1] : '';
   document.getElementById('bdp-exp-numero').value = mExp ? mExp[2] : '';
 
@@ -6901,7 +6916,7 @@ function abrirBDPEditar_(row) {
 
   /* Permisos: solo super edita todo. Usuario normal solo bitácora+actuación
      (en este momento solo super puede llegar aquí, pero dejamos el control listo) */
-  const esSuper = !!currentUser?.isSuper;
+const esSuper = canEditarTodoPredial_();
   document.getElementById('bdp-super-fields').style.display = esSuper ? '' : 'none';
   document.getElementById('bdp-extra-fields').style.display = esSuper ? '' : 'none';
 
@@ -6916,15 +6931,32 @@ document.getElementById('bdp-sustanciador')?.addEventListener('change', () => {
 /* ── Botón GUARDAR ────────────────────────────────────── */
 document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async () => {
   const esEdit = (__bdpFormMode === 'edit');
-  const esSuper = !!currentUser?.isSuper;
+  const esSuper = canEditarTodoPredial_();
 
-  const bitacora = (document.getElementById('bdp-bitacora')?.value || '').trim();
+ const _bitTextarea = (document.getElementById('bdp-bitacora')?.value || '').trim();
   const actuacion = document.getElementById('bdp-actuacion')?.value || 'NINGUNA';
   const estadoProc = document.getElementById('bdp-estado-proceso')?.value || 'PENDIENTE';
 
-  if (!bitacora) {
+  if (!_bitTextarea) {
     Swal.fire({ icon:'warning', title:'Bitácora requerida' });
     return;
+  }
+
+  /* Bitácora: NOMBRE + FECHA en la entrada NUEVA, sin borrar las anteriores */
+  const _bitOriginal = String(window.__bdpBitacoraOriginal || '').trim();
+  const _nombreUser  = String(currentUser?.nombre || '').toUpperCase();
+  const _hoy         = formatDDMMYYYY_(new Date());
+
+  let bitacora;
+  if (_bitTextarea === _bitOriginal) {
+    bitacora = _bitOriginal;                       // sin cambios
+  } else if (_bitOriginal && _bitTextarea.startsWith(_bitOriginal)) {
+    const _nuevoTexto = _bitTextarea.slice(_bitOriginal.length).trim();
+    bitacora = _nuevoTexto
+      ? _bitOriginal + '\n' + _nombreUser + ' ' + _hoy + ': ' + _nuevoTexto
+      : _bitOriginal;
+  } else {
+    bitacora = _nombreUser + ' ' + _hoy + ': ' + _bitTextarea;
   }
 
   /* Validar campos super solo si aplican */
@@ -6967,7 +6999,7 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
       escaneado: document.getElementById('bdp-escaneado').value || 'NO',
       debe_desde: debeRaw,
       valor_deuda: valorRaw,
-      no_exp_fisico: expLet + expNum,
+      no_exp_fisico: expLet + '-' + expNum,
       sustanciador: sust,
 
       oficio_persuas:       (document.getElementById('bdp-oficio-persuas').value || '').trim(),
@@ -6989,8 +7021,8 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
   }
 
   /* AGREGAR */
-  if (!esEdit) {
-    if (!esSuper) { Swal.fire({ icon:'warning', title:'Sin permiso' }); return; }
+ if (!esEdit) {
+    if (!canAgregarPredial_()) { Swal.fire({ icon:'warning', title:'Sin permiso' }); return; }
     payload.asignador = currentUser?.nombre || '';
     try {
       const ok = await Swal.fire({
