@@ -7695,7 +7695,6 @@ const ORDER = ['NINGUNA','COMUNICACION PERSUASIVA','LIQUIDACION OFICIAL',
   if (kpiWrap) {
     kpiWrap.innerHTML = '';
     [
-  [
       { value: rows.length,    label:'Total Expedientes',  sub:'todos',                 cls:'' },
       { value: sinActuacion,   label:'Sin Actuación',      sub:'requieren primer paso', cls:'kpi-rojo' },
       { value: persuasiva,     label:'Comunic. Persuasiva',sub:'expedientes',           cls:'kpi-naranja' },
