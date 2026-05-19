@@ -2471,6 +2471,17 @@ button:active { transform: translateY(0) scale(.98); }
   margin-bottom: 1px;
 }
 
+/* Mini etiqueta encima de las pastillas ACTUACIÓN / ESTADO */
+.bdp-pill-label {
+  font-family: 'Sora', sans-serif;
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .6px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  padding-left: 3px;
+}
+
 /* Pastilla ACTUACION */
 .bdp-actuacion {
   display: inline-flex;
