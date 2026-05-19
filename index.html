@@ -1339,18 +1339,17 @@
 
     <!-- Pastillas filtro ACTUACION -->
     <div class="bdp-pills-label">ACTUACIÓN</div>
-    <div id="bdp-pills-actuacion" class="proc-status-filter">
+<div id="bdp-pills-actuacion" class="proc-status-filter">
       <button type="button" class="proc-status-pill active" data-actuacion="ALL">TODAS</button>
       <button type="button" class="proc-status-pill" data-actuacion="NINGUNA">NINGUNA</button>
-      <button type="button" class="proc-status-pill" data-actuacion="ACUERDO DE PAGO">ACUERDO DE PAGO</button>
-      <button type="button" class="proc-status-pill" data-actuacion="COBRO PERSUASIVO">COBRO PERSUASIVO</button>
-      <button type="button" class="proc-status-pill" data-actuacion="COBRO COACTIVO">COBRO COACTIVO</button>
-      <button type="button" class="proc-status-pill" data-actuacion="EMBARGO">EMBARGO</button>
-      <button type="button" class="proc-status-pill" data-actuacion="DESEMBARGO">DESEMBARGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</button>
       <button type="button" class="proc-status-pill" data-actuacion="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</button>
       <button type="button" class="proc-status-pill" data-actuacion="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</button>
-      <button type="button" class="proc-status-pill" data-actuacion="PRESCRIPCION">PRESCRIPCIÓN</button>
+      <button type="button" class="proc-status-pill" data-actuacion="EMBARGO">EMBARGO</button>
+      <button type="button" class="proc-status-pill" data-actuacion="SENTENCIA">SENTENCIA</button>
+      <button type="button" class="proc-status-pill" data-actuacion="DESEMBARGO">DESEMBARGO</button>
       <button type="button" class="proc-status-pill" data-actuacion="INSOLVENCIA">INSOLVENCIA</button>
+      <button type="button" class="proc-status-pill" data-actuacion="PRESCRIPCION">PRESCRIPCIÓN</button>
     </div>
 
     <!-- Pastillas filtro SUSTANCIADOR -->
@@ -1369,7 +1368,10 @@
     <div class="bdp-pills-label">ESTADO PROCESO</div>
     <div id="bdp-pills-estado" class="proc-status-filter">
       <button type="button" class="proc-status-pill active" data-estado="ALL">TODOS</button>
-      <button type="button" class="proc-status-pill" data-estado="PENDIENTE">PENDIENTE</button>
+      <button type="button" class="proc-status-pill" data-estado="NINGUNO">NINGUNO</button>
+      <button type="button" class="proc-status-pill" data-estado="ACUERDO DE PAGO">ACUERDO DE PAGO</button>
+      <button type="button" class="proc-status-pill" data-estado="COBRO PERSUASIVO/LIQUIDACION">COBRO PERSUASIVO/LIQUIDACIÓN</button>
+      <button type="button" class="proc-status-pill" data-estado="COBRO COACTIVO">COBRO COACTIVO</button>
       <button type="button" class="proc-status-pill" data-estado="AL DIA">AL DÍA</button>
     </div>
 
@@ -1496,20 +1498,22 @@
     <label>Actuación <span style="color:#dc2626;">*</span></label>
     <select id="bdp-actuacion">
       <option value="NINGUNA" selected>NINGUNA</option>
-      <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
-      <option value="COBRO PERSUASIVO">COBRO PERSUASIVO</option>
-      <option value="COBRO COACTIVO">COBRO COACTIVO</option>
-      <option value="EMBARGO">EMBARGO</option>
-      <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</option>
       <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
       <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
-      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="EMBARGO">EMBARGO</option>
+      <option value="SENTENCIA">SENTENCIA</option>
+      <option value="DESEMBARGO">DESEMBARGO</option>
       <option value="INSOLVENCIA">INSOLVENCIA</option>
+      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
     </select>
 
     <label>Estado del Proceso <span style="color:#dc2626;">*</span></label>
     <select id="bdp-estado-proceso">
-      <option value="PENDIENTE" selected>PENDIENTE</option>
+      <option value="NINGUNO" selected>NINGUNO</option>
+      <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
+      <option value="COBRO PERSUASIVO/LIQUIDACION">COBRO PERSUASIVO/LIQUIDACIÓN</option>
+      <option value="COBRO COACTIVO">COBRO COACTIVO</option>
       <option value="AL DIA">AL DÍA</option>
     </select>
 
@@ -1607,18 +1611,17 @@
     <p class="helper" style="margin-top:0;">Cambia la actuación del expediente. Se notificará al sustanciador.</p>
     <div id="bdp-dec-context" style="text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);margin-bottom:10px;"></div>
 
-    <label>Nueva Actuación</label>
+<label>Nueva Actuación</label>
     <select id="bdp-dec-actuacion">
       <option value="NINGUNA">NINGUNA</option>
-      <option value="ACUERDO DE PAGO">ACUERDO DE PAGO</option>
-      <option value="COBRO PERSUASIVO">COBRO PERSUASIVO</option>
-      <option value="COBRO COACTIVO">COBRO COACTIVO</option>
-      <option value="EMBARGO">EMBARGO</option>
-      <option value="DESEMBARGO">DESEMBARGO</option>
+      <option value="COMUNICACION PERSUASIVA">COMUNICACIÓN PERSUASIVA</option>
       <option value="LIQUIDACION OFICIAL">LIQUIDACIÓN OFICIAL</option>
       <option value="MANDAMIENTO DE PAGO">MANDAMIENTO DE PAGO</option>
-      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
+      <option value="EMBARGO">EMBARGO</option>
+      <option value="SENTENCIA">SENTENCIA</option>
+      <option value="DESEMBARGO">DESEMBARGO</option>
       <option value="INSOLVENCIA">INSOLVENCIA</option>
+      <option value="PRESCRIPCION">PRESCRIPCIÓN</option>
     </select>
 
     <div class="btn-row" style="margin-top:14px;">
