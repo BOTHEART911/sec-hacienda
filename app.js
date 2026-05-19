@@ -6829,7 +6829,7 @@ __bdpFormMode = 'add';
 
   document.getElementById('bdp-escaneado').value      = 'NO';
   document.getElementById('bdp-actuacion').value      = 'NINGUNA';
-  document.getElementById('bdp-estado-proceso').value = 'PENDIENTE';
+  document.getElementById('bdp-estado-proceso').value = 'NINGUNO';
   ['notif-citacion','notif-electr','notif-personal','notif-aviso','publicacion-web','mandam-pago']
     .forEach(k => { const el = document.getElementById('bdp-'+k); if (el) el.value = 'NO'; });
   document.getElementById('bdp-sustanciador').value = 'NINGUNO';
@@ -6907,7 +6907,7 @@ function abrirBDPEditar_(row) {
 
   document.getElementById('bdp-bitacora').value       = row.bitacora || '';
   document.getElementById('bdp-actuacion').value      = row.actuacion || 'NINGUNA';
-  document.getElementById('bdp-estado-proceso').value = row.estado_proceso || 'PENDIENTE';
+ document.getElementById('bdp-estado-proceso').value = row.estado_proceso || 'NINGUNO';
 
   document.getElementById('bdp-oficio-persuas').value       = row.oficio_persuas || '';
   document.getElementById('bdp-fecha-oficio-persuas').value = row.fecha_oficio_persuas || '';
