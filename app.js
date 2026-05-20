@@ -6939,6 +6939,80 @@ document.getElementById('bdp-sustanciador')?.addEventListener('change', () => {
   bdpAutoFillAsistente_(document.getElementById('bdp-sustanciador').value);
 });
 
+/* ── Auto-consecutivo al cambiar letra del Exp. Físico ── */
+function bdpSiguienteConsecutivo_(letra) {
+  const L = String(letra || '').trim().toUpperCase();
+  if (!L) return '';
+  const rows = Array.isArray(__bdpListCache) ? __bdpListCache : [];
+  let max = 0;
+  rows.forEach(r => {
+    const exp = String(r.no_exp_fisico || '').trim().toUpperCase();
+    // Acepta "A-0001" y "A0001"
+    const m = exp.match(/^([A-Z])-?(\d{4})$/);
+    if (m && m[1] === L) {
+      const n = parseInt(m[2], 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
+  });
+  return String(max + 1).padStart(4, '0');
+}
+
+document.getElementById('bdp-exp-letra')?.addEventListener('change', () => {
+  // Solo en modo AGREGAR; en edición no tocamos el consecutivo original
+  if (__bdpFormMode !== 'add') return;
+  const letra  = document.getElementById('bdp-exp-letra').value || '';
+  const numEl  = document.getElementById('bdp-exp-numero');
+  if (!numEl) return;
+  if (!letra) { numEl.value = ''; return; }
+  numEl.value = bdpSiguienteConsecutivo_(letra);
+});
+
+/* ── Validar duplicados Matrícula / Ficha / Exp. Físico ── */
+function bdpValidarDuplicados_(payload) {
+  const rows     = Array.isArray(__bdpListCache) ? __bdpListCache : [];
+  const newMat   = String(payload.matricula        || '').trim();   // solo dígitos
+  const newFicha = String(payload.ficha_catastral  || '').trim();   // solo dígitos
+  const newExp   = String(payload.no_exp_fisico    || '').trim().toUpperCase();
+
+  for (const r of rows) {
+    const expRef = escapeHtml_(r.no_exp_fisico || r.id_predial || '');
+
+    // 1) Matrícula (en caché viene como "357-12345")
+    if (newMat) {
+      const matCache = String(r.matricula || '').replace(/^357-/, '').trim();
+      if (matCache && matCache === newMat) {
+        return {
+          campo: 'Matrícula',
+          html: `La <b>Matrícula</b> <code>357-${escapeHtml_(newMat)}</code> ya está registrada en el expediente <b>${expRef}</b>.<br><br>Por favor cambia este valor.`
+        };
+      }
+    }
+
+    // 2) Ficha catastral (limpiamos posible apóstrofe inicial del caché)
+    if (newFicha) {
+      const fichaCache = bdpCleanFicha_(r.ficha_catastral || '').trim();
+      if (fichaCache && fichaCache === newFicha) {
+        return {
+          campo: 'Ficha Catastral',
+          html: `La <b>Ficha Catastral</b> <code>${escapeHtml_(newFicha)}</code> ya está registrada en el expediente <b>${expRef}</b>.<br><br>Por favor cambia este valor.`
+        };
+      }
+    }
+
+    // 3) No. Exp. Físico
+    if (newExp) {
+      const expCache = String(r.no_exp_fisico || '').trim().toUpperCase();
+      if (expCache && expCache === newExp) {
+        return {
+          campo: 'No. Exp. Físico',
+          html: `El <b>No. Exp. Físico</b> <code>${escapeHtml_(newExp)}</code> ya está registrado.<br><br>Por favor cambia este valor.`
+        };
+      }
+    }
+  }
+  return null;
+}
+
 /* ── Botón GUARDAR ────────────────────────────────────── */
 document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async () => {
   const esEdit = (__bdpFormMode === 'edit');
@@ -7031,9 +7105,22 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     };
   }
 
-  /* AGREGAR */
+ /* AGREGAR */
  if (!esEdit) {
     if (!canAgregarPredial_()) { Swal.fire({ icon:'warning', title:'Sin permiso' }); return; }
+
+    // ── Validar que no se duplique Matrícula / Ficha / Exp. Físico ──
+    const dup = bdpValidarDuplicados_(payload);
+    if (dup) {
+      await Swal.fire({
+        icon: 'info',
+        title: dup.campo + ' duplicada',
+        html: dup.html,
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
     payload.asignador = currentUser?.nombre || '';
     try {
       const ok = await Swal.fire({
