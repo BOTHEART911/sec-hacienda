@@ -6934,6 +6934,17 @@ const esSuper = canEditarTodoPredial_();
   document.getElementById('bdp-super-fields').style.display = esSuper ? '' : 'none';
   document.getElementById('bdp-extra-fields').style.display = esSuper ? '' : 'none';
 
+  /* Si el expediente ya está en estado AL DIA, bloquear Valor Deuda visualmente */
+  if (normalizeText_(row.estado_proceso || '') === 'AL DIA') {
+    const valorEl = document.getElementById('bdp-valor-deuda');
+    if (valorEl) {
+      valorEl.value = '';
+      valorEl.readOnly = true;
+      valorEl.style.background = 'rgba(6,64,43,.04)';
+      valorEl.style.cursor = 'not-allowed';
+    }
+  }
+
   showView('view-bdp-form');
 }
 
@@ -6942,13 +6953,41 @@ document.getElementById('bdp-sustanciador')?.addEventListener('change', () => {
   bdpAutoFillAsistente_(document.getElementById('bdp-sustanciador').value);
 });
 
+ /* ── Estado "AL DIA" → Valor Deuda se pone en 0 ──────────── */
+document.getElementById('bdp-estado-proceso')?.addEventListener('change', () => {
+  const estado = document.getElementById('bdp-estado-proceso').value || '';
+  const valorEl = document.getElementById('bdp-valor-deuda');
+  if (!valorEl) return;
+
+  if (normalizeText_(estado) === 'AL DIA') {
+    valorEl.value = '';            // muestra vacío (equivale a $ 0)
+    valorEl.readOnly = true;
+    valorEl.style.background = 'rgba(6,64,43,.04)';
+    valorEl.style.cursor = 'not-allowed';
+    bdpUpdateClasifPreview_();     // recalcula la clasificación a BAJA
+  } else {
+    valorEl.readOnly = false;
+    valorEl.style.background = '';
+    valorEl.style.cursor = '';
+  }
+});
+
 /* ── Auto-consecutivo al cambiar letra del Exp. Físico ── */
 function bdpSiguienteConsecutivo_(letra) {
   const L = String(letra || '').trim().toUpperCase();
   if (!L) return '';
   const rows = Array.isArray(__bdpListCache) ? __bdpListCache : [];
+
+  // En modo edición, excluir el expediente actual para que no se cuente a sí mismo
+  const idEditando = (__bdpFormMode === 'edit' && __bdpFormRow)
+    ? String(__bdpFormRow.id_predial || '')
+    : '';
+
   let max = 0;
   rows.forEach(r => {
+    // Excluir el expediente actual en edición
+    if (idEditando && String(r.id_predial || '') === idEditando) return;
+
     const exp = String(r.no_exp_fisico || '').trim().toUpperCase();
     // Acepta "A-0001" y "A0001"
     const m = exp.match(/^([A-Z])-?(\d{4})$/);
@@ -6961,12 +7000,25 @@ function bdpSiguienteConsecutivo_(letra) {
 }
 
 document.getElementById('bdp-exp-letra')?.addEventListener('change', () => {
-  // Solo en modo AGREGAR; en edición no tocamos el consecutivo original
-  if (__bdpFormMode !== 'add') return;
+  // Aplica tanto en AGREGAR como en EDITAR
   const letra  = document.getElementById('bdp-exp-letra').value || '';
   const numEl  = document.getElementById('bdp-exp-numero');
   if (!numEl) return;
   if (!letra) { numEl.value = ''; return; }
+
+  // En edición: si la letra elegida es la MISMA del expediente actual,
+  // mantener el número original (no recalcular)
+  if (__bdpFormMode === 'edit' && __bdpFormRow) {
+    const expOriginal = String(__bdpFormRow.no_exp_fisico || '').toUpperCase();
+    const mOrig = expOriginal.match(/^([A-Z])-?(\d{4})$/);
+    if (mOrig && mOrig[1] === letra) {
+      numEl.value = mOrig[2];
+      return;
+    }
+  }
+
+  // En agregar, o en edición cuando se cambia a otra letra:
+  // calcular el siguiente consecutivo libre
   numEl.value = bdpSiguienteConsecutivo_(letra);
 });
 
@@ -7047,13 +7099,16 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     bitacora = _nombreUser + ' ' + _hoy + ': ' + _bitTextarea;
   }
 
-  /* Validar campos super solo si aplican */
+/* Validar campos super solo si aplican */
   let payload = {
     bitacora,
     actuacion,
     estado_proceso: estadoProc,
     isSuper: esSuper ? 'true' : 'false'
   };
+
+  /* Si el estado es AL DIA → valor_deuda siempre 0 (columna K) */
+  const esAlDia = normalizeText_(estadoProc) === 'AL DIA';
 
   if (esSuper) {
     const nombres  = (document.getElementById('bdp-nombres').value || '').trim();
@@ -7068,7 +7123,10 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     if (!nombres) { Swal.fire({ icon:'warning', title:'Nombres requeridos' }); return; }
     if (!nit || !/^\d{1,10}$/.test(nit)) { Swal.fire({ icon:'warning', title:'NIT/Cédula inválido', text:'1 a 10 dígitos' }); return; }
     if (!direccion) { Swal.fire({ icon:'warning', title:'Dirección requerida' }); return; }
-    if (!valorRaw || valorRaw <= 0) { Swal.fire({ icon:'warning', title:'Valor Deuda requerido' }); return; }
+    // Si el estado es AL DIA, el valor se fuerza a 0 y NO se valida como requerido
+    if (!esAlDia) {
+      if (!valorRaw || valorRaw <= 0) { Swal.fire({ icon:'warning', title:'Valor Deuda requerido' }); return; }
+    }
     if (!debeRaw || !/^\d{6}$/.test(debeRaw)) { Swal.fire({ icon:'warning', title:'Selecciona el año de Debe Desde' }); return; }
     if (!sust) { Swal.fire({ icon:'warning', title:'Sustanciador requerido' }); return; }
     if (!expLet || !expNum || expNum.length !== 4) {
@@ -7086,7 +7144,7 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
       ficha_catastral: bdpDigitsOnly_(document.getElementById('bdp-ficha').value || ''),
       escaneado: document.getElementById('bdp-escaneado').value || 'NO',
       debe_desde: debeRaw,
-      valor_deuda: valorRaw,
+      valor_deuda: esAlDia ? 0 : valorRaw,
       no_exp_fisico: expLet + '-' + expNum,
       sustanciador: sust,
 
@@ -7106,6 +7164,12 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
       mandam_pago:          document.getElementById('bdp-mandam-pago').value || 'NO',
       f_mp:                 (document.getElementById('bdp-f-mp').value || '').trim()
     };
+  }
+
+/* Reforzar: si el estado es AL DIA, valor_deuda siempre va en 0
+     (cubre el caso del usuario no-super que solo edita estado/actuación/bitácora) */
+  if (esAlDia) {
+    payload.valor_deuda = 0;
   }
 
  /* AGREGAR */
