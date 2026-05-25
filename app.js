@@ -799,10 +799,10 @@ try{
   if(bAgregar) bAgregar.style.display = canSeeAgregarSolicitud_() ? '' : 'none';
 }catch(_){}
 
-  // ✅ Mostrar botón MIS INFORMES PREDIAL solo si puede ver AGREGAR SOLICITUD o es SUPER
+// ✅ Mostrar botón MIS INFORMES PREDIAL si puede ver AGREGAR SOLICITUD, PENDIENTES o es SUPER
 try{
   const bInf = document.getElementById('btn-mis-informes');
-  if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
+  if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || canSeePendientes_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
 }catch(_){}
 
    // ✅ Mostrar botón BASE DE DATOS PREDIAL
