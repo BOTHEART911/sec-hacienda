@@ -6828,6 +6828,13 @@ __bdpFormMode = 'add';
   document.getElementById('bdp-escaneado').value      = 'NO';
   document.getElementById('bdp-actuacion').value      = 'NINGUNA';
   document.getElementById('bdp-estado-proceso').value = 'NINGUNO';
+ /* Desbloquear Valor Deuda al AGREGAR (puede haber quedado readonly por un AL DÍA previo) */
+  const __valorNuevo = document.getElementById('bdp-valor-deuda');
+  if (__valorNuevo) {
+    __valorNuevo.readOnly = false;
+    __valorNuevo.style.background = '';
+    __valorNuevo.style.cursor = '';
+  }
   ['notif-citacion','notif-electr','notif-personal','notif-aviso','publicacion-web','mandam-pago']
     .forEach(k => { const el = document.getElementById('bdp-'+k); if (el) el.value = 'NO'; });
   document.getElementById('bdp-sustanciador').value = 'NINGUNO';
