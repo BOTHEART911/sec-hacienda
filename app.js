@@ -364,22 +364,19 @@ const ALLOW_AGREGAR_SOLICITUD = [
   'EDILBERTO RAMIREZ HERNANDEZ',
   'EDWIN ALFONSO OSUNA MONROY',
   'DIANA MARCELA OTALORA',
-  'HECTOR ANDRES MARTINEZ CRUZ',
-  'AMANDA VANESSA TAMAYO BEJARANO'
+  'HECTOR ANDRES MARTINEZ CRUZ'
 ].map(s => normalizeText_(s));
 
 const ALLOW_PENDIENTES = [
   'EDWIN ALFONSO OSUNA MONROY',
   'DIANA MARCELA OTALORA',
   'HECTOR ANDRES MARTINEZ CRUZ',
-  'AMANDA VANESSA TAMAYO BEJARANO',
   'NICOL ESTEFANI MADRIGALES GONZALEZ',
   'VICTOR MANUEL FANDIÑO GIRALDO',
   'MARIA NIDIA MENESES MARTINEZ'
 ].map(s => normalizeText_(s));
 
   const ALLOW_ATENDIDAS_CHAT = [
-  'AMANDA VANESSA TAMAYO BEJARANO'
 ].map(s => normalizeText_(s));
 
 function canSeeAtendidasChat_(){
@@ -405,7 +402,6 @@ function canSeePendientes_(){
 
 /* ── Permiso para AGREGAR ASIGNACIÓN (semáforo) ─── */
 const ALLOW_AGREGAR_ASIGNACION = [
-  'AMANDA VANESSA TAMAYO BEJARANO',
   'DEYSI PATRICIA GONZALEZ GUERRA'
 ].map(s => normalizeText_(s));
 
@@ -779,7 +775,6 @@ try {
     'DIEGO FERNANDO GARCIA',
     'SOL MAR OCHOA HERNANDEZ',
     'ROSALBA ABADIA ARAGON',
-    'AMANDA VANESSA TAMAYO BEJARANO',
     'DIANA MARCELA OTALORA',
     'DEYSI PATRICIA GONZALEZ GUERRA'
   ].map(s => normalizeText_(s));
@@ -1621,7 +1616,7 @@ const GRUPOS_SEMAFORO = [
   { asignado:'LUIS GABRIEL RAMIREZ RAMIREZ',     contacto1:'3204744065', asistente:'',                                   contacto2:'' },
   { asignado:'DIEGO FERNANDO GARCIA',            contacto1:'3166139232', asistente:'',                                   contacto2:'' },
   { asignado:'DIANA MARCELA OTALORA',            contacto1:'3108034107', asistente:'',                                   contacto2:'' },
-  { asignado:'ROSALBA ABADIA ARAGON',            contacto1:'3202028939', asistente:'AMANDA VANESSA TAMAYO BEJARANO',     contacto2:'3209661591' }
+  { asignado:'ROSALBA ABADIA ARAGON',            contacto1:'3202028939', asistente:' ',                                  contacto2:'' }
 ];
 
 /* ── Tabla coordinadores (contacto3) ───────────────────── */
