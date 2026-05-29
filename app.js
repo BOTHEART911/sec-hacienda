@@ -6936,7 +6936,7 @@ const esSuper = canEditarTodoPredial_();
   document.getElementById('bdp-super-fields').style.display = esSuper ? '' : 'none';
   document.getElementById('bdp-extra-fields').style.display = esSuper ? '' : 'none';
 
-  /* Si el expediente ya está en estado AL DIA, bloquear Valor Deuda visualmente */
+/* Si el expediente ya está en estado AL DIA, bloquear Valor Deuda visualmente */
   if (normalizeText_(row.estado_proceso || '') === 'AL DIA') {
     const valorEl = document.getElementById('bdp-valor-deuda');
     if (valorEl) {
@@ -6944,6 +6944,15 @@ const esSuper = canEditarTodoPredial_();
       valorEl.readOnly = true;
       valorEl.style.background = 'rgba(6,64,43,.04)';
       valorEl.style.cursor = 'not-allowed';
+    }
+  } else {
+    /* Si NO está AL DÍA, asegurar que el campo quede editable
+       (pudo haber quedado readonly por un AL DÍA abierto antes) */
+    const valorEl = document.getElementById('bdp-valor-deuda');
+    if (valorEl) {
+      valorEl.readOnly = false;
+      valorEl.style.background = '';
+      valorEl.style.cursor = '';
     }
   }
 
