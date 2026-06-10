@@ -6144,6 +6144,22 @@ function esSustanciadorPredial_() {
   return SUSTANCIADORES_PREDIAL.includes(n);
 }
 
+/* ── ¿El usuario es sustanciador o asistente DE ESTE expediente? ── */
+function esSustanciadorOAsistenteDePredial_(row) {
+  if (!currentUser || !row) return false;
+  const n = normalizeText_(currentUser.nombre || '');
+  return normalizeText_(row.sustanciador || '') === n ||
+         normalizeText_(row.asistente   || '') === n;
+}
+
+/* ── ¿Puede editar ESTE expediente?
+      super/editor total → todos · sustanciador/asistente → solo los suyos ── */
+function canEditarEstePredial_(row) {
+  if (!currentUser) return false;
+  if (canEditarTodoPredial_()) return true;
+  return esSustanciadorOAsistenteDePredial_(row);
+}
+
 /* ── Estado global ────────────────────────────────────── */
 let __bdpListCache       = [];
 let __bdpFilterClasif    = 'ALL';
@@ -6214,9 +6230,17 @@ async function abrirBDPredial_() {
   if (btnPanel)   btnPanel.style.display   = canVerPanelPredial_()  ? '' : 'none';
   if (btnAgregar) btnAgregar.style.display = canAgregarPredial_()   ? '' : 'none';
 
-  /* Pastilla "Solo las mías" para sustanciadores */
+ /* Pastilla "Solo las mías" para sustanciadores */
   const miasWrap = document.getElementById('bdp-pills-mias-wrap');
   if (miasWrap)   miasWrap.style.display = esSustanciadorPredial_() ? '' : 'none';
+
+  /* Pastillas SUSTANCIADOR: SOLO el SUPER USUARIO ve el filtro completo */
+  const verSustPills = !!(currentUser && currentUser.isSuper);
+  const sustLabel = document.getElementById('bdp-label-sustanciador');
+  const sustPills = document.getElementById('bdp-pills-sustanciador');
+  if (sustLabel) sustLabel.style.display = verSustPills ? '' : 'none';
+  if (sustPills) sustPills.style.display = verSustPills ? '' : 'none';
+  if (!verSustPills) __bdpFilterSustanciador = 'ALL';
 
  showView('view-bd-predial');
   
@@ -6359,9 +6383,12 @@ function bdpCardHTML_(row, idx, puedeEliminar, puedeDecision) {
   }
   acciones +=
     '<button type="button" class="bdp-icon-btn" data-bdp-act="ver" title="Ver detalles">' +
-    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Ver"></button>' +
-    '<button type="button" class="bdp-icon-btn" data-bdp-act="editar" title="Editar expediente">' +
-    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp" alt="Editar"></button>';
+    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Ver"></button>';
+  if (canEditarEstePredial_(row)) {
+    acciones +=
+      '<button type="button" class="bdp-icon-btn" data-bdp-act="editar" title="Editar expediente">' +
+      '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1771979124/editar_bx9dsl.webp" alt="Editar"></button>';
+  }
   if (puedeDecision) {
     acciones +=
       '<button type="button" class="bdp-icon-btn" data-bdp-act="decision" title="Decisión (cambiar Actuación)" ' +
@@ -6853,15 +6880,35 @@ __bdpFormMode = 'add';
   document.getElementById('bdp-super-fields').style.display = '';
   document.getElementById('bdp-extra-fields').style.display = '';
 
-  bdpPopulateLetras_();
+bdpPopulateLetras_();
   bdpSetupNumericInputs_();
+  bdpBloquearCamposEstructurales_(false);
 
   showView('view-bdp-form');
 }
 
+/* ── Bloquea (sustanciador/asistente) o libera (super/editor total) los
+      5 campos estructurales: Dirección, Matrícula, Ficha, No. Exp. Físico y Sustanciador ── */
+function bdpBloquearCamposEstructurales_(bloquear) {
+  ['bdp-direccion','bdp-matricula','bdp-ficha','bdp-exp-numero'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.readOnly = bloquear;
+    el.style.background = bloquear ? 'rgba(6,64,43,.04)' : '';
+    el.style.cursor     = bloquear ? 'not-allowed' : '';
+  });
+  ['bdp-exp-letra','bdp-sustanciador'].forEach(id => {   // selects → disabled
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = bloquear;
+    el.style.background = bloquear ? 'rgba(6,64,43,.04)' : '';
+    el.style.cursor     = bloquear ? 'not-allowed' : '';
+  });
+}
+
 /* ── Abrir EDITAR ─────────────────────────────────────── */
 function abrirBDPEditar_(row) {
-  if (!canEditarPredial_()) {
+  if (!canEditarEstePredial_(row)) {
     Swal.fire({ icon:'warning', title:'Sin permiso' });
     return;
   }
@@ -6933,8 +6980,13 @@ function abrirBDPEditar_(row) {
   /* Permisos: solo super edita todo. Usuario normal solo bitácora+actuación
      (en este momento solo super puede llegar aquí, pero dejamos el control listo) */
 const esSuper = canEditarTodoPredial_();
-  document.getElementById('bdp-super-fields').style.display = esSuper ? '' : 'none';
-  document.getElementById('bdp-extra-fields').style.display = esSuper ? '' : 'none';
+  const esSustanciario = !esSuper && esSustanciadorOAsistenteDePredial_(row);
+  // Editor total Y sustanciador/asistente ven todos los campos
+  const verCamposExtendidos = esSuper || esSustanciario;
+  document.getElementById('bdp-super-fields').style.display = verCamposExtendidos ? '' : 'none';
+  document.getElementById('bdp-extra-fields').style.display = verCamposExtendidos ? '' : 'none';
+  // El sustanciador/asistente NO puede tocar los 5 campos estructurales
+  bdpBloquearCamposEstructurales_(esSustanciario);
 
 /* Si el expediente ya está en estado AL DIA, bloquear Valor Deuda visualmente */
   if (normalizeText_(row.estado_proceso || '') === 'AL DIA') {
@@ -7081,8 +7133,11 @@ function bdpValidarDuplicados_(payload) {
 
 /* ── Botón GUARDAR ────────────────────────────────────── */
 document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async () => {
-  const esEdit = (__bdpFormMode === 'edit');
+ const esEdit = (__bdpFormMode === 'edit');
   const esSuper = canEditarTodoPredial_();
+  // El sustanciador/asistente puede guardar los campos generales de SU expediente
+  const puedeCamposGenerales = esSuper ||
+    (esEdit && esSustanciadorOAsistenteDePredial_(__bdpFormRow));
 
  const _bitTextarea = (document.getElementById('bdp-bitacora')?.value || '').trim();
   const actuacion = document.getElementById('bdp-actuacion')?.value || 'NINGUNA';
@@ -7115,13 +7170,13 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     bitacora,
     actuacion,
     estado_proceso: estadoProc,
-    isSuper: esSuper ? 'true' : 'false'
+    isSuper: puedeCamposGenerales ? 'true' : 'false'
   };
 
   /* Si el estado es AL DIA → valor_deuda siempre 0 (columna K) */
   const esAlDia = normalizeText_(estadoProc) === 'AL DIA';
 
-  if (esSuper) {
+ if (puedeCamposGenerales) {
     const nombres  = (document.getElementById('bdp-nombres').value || '').trim();
     const nit      = bdpDigitsOnly_(document.getElementById('bdp-nit').value || '');
     const direccion= (document.getElementById('bdp-direccion').value || '').trim();
@@ -7360,8 +7415,8 @@ function abrirBDPDetalle_(row) {
   });
   actions.appendChild(btnReb);
 
-  /* EDITAR */
-  if (canEditarPredial_()) {
+/* EDITAR */
+  if (canEditarEstePredial_(row)) {
     const btnEd = document.createElement('button');
     btnEd.type = 'button';
     btnEd.className = 'btn-primary proc-action-btn';
