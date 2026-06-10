@@ -2652,3 +2652,34 @@ button:active { transform: translateY(0) scale(.98); }
   }
   #view-bdp-panel .panel-toolbar .panel-tab img { width: 16px; height: 16px; }
 }
+
+/* ===== LOGIN: tabs + PIN ===== */
+.login-tabs { display:flex; gap:8px; justify-content:center; margin:6px 0 14px; }
+.login-tab {
+  width:auto; padding:8px 16px; border-radius:var(--radius-xl);
+  border:1.5px solid var(--input-border); background:rgba(255,255,255,.80);
+  color:var(--text-sub); font-weight:700; font-size:.82rem; cursor:pointer; transition:.18s;
+}
+.login-tab:hover { background:#fff; color:var(--primary); border-color:var(--primary); }
+.login-tab.active {
+  background:linear-gradient(135deg,#0a7a46,#06402B); color:#fff;
+  border-color:transparent; box-shadow:0 4px 12px rgba(6,64,43,.28);
+}
+.pin-pad { display:flex; justify-content:center; gap:14px; margin:18px 0; }
+.pin-dot {
+  width:16px; height:16px; border-radius:50%;
+  background:rgba(255,255,255,.7); border:2px solid rgba(6,64,43,.35); transition:all .15s;
+}
+.pin-dot.filled { background:var(--primary); border-color:var(--primary); transform:scale(1.1); }
+.pin-keypad {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:10px; margin:16px auto 0; max-width:280px;
+}
+.pin-key {
+  aspect-ratio:1.4; border-radius:14px; width:auto;
+  background:rgba(255,255,255,.85); border:1.5px solid var(--input-border);
+  font-size:1.5rem; font-weight:700; color:var(--primary);
+  display:inline-flex; align-items:center; justify-content:center; transition:all .12s;
+}
+.pin-key:active { background:var(--primary); color:#fff; transform:scale(.94); }
+.pin-key.action { font-size:1rem; background:transparent; border-color:transparent; color:var(--text-muted); }
