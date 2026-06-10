@@ -76,12 +76,12 @@
 
        <!-- Tabs de acceso -->
         <div class="login-tabs">
-          <button type="button" class="login-tab active" data-tab="doc">Documento</button>
-          <button type="button" class="login-tab" data-tab="pin">PIN rápido</button>
+<button type="button" class="login-tab" data-tab="doc">Documento</button>
+          <button type="button" class="login-tab active" data-tab="pin">PIN rápido</button>
         </div>
 
         <!-- TAB DOCUMENTO (acceso actual, intacto) -->
-        <div id="tab-doc">
+        <div id="tab-doc" class="hidden">
           <label>Documento</label>
           <div style="position:relative;">
             <input id="login-doc" type="password" inputmode="numeric" autocomplete="off" placeholder="Sin puntos ni espacios" />
@@ -97,7 +97,7 @@
         </div>
 
         <!-- TAB PIN RÁPIDO -->
-        <div id="tab-pin" class="hidden">
+        <div id="tab-pin">
           <div class="pin-pad">
             <div class="pin-dot" data-pos="0"></div>
             <div class="pin-dot" data-pos="1"></div>
