@@ -711,7 +711,7 @@ async function openDriveAnexosView_(){
   await loadDriveData_();
 }
 
-/* ================== LOGIN ================== */
+   /* ================== LOGIN ================== */
 document.getElementById('btn-login')?.addEventListener('click', async ()=>{
   const doc = (document.getElementById('login-doc').value || '').trim();
 
@@ -720,13 +720,7 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     return;
   }
   if(!/^\d{6,10}$/.test(doc)){
-    await Swal.fire({
-      icon:'error',
-      title:'CONTRASEÑA INCORRECTA',
-      text:'La contraseña contiene entre 6 y 10 dígitos numéricos.',
-      timer:3000,
-      showConfirmButton:false
-    });
+    await Swal.fire({ icon:'error', title:'CONTRASEÑA INCORRECTA', text:'La contraseña contiene entre 6 y 10 dígitos numéricos.', timer:3000, showConfirmButton:false });
     return;
   }
 
@@ -734,90 +728,75 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     const res = await apiGet('login', { documento: doc });
 
     if(!res?.encontrado){
-      await Swal.fire({
-        icon:'info',
-        title:'NO TIENES ACCESO AÚN',
-        text:'Solicitar acceso a Secretaría de Hacienda.',
-        timer:6000,
-        showConfirmButton:false
-      });
+      await Swal.fire({ icon:'info', title:'NO TIENES ACCESO AÚN', text:'Solicitar acceso a Secretaría de Hacienda.', timer:6000, showConfirmButton:false });
       return;
     }
 
+    procesarLoginExitoso_(res, doc);
+  }catch(e){
+    Swal.fire({ icon:'error', title:'Error', text: e.message || String(e) });
+  }
+});
+
+/* ================== ÉXITO DE LOGIN (compartido doc + PIN) ================== */
+function procesarLoginExitoso_(res, doc){
     currentUser = {
       documento: String(res.documento || doc),
       nombre: String(res.nombre || ''),
       isSuper: !!res.isSuper
     };
 
-    // ✅ MOSTRAR BOTÓN ESTADISTICAS SOLO SI ES SUPER USUARIO
-try{
-  const bEst = document.getElementById('btn-estadisticas');
-  if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
-}catch(_){}
+    try{
+      const bEst = document.getElementById('btn-estadisticas');
+      if(bEst) bEst.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+    }catch(_){}
 
-  // ── PANEL DASHBOARD: solo SUPER USUARIO ──
-try {
-  const bPanel = document.getElementById('btn-panel-dashboard');
-  if (bPanel) bPanel.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
-} catch(_) {}
+    try {
+      const bPanel = document.getElementById('btn-panel-dashboard');
+      if (bPanel) bPanel.style.display = (currentUser && currentUser.isSuper) ? '' : 'none';
+    } catch(_) {}
 
-    // ── MI SEMÁFORO: visible para super usuario y para asignados del sistema ──
-try {
-  const SEMAFORO_USERS = [
-    'LEESLIE JULIET GOMEZ QUINTERO',
-    'MARIA NIDIA MENESES MARTINEZ',
-    'LUIS GILBERTO MOYA ROMERO',
-    'NICOL ESTEFANI MADRIGALES GONZALEZ',
-    'ANDREA KATERINE LAMAR RODRIGUEZ',
-    'VICTOR MANUEL FANDIÑO GIRALDO',
-    'LUIS GABRIEL RAMIREZ RAMIREZ',
-    'DIEGO FERNANDO GARCIA',
-    'SOL MAR OCHOA HERNANDEZ',
-    'ROSALBA ABADIA ARAGON',
-    'DIANA MARCELA OTALORA',
-    'DEYSI PATRICIA GONZALEZ GUERRA'
-  ].map(s => normalizeText_(s));
+    try {
+      const SEMAFORO_USERS = [
+        'LEESLIE JULIET GOMEZ QUINTERO','MARIA NIDIA MENESES MARTINEZ','LUIS GILBERTO MOYA ROMERO',
+        'NICOL ESTEFANI MADRIGALES GONZALEZ','ANDREA KATERINE LAMAR RODRIGUEZ','VICTOR MANUEL FANDIÑO GIRALDO',
+        'LUIS GABRIEL RAMIREZ RAMIREZ','DIEGO FERNANDO GARCIA','SOL MAR OCHOA HERNANDEZ',
+        'ROSALBA ABADIA ARAGON','DIANA MARCELA OTALORA','DEYSI PATRICIA GONZALEZ GUERRA'
+      ].map(s => normalizeText_(s));
+      const bSema = document.getElementById('btn-semaforo');
+      if (bSema) {
+        const canSeeSemaforo =
+          (currentUser && currentUser.isSuper) ||
+          SEMAFORO_USERS.includes(normalizeText_(currentUser?.nombre || ''));
+        bSema.style.display = canSeeSemaforo ? '' : 'none';
+      }
+    } catch(_) {}
 
-  const bSema = document.getElementById('btn-semaforo');
-  if (bSema) {
-    const canSeeSemaforo =
-      (currentUser && currentUser.isSuper) ||
-      SEMAFORO_USERS.includes(normalizeText_(currentUser?.nombre || ''));
-    bSema.style.display = canSeeSemaforo ? '' : 'none';
-  }
-} catch(_) {}
+    try{
+      const bAgregar = document.getElementById('btn-agregar');
+      if(bAgregar) bAgregar.style.display = canSeeAgregarSolicitud_() ? '' : 'none';
+    }catch(_){}
 
-    // ✅ Permisos de botones por rol (requisitos nuevos)
-try{
-  const bAgregar = document.getElementById('btn-agregar');
-  if(bAgregar) bAgregar.style.display = canSeeAgregarSolicitud_() ? '' : 'none';
-}catch(_){}
+    try{
+      const bInf = document.getElementById('btn-mis-informes');
+      if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || canSeePendientes_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
+    }catch(_){}
 
-// ✅ Mostrar botón MIS INFORMES PREDIAL si puede ver AGREGAR SOLICITUD, PENDIENTES o es SUPER
-try{
-  const bInf = document.getElementById('btn-mis-informes');
-  if(bInf) bInf.style.display = (canSeeAgregarSolicitud_() || canSeePendientes_() || (currentUser && currentUser.isSuper)) ? '' : 'none';
-}catch(_){}
+    try{
+      const bBd = document.getElementById('btn-bd-predial');
+      if(bBd) bBd.style.display = canSeeBDPredial_() ? '' : 'none';
+    }catch(_){}
 
-   // ✅ Mostrar botón BASE DE DATOS PREDIAL
-try{
-  const bBd = document.getElementById('btn-bd-predial');
-  if(bBd) bBd.style.display = canSeeBDPredial_() ? '' : 'none';
-}catch(_){}
+    try{
+      const bPend = document.getElementById('btn-pendientes');
+      if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
+    }catch(_){}
 
-try{
-  const bPend = document.getElementById('btn-pendientes');
-  if(bPend) bPend.style.display = canSeePendientes_() ? '' : 'none';
-}catch(_){}
+    try{
+      const bAtenc = document.getElementById('btn-atenciones-registradas');
+      if(bAtenc) bAtenc.style.display = canSeeAtendidasChat_() ? '' : 'none';
+    }catch(_){}
 
-// ATENCIONES REGISTRADAS: visible para super usuario y usuarios con permiso de chat
-try{
-  const bAtenc = document.getElementById('btn-atenciones-registradas');
-  if(bAtenc) bAtenc.style.display = canSeeAtendidasChat_() ? '' : 'none';
-}catch(_){}
-
-    // Mostrar/ocultar botón DRIVE ANEXOS según usuario
     try{
       const b = document.getElementById('btn-drive-anexos');
       if(b) b.style.display = canSeeDriveAnexos_() ? '' : 'none';
@@ -826,12 +805,64 @@ try{
     document.getElementById('inicio-nombre').textContent = (currentUser.nombre || '').toUpperCase();
     document.getElementById('inicio-sub').textContent = currentUser.isSuper ? 'SUPER USUARIO' : 'USUARIO';
 
-    playSoundOnce(SOUNDS.login);
+   playSoundOnce(SOUNDS.login);
     showView('view-inicio');
+}
+
+/* ================== LOGIN PIN ================== */
+let __pinBuffer = '';
+
+function pintarPinDots_(){
+  document.querySelectorAll('.pin-dot').forEach((d,i)=>{
+    d.classList.toggle('filled', i < __pinBuffer.length);
+  });
+}
+
+function setupLoginPinUI_(){
+  document.querySelectorAll('.login-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      document.getElementById('tab-pin')?.classList.toggle('hidden', target !== 'pin');
+      document.getElementById('tab-doc')?.classList.toggle('hidden', target !== 'doc');
+      __pinBuffer = '';
+      pintarPinDots_();
+    });
+  });
+
+  document.querySelectorAll('.pin-key').forEach(k=>{
+    k.addEventListener('click', ()=>{
+      const key = k.dataset.key;
+      if(key === 'clear'){ __pinBuffer = ''; }
+      else if(key === 'back'){ __pinBuffer = __pinBuffer.slice(0,-1); }
+      else if(/^\d$/.test(key)){
+        if(__pinBuffer.length < 4){ __pinBuffer += key; playSoundOnce(SOUNDS.menu); }
+      }
+      pintarPinDots_();
+      if(__pinBuffer.length === 4) hacerLoginPin_();
+    });
+  });
+}
+
+async function hacerLoginPin_(){
+  try{
+    const data = await apiGet('loginPin', { pin: __pinBuffer }); // apiGet ya gestiona el loader
+    if(!data?.encontrado){
+      __pinBuffer = '';
+      pintarPinDots_();
+      await Swal.fire({ icon:'error', title:'PIN incorrecto', text:'Verifica tu PIN de 4 dígitos.', timer:2500, showConfirmButton:false });
+      return;
+    }
+    procesarLoginExitoso_(data, '');
   }catch(e){
+    __pinBuffer = '';
+    pintarPinDots_();
     Swal.fire({ icon:'error', title:'Error', text: e.message || String(e) });
   }
-});
+}
+
+setupLoginPinUI_();
 
 /* ================== LOGOUT ================== */
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
