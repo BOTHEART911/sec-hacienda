@@ -74,17 +74,50 @@
         <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">SECRETARIA DE HACIENDA</h1>
         <p class="helper"><b>Solo el personal autorizado de esta secretaría tiene acceso a esta App</b></p>
 
-        <label>Documento</label>
-        <div style="position:relative;">
-          <input id="login-doc" type="password" inputmode="numeric" autocomplete="off" placeholder="Sin puntos ni espacios" />
-          <button type="button" id="toggle-doc" aria-label="Mostrar documento"
-            style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;border:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;">
-            <img id="toggle-doc-img" src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Mostrar" style="width:22px;height:22px;">
-          </button>
+       <!-- Tabs de acceso -->
+        <div class="login-tabs">
+          <button type="button" class="login-tab active" data-tab="doc">Documento</button>
+          <button type="button" class="login-tab" data-tab="pin">PIN rápido</button>
         </div>
 
-        <div class="btn-row" style="margin-top:12px;">
-          <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
+        <!-- TAB DOCUMENTO (acceso actual, intacto) -->
+        <div id="tab-doc">
+          <label>Documento</label>
+          <div style="position:relative;">
+            <input id="login-doc" type="password" inputmode="numeric" autocomplete="off" placeholder="Sin puntos ni espacios" />
+            <button type="button" id="toggle-doc" aria-label="Mostrar documento"
+              style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;border:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;">
+              <img id="toggle-doc-img" src="https://res.cloudinary.com/dqqeavica/image/upload/v1764084782/Mostrar_yymceh.png" alt="Mostrar" style="width:22px;height:22px;">
+            </button>
+          </div>
+
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
+          </div>
+        </div>
+
+        <!-- TAB PIN RÁPIDO -->
+        <div id="tab-pin" class="hidden">
+          <div class="pin-pad">
+            <div class="pin-dot" data-pos="0"></div>
+            <div class="pin-dot" data-pos="1"></div>
+            <div class="pin-dot" data-pos="2"></div>
+            <div class="pin-dot" data-pos="3"></div>
+          </div>
+          <div class="pin-keypad">
+            <button type="button" class="pin-key" data-key="1">1</button>
+            <button type="button" class="pin-key" data-key="2">2</button>
+            <button type="button" class="pin-key" data-key="3">3</button>
+            <button type="button" class="pin-key" data-key="4">4</button>
+            <button type="button" class="pin-key" data-key="5">5</button>
+            <button type="button" class="pin-key" data-key="6">6</button>
+            <button type="button" class="pin-key" data-key="7">7</button>
+            <button type="button" class="pin-key" data-key="8">8</button>
+            <button type="button" class="pin-key" data-key="9">9</button>
+            <button type="button" class="pin-key action" data-key="clear">Borrar</button>
+            <button type="button" class="pin-key" data-key="0">0</button>
+            <button type="button" class="pin-key action" data-key="back">⌫</button>
+          </div>
         </div>
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
