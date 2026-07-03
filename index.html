@@ -1754,6 +1754,53 @@
 </div>
 
     <!-- ============================================================
+     MODAL: EXPEDIENTE (archivo AL — visualizar / explorar)
+     ============================================================ -->
+<div id="modal-bdp-archivo" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card" style="margin:0;width:min(760px,100%);max-height:90vh;
+       display:flex;flex-direction:column;gap:12px;">
+
+    <div class="bdp-exp-header">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp"
+           alt="" style="width:26px;height:26px;object-fit:contain;" />
+      <h2 style="color:var(--primary);margin:0;">EXPEDIENTE</h2>
+    </div>
+    <div id="bdp-arch-context" style="text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);"></div>
+
+    <!-- Estado A: con archivo (visualización) -->
+    <div id="bdp-arch-view" style="display:none;flex-direction:column;gap:12px;flex:1;min-height:0;">
+      <div class="bdp-arch-frame">
+        <iframe id="bdp-arch-iframe" src="" allow="autoplay"></iframe>
+      </div>
+      <div class="btn-row">
+        <button id="btn-bdp-arch-reemplazar" class="btn-primary"
+          style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">Reemplazar</button>
+        <button id="btn-bdp-arch-eliminar" class="danger">Eliminar</button>
+        <button id="btn-bdp-arch-salir1" class="btn-primary"
+          style="background:linear-gradient(135deg,#64748b,#475569);">Salir</button>
+      </div>
+    </div>
+
+    <!-- Estado B: sin archivo (explorador) -->
+    <div id="bdp-arch-explorer" style="display:none;flex-direction:column;gap:10px;flex:1;min-height:0;">
+      <div id="bdp-arch-path" class="bdp-exp-path"></div>
+      <div class="bdp-exp-filter">
+        <input id="bdp-arch-filtro" type="text" autocomplete="off" placeholder="🔍 Filtrar por nombre…" />
+        <button id="bdp-arch-filtro-clear" type="button" class="bdp-exp-filtro-clear" title="Limpiar">✕</button>
+      </div>
+      <div id="bdp-arch-list" class="bdp-exp-list"></div>
+      <div class="btn-row">
+        <button id="btn-bdp-arch-atras" class="btn-primary"
+          style="background:linear-gradient(135deg,#64748b,#475569);display:none;">⟵ ATRÁS</button>
+        <button id="btn-bdp-arch-salir2" class="danger">SALIR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- ============================================================
      VISTA PANEL BD PREDIAL
      ============================================================ -->
 <section id="view-bdp-panel" class="view">
