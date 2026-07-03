@@ -1,5 +1,5 @@
 /* ================== CONFIGURACIÓN ================== */
-// TODO: pega aquí la URL /exec de tu Apps Script desplegado
+// TODO: pega aquí la URL /exec de tu Apps Script desplegado 
 const API_BASE = 'https://script.google.com/macros/s/AKfycby_TJ_vPiqPJdJdqBMuhya_Prwb7UMoFEUMISeHv_nAqT0jepMDfu5kNBn5ayTKiuJB_A/exec';
  
 /* ================== SONIDOS (mismos tags/estilo indexref) ================== */
