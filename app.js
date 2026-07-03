@@ -1695,7 +1695,8 @@ const CAT_ICONS = {
   'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         'https://res.cloudinary.com/dqqeavica/image/upload/v1775925730/categoria1_dytugz.png',
   'COBRO COACTIVO Y PERSUASIVO':                'https://res.cloudinary.com/dqqeavica/image/upload/v1775925920/categoria2_hsjnwc.png',
   'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': 'https://res.cloudinary.com/dqqeavica/image/upload/v1775926064/categoria3_zvzmre.png',
-  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    'https://res.cloudinary.com/dqqeavica/image/upload/v1775926219/categoria4_u9oodc.png'
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    'https://res.cloudinary.com/dqqeavica/image/upload/v1775926219/categoria4_u9oodc.png',
+  'TUTELA':                                     'https://res.cloudinary.com/dqqeavica/image/upload/v1783042503/alerta_a3op0o.webp'
 };
 
 const SUBCAT_ICONS = {
@@ -1731,11 +1732,12 @@ const SUBCAT_POR_CAT = {
     'CERTIFICACIONES Y CONSTANCIAS',
     'QUEJAS, RECLAMOS Y SUGERENCIAS'
   ],
-  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
+ 'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
     'RECURSO DE REPOSICIÓN',
     'RECURSO DE RECONSIDERACIÓN',
     'REVOCATORIA DIRECTA'
-  ]
+  ],
+  'TUTELA': []
 };
 
 const ETAPAS_POR_CAT = {
@@ -1752,9 +1754,10 @@ const ETAPAS_POR_CAT = {
     'En Trámite / Reparto Interno','Solicitud de Concepto Técnico',
     'Respuesta Proyectada','Respuesta Enviada / Finalizado'
   ],
-  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
+ 'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
     'Auto Admisorio','Práctica de Pruebas','Fallo de Segunda Instancia'
-  ]
+  ],
+  'TUTELA': []
 };
 
 /* ── Colores de borde por categoría / subcategoría ──────── */
@@ -1762,7 +1765,8 @@ const CAT_COLORS = {
   'GESTIÓN DE IMPUESTOS (FACTURACIÓN)':         { border: '#1e40af', bg: '#dbeafe' }, // azul oscuro / azul claro
   'COBRO COACTIVO Y PERSUASIVO':                { border: '#15803d', bg: '#dcfce7' }, // verde oscuro / verde claro
   'PETICIONES Y RELACIONES CIUDADANAS (PQRSD)': { border: '#6d28d9', bg: '#ede9fe' }, // lila oscuro / lila claro
-  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    { border: '#c2410c', bg: '#ffedd5' }  // naranja oscuro / naranja claro
+  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)':    { border: '#c2410c', bg: '#ffedd5' }, // naranja oscuro / naranja claro
+  'TUTELA':                                     { border: '#dc2626', bg: '#fee2e2' }  // rojo oscuro / rojo claro
 };
 
 // Mapa: subcategoría → su categoría padre (para heredar color más claro)
@@ -4562,6 +4566,12 @@ const PANEL_ESTADO_COLORS = {
 /* ── Colores categoría ──────────────────────────────────── */
 const PANEL_CAT_COLORS_LIST = ['#1e40af','#15803d','#6d28d9','#c2410c'];
 
+/* Color fijo por categoría (usa CAT_COLORS; si no está, cae al ciclo) */
+function panelCatColor_(cat, idx) {
+  const c = getCatColor_(cat);
+  return (c && c.border) ? c.border : PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
+}
+
 /* ── Destruir chart panel ───────────────────────────────── */
 function panelDestroyChart_(key) {
   try {
@@ -4997,7 +5007,7 @@ function panelRenderCats_(rows) {
     catsWrap.innerHTML = '';
     sortedCats.forEach(([cat, count], idx) => {
       const iconUrl = getCatIcon_(cat);
-      const color   = PANEL_CAT_COLORS_LIST[idx % PANEL_CAT_COLORS_LIST.length];
+      const color   = panelCatColor_(cat, idx);
       const pct     = Math.round((count / maxCat) * 100);
       const item = document.createElement('div');
       item.className = 'cat-stat-item';
@@ -5149,7 +5159,7 @@ function panelRenderCats_(rows) {
       return words.length > 3 ? words.slice(0,3).join(' ') + '…' : k;
     });
     const values = sortedCats.map(([,v]) => v);
-    const colors = sortedCats.map((_,i) => PANEL_CAT_COLORS_LIST[i % PANEL_CAT_COLORS_LIST.length]);
+    const colors = sortedCats.map(([k],i) => panelCatColor_(k, i));
 
     __panelCharts['cats'] = new Chart(ctxCats, {
       type: 'doughnut',
