@@ -6664,8 +6664,10 @@ document.getElementById('btn-bdp-mis-exp')?.addEventListener('click', async () =
 });
 
 /* ── MIS EXPEDIENTES (explorador Drive, columna K de USUARIOS) ── */
-let __bdpExpStack  = [];   // pila de folderIds para "Atrás"
-let __bdpExpRootId = '';   // id de la carpeta raíz del usuario
+let __bdpExpStack     = [];   // pila de folderIds para "Atrás"
+let __bdpExpRootId    = '';   // id de la carpeta raíz del usuario
+let __bdpExpItems     = [];   // ítems de la carpeta actual (para filtrar)
+let __bdpExpCurrentId = '';   // id de la carpeta que se está viendo
 
 const BDP_EXP_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764111247/carpeta_drive_epbrhp.webp';
 const BDP_EXP_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
@@ -6700,18 +6702,43 @@ async function bdpExpCargar_(folderId) {
       return;
     }
 
-    __bdpExpRootId = res.rootId || __bdpExpRootId;
+    __bdpExpRootId    = res.rootId || __bdpExpRootId;
+    __bdpExpCurrentId = res.folderId || folderId || __bdpExpRootId;
     if (pathEl) pathEl.textContent = '📁 ' + (res.folderName || 'Expedientes');
     if (backBtn) backBtn.style.display = (__bdpExpStack.length > 0) ? '' : 'none';
 
-    const items = Array.isArray(res.items) ? res.items : [];
-    if (!items.length) {
-      listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>';
-      return;
-    }
+ __bdpExpItems = Array.isArray(res.items) ? res.items : [];
+    const filtroEl = document.getElementById('bdp-exp-filtro');
+    if (filtroEl) filtroEl.value = '';   // reinicia el filtro al cambiar de carpeta
+    bdpExpRender_('');
+    return;
+  } catch (e) {
+    listEl.innerHTML = '<p class="muted center" style="padding:24px;color:#dc2626;">Error: ' + escapeHtml_(String(e.message || e)) + '</p>';
+  }
+}
 
-    listEl.innerHTML = '';
-    items.forEach(it => {
+/* Pinta la lista aplicando el filtro de texto */
+function bdpExpRender_(filtro) {
+  const listEl   = document.getElementById('bdp-exp-list');
+  if (!listEl) return;
+  const folderId = __bdpExpCurrentId;
+  const q = normalizeText_(filtro || '');
+
+  const items = q
+    ? __bdpExpItems.filter(it => normalizeText_(it.name).includes(q))
+    : __bdpExpItems;
+
+  if (!__bdpExpItems.length) {
+    listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>';
+    return;
+  }
+  if (!items.length) {
+    listEl.innerHTML = '<p class="muted center" style="padding:24px;">Sin resultados para el filtro.</p>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  items.forEach(it => {
       const isFolder = it.type === 'folder';
       const rowEl = document.createElement('div');
       rowEl.className = 'bdp-exp-item' + (isFolder ? ' is-folder' : '');
@@ -6760,9 +6787,6 @@ async function bdpExpCargar_(folderId) {
       }
       listEl.appendChild(rowEl);
     });
-  } catch (e) {
-    listEl.innerHTML = '<p class="muted center" style="padding:24px;color:#dc2626;">Error: ' + escapeHtml_(String(e.message || e)) + '</p>';
-  }
 }
 
 /* Atrás */
@@ -6778,6 +6802,16 @@ document.getElementById('btn-bdp-exp-salir')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
   document.getElementById('modal-bdp-expedientes')?.classList.add('hidden');
   __bdpExpStack = [];
+});
+
+/* Filtro en tiempo real */
+document.getElementById('bdp-exp-filtro')?.addEventListener('input', (e) => {
+  bdpExpRender_(e.target.value);
+});
+document.getElementById('bdp-exp-filtro-clear')?.addEventListener('click', () => {
+  const el = document.getElementById('bdp-exp-filtro');
+  if (el) { el.value = ''; el.focus(); }
+  bdpExpRender_('');
 });
 
 /* Copiar texto al portapapeles (con respaldo para contextos no seguros) */
