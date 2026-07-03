@@ -1433,8 +1433,13 @@
         AGREGAR EXPEDIENTE
       </button>
       <button id="btn-bdp-mis-exp" class="btn-primary btn-icon-label"
+        style="background:linear-gradient(135deg,#16a34a,#15803d);">
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778186304/excel_rkcld6.webp" alt="Datos Excel" />
+        DATOS EXCEL
+      </button>
+      <button id="btn-bdp-expedientes" class="btn-primary btn-icon-label"
         style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
-        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1778860849/expedientes_evq6df.webp" alt="Mis Exp" />
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp" alt="Mis Expedientes" />
         MIS EXPEDIENTES
       </button>
       <button id="btn-bdp-back" class="danger">REGRESAR</button>
@@ -1682,6 +1687,38 @@
     <div class="btn-row" style="margin-top:14px;">
       <button id="btn-bdp-reb-guardar" class="btn-primary">Enviar objeción</button>
       <button id="btn-bdp-reb-cancelar" class="danger">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+    <!-- ============================================================
+     MODAL: MIS EXPEDIENTES (explorador de Drive, columna K)
+     ============================================================ -->
+<div id="modal-bdp-expedientes" class="hidden"
+  style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
+         display:flex;align-items:center;justify-content:center;padding:16px;">
+  <div class="card" style="margin:0;width:min(640px,100%);max-height:88vh;
+       display:flex;flex-direction:column;gap:12px;">
+
+    <div class="bdp-exp-header">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp"
+           alt="" style="width:26px;height:26px;object-fit:contain;" />
+      <h2 style="color:var(--primary);margin:0;">MIS EXPEDIENTES</h2>
+    </div>
+
+    <!-- Ruta / carpeta actual -->
+    <div id="bdp-exp-path" class="bdp-exp-path"></div>
+
+    <!-- Listado dinámico -->
+    <div id="bdp-exp-list" class="bdp-exp-list"></div>
+
+    <!-- Botones -->
+    <div class="btn-row" style="margin-top:4px;">
+      <button id="btn-bdp-exp-atras" class="btn-primary"
+        style="background:linear-gradient(135deg,#64748b,#475569);display:none;">
+        ⟵ ATRÁS
+      </button>
+      <button id="btn-bdp-exp-salir" class="danger">SALIR</button>
     </div>
   </div>
 </div>
