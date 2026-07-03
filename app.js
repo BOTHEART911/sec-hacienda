@@ -7338,6 +7338,7 @@ bdpPopulateLetras_();
  bdpBloquearCamposEstructurales_(false);
 
   bdpSetSeguimiento_('bdp-form-seg-fecha','bdp-form-seg-check','bdp-form-seg-aviso','','');
+  __bdpFormArchivoSel = '';
 
   showView('view-bdp-form');
 }
@@ -7720,6 +7721,7 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     }
 
     payload.asignador = currentUser?.nombre || '';
+    payload.archivo_expediente = __bdpFormArchivoSel || '';
     try {
       const ok = await Swal.fire({
         icon:'question', title:'Guardar expediente',
@@ -7760,6 +7762,11 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
 document.getElementById('btn-bdp-form-back')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
   showView('view-bd-predial');
+});
+
+document.getElementById('btn-bdp-form-archivo')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.menu);
+  abrirBDPExpedienteDesdeForm_();
 });
 
 /* ── VER DETALLES ─────────────────────────────────────── */
@@ -7894,7 +7901,17 @@ function abrirBDPDetalle_(row) {
     document.getElementById('bdp-reb-justif').value = '';
     document.getElementById('modal-bdp-rebotar').classList.remove('hidden');
   });
-  actions.appendChild(btnReb);
+ actions.appendChild(btnReb);
+
+  /* EXPEDIENTE (archivo) */
+  const btnArch = document.createElement('button');
+  btnArch.type = 'button';
+  btnArch.className = 'btn-primary proc-action-btn';
+  btnArch.style.width = 'auto';
+  btnArch.style.background = 'linear-gradient(135deg,#b91c1c,#7f1d1d)';
+  btnArch.innerHTML = '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp" style="width:20px;height:20px;vertical-align:middle;" alt="" /> EXPEDIENTE';
+  btnArch.addEventListener('click', () => { playSoundOnce(SOUNDS.menu); abrirBDPExpediente_(row); });
+  actions.appendChild(btnArch);
 
 /* EDITAR */
   if (canEditarEstePredial_(row)) {
