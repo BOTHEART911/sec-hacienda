@@ -6663,6 +6663,102 @@ document.getElementById('btn-bdp-mis-exp')?.addEventListener('click', async () =
   }
 });
 
+/* ── MIS EXPEDIENTES (explorador Drive, columna K de USUARIOS) ── */
+let __bdpExpStack  = [];   // pila de folderIds para "Atrás"
+let __bdpExpRootId = '';   // id de la carpeta raíz del usuario
+
+const BDP_EXP_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp';
+const BDP_EXP_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1778186304/excel_rkcld6.webp';
+
+document.getElementById('btn-bdp-expedientes')?.addEventListener('click', async () => {
+  playSoundOnce(SOUNDS.back);
+  if (!currentUser) { Swal.fire({ icon:'warning', title:'Sesión inválida' }); return; }
+  __bdpExpStack = [];
+  await bdpExpCargar_('');   // '' = carpeta raíz (columna K)
+});
+
+async function bdpExpCargar_(folderId) {
+  const modal   = document.getElementById('modal-bdp-expedientes');
+  const listEl  = document.getElementById('bdp-exp-list');
+  const pathEl  = document.getElementById('bdp-exp-path');
+  const backBtn = document.getElementById('btn-bdp-exp-atras');
+  if (!modal || !listEl) return;
+
+  modal.classList.remove('hidden');
+  listEl.innerHTML = '<p class="muted center" style="padding:24px;">⏳ Cargando…</p>';
+  if (pathEl) pathEl.textContent = '';
+
+  try {
+    const res = await apiGet('listmisexpedientes', {
+      documento: currentUser.documento,
+      folderId : folderId || ''
+    });
+
+    if (!res || res.found === false) {
+      listEl.innerHTML = '<p class="muted center" style="padding:24px;">No tienes carpeta de expedientes configurada en la hoja USUARIOS (columna K).</p>';
+      if (backBtn) backBtn.style.display = 'none';
+      return;
+    }
+
+    __bdpExpRootId = res.rootId || __bdpExpRootId;
+    if (pathEl) pathEl.textContent = '📁 ' + (res.folderName || 'Expedientes');
+    if (backBtn) backBtn.style.display = (__bdpExpStack.length > 0) ? '' : 'none';
+
+    const items = Array.isArray(res.items) ? res.items : [];
+    if (!items.length) {
+      listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    items.forEach(it => {
+      const isFolder = it.type === 'folder';
+      const rowEl = document.createElement('div');
+      rowEl.className = 'bdp-exp-item' + (isFolder ? ' is-folder' : '');
+      rowEl.innerHTML = `
+        <img class="bdp-exp-icon" src="${isFolder ? BDP_EXP_ICON_FOLDER : BDP_EXP_ICON_FILE}" alt="" />
+        <span class="bdp-exp-name" title="${escapeHtml_(it.name)}">${escapeHtml_(it.name)}</span>
+      `;
+
+      if (isFolder) {
+        rowEl.addEventListener('click', () => {
+          playSoundOnce(SOUNDS.back);
+          __bdpExpStack.push(folderId || __bdpExpRootId);
+          bdpExpCargar_(it.id);
+        });
+      } else {
+        const openBtn = document.createElement('button');
+        openBtn.type = 'button';
+        openBtn.className = 'bdp-exp-open';
+        openBtn.textContent = 'Abrir';
+        openBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.open(it.url, '_blank', 'noopener');
+        });
+        rowEl.appendChild(openBtn);
+      }
+      listEl.appendChild(rowEl);
+    });
+  } catch (e) {
+    listEl.innerHTML = '<p class="muted center" style="padding:24px;color:#dc2626;">Error: ' + escapeHtml_(String(e.message || e)) + '</p>';
+  }
+}
+
+/* Atrás */
+document.getElementById('btn-bdp-exp-atras')?.addEventListener('click', () => {
+  if (!__bdpExpStack.length) return;
+  playSoundOnce(SOUNDS.back);
+  const prev = __bdpExpStack.pop();
+  bdpExpCargar_(prev === __bdpExpRootId ? '' : prev);
+});
+
+/* Salir */
+document.getElementById('btn-bdp-exp-salir')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  document.getElementById('modal-bdp-expedientes')?.classList.add('hidden');
+  __bdpExpStack = [];
+});
+
 /* ── Placeholders Fase 3 / 4 ───────────────────────────── */
 document.getElementById('btn-bdp-agregar')?.addEventListener('click', () => {
   playSoundOnce(SOUNDS.back);
