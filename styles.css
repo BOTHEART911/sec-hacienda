@@ -2805,3 +2805,40 @@ button:active { transform: translateY(0) scale(.98); }
   border-color: transparent;
   color: #fff;
 }
+
+/* Campo de filtro del explorador */
+.bdp-exp-filter {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.bdp-exp-filter input {
+  width: 100%;
+  padding: 9px 34px 9px 14px;
+  font-size: .85rem;
+  border: 1.5px solid rgba(6,64,43,.18);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text-main, #1f2937);
+  outline: none;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.bdp-exp-filter input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2,132,199,.15);
+}
+.bdp-exp-filtro-clear {
+  position: absolute;
+  right: 6px;
+  width: auto !important;   /* anula el  button { width:100% }  global */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: .9rem;
+  line-height: 1;
+  color: var(--text-muted, #6b7280);
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color .12s ease, background .12s ease;
+}
+.bdp-exp-filtro-clear:hover { color: #dc2626; background: rgba(0,0,0,.04); }
