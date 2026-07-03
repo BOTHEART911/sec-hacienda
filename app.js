@@ -6813,6 +6813,202 @@ document.getElementById('btn-bdp-exp-salir')?.addEventListener('click', () => {
   __bdpExpStack = [];
 });
 
+/* ============================================================
+   MODAL EXPEDIENTE (archivo AL) — visualizar / explorar / asociar
+   ============================================================ */
+let __bdpArchRow       = null;
+let __bdpArchStack     = [];
+let __bdpArchRootId    = '';
+let __bdpArchItems     = [];
+let __bdpArchCurrentId = '';
+
+const BDP_ARCH_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764111247/carpeta_drive_epbrhp.webp';
+const BDP_ARCH_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
+
+/* Extrae el ID de archivo de una URL de Drive y arma el preview embebible */
+function bdpDriveFileId_(url) {
+  const s = String(url || '');
+  let m = s.match(/\/file\/d\/([A-Za-z0-9_-]{10,})/); if (m) return m[1];
+  m = s.match(/[?&]id=([A-Za-z0-9_-]{10,})/);        if (m) return m[1];
+  m = s.match(/\/d\/([A-Za-z0-9_-]{10,})/);          if (m) return m[1];
+  return '';
+}
+function bdpDrivePreview_(url) {
+  const id = bdpDriveFileId_(url);
+  return id ? ('https://drive.google.com/file/d/' + id + '/preview') : url;
+}
+
+function abrirBDPExpediente_(row) {
+  __bdpArchRow = row;
+  document.getElementById('bdp-arch-context').innerHTML =
+    '<b>' + escapeHtml_(row.nombres || '') + '</b> — Exp. ' + escapeHtml_(row.no_exp_fisico || '');
+  document.getElementById('modal-bdp-archivo').classList.remove('hidden');
+
+  const url = String(row.archivo_expediente || '').trim();
+  if (url) bdpArchMostrarArchivo_(url);
+  else     bdpArchMostrarExplorador_();
+}
+
+function bdpArchMostrarArchivo_(url) {
+  document.getElementById('bdp-arch-explorer').style.display = 'none';
+  document.getElementById('bdp-arch-view').style.display = 'flex';
+  document.getElementById('bdp-arch-iframe').src = bdpDrivePreview_(url);
+}
+
+function bdpArchMostrarExplorador_() {
+  document.getElementById('bdp-arch-view').style.display = 'none';
+  document.getElementById('bdp-arch-iframe').src = '';   // detiene la carga del anterior
+  document.getElementById('bdp-arch-explorer').style.display = 'flex';
+  __bdpArchStack = [];
+  const f = document.getElementById('bdp-arch-filtro'); if (f) f.value = '';
+  bdpArchCargar_('');
+}
+
+async function bdpArchCargar_(folderId) {
+  const listEl  = document.getElementById('bdp-arch-list');
+  const pathEl  = document.getElementById('bdp-arch-path');
+  const backBtn = document.getElementById('btn-bdp-arch-atras');
+  if (!listEl) return;
+  listEl.innerHTML = '<p class="muted center" style="padding:24px;">⏳ Cargando…</p>';
+  if (pathEl) pathEl.textContent = '';
+  try {
+    const res = await apiGet('listmisexpedientes', {
+      documento: currentUser.documento, folderId: folderId || ''
+    });
+    if (!res || res.found === false) {
+      listEl.innerHTML = '<p class="muted center" style="padding:24px;">No tienes carpeta de expedientes configurada (columna K de USUARIOS).</p>';
+      if (backBtn) backBtn.style.display = 'none';
+      return;
+    }
+    __bdpArchRootId    = res.rootId || __bdpArchRootId;
+    __bdpArchCurrentId = res.folderId || folderId || __bdpArchRootId;
+    if (pathEl) pathEl.textContent = '📁 ' + (res.folderName || 'Expedientes');
+    if (backBtn) backBtn.style.display = (__bdpArchStack.length > 0) ? '' : 'none';
+    __bdpArchItems = Array.isArray(res.items) ? res.items : [];
+    bdpArchRender_('');
+  } catch (e) {
+    listEl.innerHTML = '<p class="muted center" style="padding:24px;color:#dc2626;">Error: ' + escapeHtml_(String(e.message || e)) + '</p>';
+  }
+}
+
+function bdpArchRender_(filtro) {
+  const listEl = document.getElementById('bdp-arch-list');
+  if (!listEl) return;
+  const q = normalizeText_(filtro || '');
+  const items = q ? __bdpArchItems.filter(it => normalizeText_(it.name).includes(q)) : __bdpArchItems;
+  if (!__bdpArchItems.length) { listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>'; return; }
+  if (!items.length)          { listEl.innerHTML = '<p class="muted center" style="padding:24px;">Sin resultados para el filtro.</p>'; return; }
+
+  const folderId = __bdpArchCurrentId;
+  listEl.innerHTML = '';
+  items.forEach(it => {
+    const isFolder = it.type === 'folder';
+    const rowEl = document.createElement('div');
+    rowEl.className = 'bdp-exp-item' + (isFolder ? ' is-folder' : '');
+    rowEl.innerHTML =
+      '<img class="bdp-exp-icon" src="' + (isFolder ? BDP_ARCH_ICON_FOLDER : BDP_ARCH_ICON_FILE) + '" alt="" />' +
+      '<span class="bdp-exp-name" title="' + escapeHtml_(it.name) + '">' + escapeHtml_(it.name) + '</span>';
+
+    if (isFolder) {
+      rowEl.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.back);
+        __bdpArchStack.push(folderId || __bdpArchRootId);
+        bdpArchCargar_(it.id);
+      });
+    } else {
+      const actions = document.createElement('div');
+      actions.className = 'bdp-exp-actions';
+
+      const openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.className = 'bdp-exp-open';
+      openBtn.textContent = 'Abrir';
+      openBtn.addEventListener('click', (e) => { e.stopPropagation(); window.open(it.url, '_blank', 'noopener'); });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'bdp-exp-add';
+      addBtn.textContent = 'Agregar';
+      addBtn.addEventListener('click', (e) => { e.stopPropagation(); bdpArchAgregar_(it); });
+
+      actions.appendChild(openBtn);
+      actions.appendChild(addBtn);
+      rowEl.appendChild(actions);
+    }
+    listEl.appendChild(rowEl);
+  });
+}
+
+async function bdpArchAgregar_(it) {
+  try {
+    const ok = await Swal.fire({
+      icon: 'question', title: 'Agregar archivo',
+      html: 'Se asociará <b>' + escapeHtml_(it.name) + '</b> a este expediente.',
+      showCancelButton: true, confirmButtonText: 'Agregar', cancelButtonText: 'Cancelar'
+    });
+    if (!ok.isConfirmed) return;
+    await apiPost('setexpedientearchivo', { id_predial: __bdpArchRow.id_predial, url: it.url });
+    __bdpArchRow.archivo_expediente = it.url;    // refresca en memoria
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon: 'success', title: 'Archivo agregado', timer: 1200, showConfirmButton: false });
+    bdpArchMostrarArchivo_(it.url);
+    loadBDPredial_();                            // refresca la lista en segundo plano
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+}
+
+/* Reemplazar → explorador */
+document.getElementById('btn-bdp-arch-reemplazar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.menu);
+  bdpArchMostrarExplorador_();
+});
+
+/* Eliminar → quita la referencia AL (no borra el archivo de Drive) */
+document.getElementById('btn-bdp-arch-eliminar')?.addEventListener('click', async () => {
+  const ok = await Swal.fire({
+    icon: 'warning', title: '¿Quitar archivo?',
+    html: 'Se quitará la referencia del archivo en este expediente.<br>(No se elimina el archivo de Drive)',
+    showCancelButton: true, confirmButtonText: 'Quitar', cancelButtonText: 'Cancelar', confirmButtonColor: '#dc2626'
+  });
+  if (!ok.isConfirmed) return;
+  try {
+    await apiPost('eliminarexpedientearchivo', { id_predial: __bdpArchRow.id_predial });
+    __bdpArchRow.archivo_expediente = '';
+    playSoundOnce(SOUNDS.success);
+    await Swal.fire({ icon: 'success', title: 'Archivo quitado', timer: 1200, showConfirmButton: false });
+    bdpArchMostrarExplorador_();
+    loadBDPredial_();
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'Error', text: String(e.message || e) });
+  }
+});
+
+/* Salir (ambos estados) */
+function bdpArchCerrar_() {
+  document.getElementById('modal-bdp-archivo').classList.add('hidden');
+  document.getElementById('bdp-arch-iframe').src = '';
+  __bdpArchStack = [];
+}
+document.getElementById('btn-bdp-arch-salir1')?.addEventListener('click', () => { playSoundOnce(SOUNDS.back); bdpArchCerrar_(); });
+document.getElementById('btn-bdp-arch-salir2')?.addEventListener('click', () => { playSoundOnce(SOUNDS.back); bdpArchCerrar_(); });
+
+/* Atrás (explorador) */
+document.getElementById('btn-bdp-arch-atras')?.addEventListener('click', () => {
+  if (!__bdpArchStack.length) return;
+  playSoundOnce(SOUNDS.back);
+  const prev = __bdpArchStack.pop();
+  bdpArchCargar_(prev === __bdpArchRootId ? '' : prev);
+});
+
+/* Filtro (explorador) */
+document.getElementById('bdp-arch-filtro')?.addEventListener('input', (e) => bdpArchRender_(e.target.value));
+document.getElementById('bdp-arch-filtro-clear')?.addEventListener('click', () => {
+  const el = document.getElementById('bdp-arch-filtro');
+  if (el) { el.value = ''; el.focus(); }
+  bdpArchRender_('');
+});
+
 /* Filtro en tiempo real */
 document.getElementById('bdp-exp-filtro')?.addEventListener('input', (e) => {
   bdpExpRender_(e.target.value);
