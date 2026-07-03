@@ -6667,8 +6667,8 @@ document.getElementById('btn-bdp-mis-exp')?.addEventListener('click', async () =
 let __bdpExpStack  = [];   // pila de folderIds para "Atrás"
 let __bdpExpRootId = '';   // id de la carpeta raíz del usuario
 
-const BDP_EXP_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776121369/expediente_clb9ca.webp';
-const BDP_EXP_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1778186304/excel_rkcld6.webp';
+const BDP_EXP_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764111247/carpeta_drive_epbrhp.webp';
+const BDP_EXP_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
 
 document.getElementById('btn-bdp-expedientes')?.addEventListener('click', async () => {
   playSoundOnce(SOUNDS.back);
