@@ -2683,3 +2683,79 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .pin-key:active { background:var(--primary); color:#fff; transform:scale(.94); }
 .pin-key.action { font-size:1rem; background:transparent; border-color:transparent; color:var(--text-muted); }
+
+/* ── MIS EXPEDIENTES: explorador de Drive ─────────────────── */
+.bdp-exp-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bdp-exp-path {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-sub, #3d5248);
+  background: rgba(6,64,43,.05);
+  border: 1.5px solid rgba(6,64,43,.12);
+  border-radius: 10px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bdp-exp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 56vh;
+  padding-right: 4px;
+}
+.bdp-exp-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(6,64,43,.12);
+  border-radius: 12px;
+  background: #fff;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.bdp-exp-item.is-folder {
+  cursor: pointer;
+  background: rgba(124,58,237,.05);
+  border-color: rgba(124,58,237,.25);
+}
+.bdp-exp-item.is-folder:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(124,58,237,.18);
+  border-color: rgba(124,58,237,.5);
+}
+.bdp-exp-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.bdp-exp-name {
+  flex: 1;
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--text-main, #1f2937);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bdp-exp-open {
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: .78rem;
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #06b6d4, #0284c7);
+  transition: transform .12s ease, filter .12s ease;
+}
+.bdp-exp-open:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.bdp-exp-open:active { transform: translateY(0); }
