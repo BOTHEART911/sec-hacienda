@@ -6868,6 +6868,7 @@ function abrirBDPExpedienteDesdeForm_() {
   if (url) bdpArchMostrarArchivo_(url);
   else     bdpArchMostrarExplorador_();
 }
+}
 
 function bdpArchMostrarArchivo_(url) {
   document.getElementById('bdp-arch-explorer').style.display = 'none';
