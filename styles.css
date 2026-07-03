@@ -1679,7 +1679,9 @@ button:active { transform: translateY(0) scale(.98); }
 #modal-rebotar,
 #modal-solicitar-proceso,
 #modal-decision,
-#modal-expediente {
+#modal-expediente,
+#modal-bdp-decision,
+#modal-bdp-archivo {
   background: rgba(255,255,255,.30) !important;
   backdrop-filter: blur(6px) !important;
   -webkit-backdrop-filter: blur(6px) !important;
@@ -1691,7 +1693,8 @@ button:active { transform: translateY(0) scale(.98); }
 #modal-solicitar-proceso .card,
 #modal-decision .card,
 #modal-expediente .card,
-#modal-bdp-expedientes .card {
+#modal-bdp-decision .card,
+#modal-bdp-archivo .card {
   background: rgba(255,255,255,.98) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
