@@ -1610,6 +1610,16 @@
 
       <label>F-MP <span class="muted">(opcional)</span></label>
       <input id="bdp-f-mp" type="text" />
+
+      <h3 style="margin-top:18px; color:var(--primary); text-align:left;">📅 Seguimiento</h3>
+
+      <label>Fecha de Seguimiento <span class="muted">(opcional)</span></label>
+      <input id="bdp-form-seg-fecha" type="date" />
+
+      <label class="bdp-seg-check">
+        <input type="checkbox" id="bdp-form-seg-check" disabled /> Recordar
+      </label>
+      <div id="bdp-form-seg-aviso" class="bdp-seg-aviso" style="display:none;"></div>
     </div>
 
     <div class="btn-row" style="margin-top:16px;">
@@ -1647,11 +1657,15 @@
   style="position:fixed;inset:0;background:var(--scrim);z-index:10000;
          display:flex;align-items:center;justify-content:center;padding:16px;">
   <div class="card narrow" style="margin:0;width:min(560px,100%);">
-    <h2 style="color:var(--primary);">DECISIÓN</h2>
-    <p class="helper" style="margin-top:0;">Cambia la actuación del expediente. Se notificará al sustanciador.</p>
+    <div class="bdp-exp-header" style="justify-content:center;">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1759767447/Notificaci%C3%B3n_jtptyw.webp"
+           alt="" style="width:26px;height:26px;object-fit:contain;" />
+      <h2 style="color:var(--primary);margin:0;">ACTUACIÓN Y SEGUIMIENTO</h2>
+    </div>
+    <p class="helper" style="margin-top:6px;">Cambia la actuación del expediente. Se notificará al sustanciador.</p>
     <div id="bdp-dec-context" style="text-align:center;font-size:.85rem;font-weight:700;color:var(--text-sub);margin-bottom:10px;"></div>
 
-<label>Nueva Actuación</label>
+    <label>Nueva Actuación</label>
     <select id="bdp-dec-actuacion">
       <option value="NINGUNA">NINGUNA</option>
       <option value="COMUNICACION PERSUASIVA">COMUNICACION PERSUASIVA</option>
@@ -1664,6 +1678,14 @@
       <option value="INSOLVENCIA">INSOLVENCIA</option>
       <option value="PRESCRIPCION">PRESCRIPCION</option>
     </select>
+
+    <label>Fecha de Seguimiento <span class="muted">(opcional)</span></label>
+    <input id="bdp-seg-fecha" type="date" />
+
+    <label class="bdp-seg-check">
+      <input type="checkbox" id="bdp-seg-check" disabled /> Recordar
+    </label>
+    <div id="bdp-seg-aviso" class="bdp-seg-aviso" style="display:none;"></div>
 
     <div class="btn-row" style="margin-top:14px;">
       <button id="btn-bdp-dec-guardar" class="btn-primary">Confirmar</button>
