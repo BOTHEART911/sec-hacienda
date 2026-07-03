@@ -2765,3 +2765,43 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .bdp-exp-open:hover { transform: translateY(-1px); filter: brightness(1.08); }
 .bdp-exp-open:active { transform: translateY(0); }
+
+/* Grupo de acciones (Abrir + Copiar) */
+.bdp-exp-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Botón Copiar */
+.bdp-exp-copy {
+  flex: 0 0 auto;
+  width: auto !important;   /* anula el  button { width:100% }  global */
+  border: 1.5px solid #0284c7;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .72rem;
+  letter-spacing: .3px;
+  color: #0284c7;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: #fff;
+  transition: transform .12s ease, filter .12s ease, background .12s ease, color .12s ease;
+}
+.bdp-exp-copy:hover { transform: translateY(-1px); background: #f0f9ff; }
+.bdp-exp-copy:active { transform: translateY(0); }
+
+/* Estado: copiado con éxito */
+.bdp-exp-copy.copied {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border-color: transparent;
+  color: #fff;
+}
+/* Estado: error al copiar */
+.bdp-exp-copy.error {
+  background: #dc2626;
+  border-color: transparent;
+  color: #fff;
+}
