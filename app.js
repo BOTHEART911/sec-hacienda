@@ -6436,7 +6436,10 @@ function bdpCardHTML_(row, idx, puedeEliminar, puedeDecision) {
       'style="background:linear-gradient(135deg,#0a7a46,#06402B);">' +
       '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1775850623/firma_e19uie.webp" alt="Decisión" ' +
       'style="filter:brightness(0) invert(1);"></button>';
-  }
+ }
+  acciones +=
+    '<button type="button" class="bdp-icon-btn" data-bdp-act="expediente" title="Expediente (archivo)">' +
+    '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp" alt="Expediente"></button>';
 
   return (
     '<div class="bdp-card clasif-' + clasif + '" data-bdp-idx="' + idx + '">' +
@@ -6616,6 +6619,12 @@ document.getElementById('bdp-list')?.addEventListener('click', async (e) => {
     playSoundOnce(SOUNDS.menu);
     __bdpSelected = row;
     abrirBDPDecision_(row);
+    return;
+  }
+ if (act === 'expediente') {
+    playSoundOnce(SOUNDS.menu);
+    __bdpSelected = row;
+    abrirBDPExpediente_(row);
     return;
   }
   if (act === 'eliminar') {
@@ -7098,7 +7107,9 @@ __bdpFormMode = 'add';
 
 bdpPopulateLetras_();
   bdpSetupNumericInputs_();
-  bdpBloquearCamposEstructurales_(false);
+ bdpBloquearCamposEstructurales_(false);
+
+  bdpSetSeguimiento_('bdp-form-seg-fecha','bdp-form-seg-check','bdp-form-seg-aviso','','');
 
   showView('view-bdp-form');
 }
@@ -7223,6 +7234,8 @@ const esSuper = canEditarTodoPredial_();
       valorEl.style.cursor = '';
     }
   }
+
+ bdpSetSeguimiento_('bdp-form-seg-fecha','bdp-form-seg-check','bdp-form-seg-aviso', row.fecha_seguimiento, row.recordatorio);
 
   showView('view-bdp-form');
 }
@@ -7381,11 +7394,19 @@ document.getElementById('btn-bdp-form-guardar')?.addEventListener('click', async
     bitacora = _nombreUser + ' ' + _hoy + ': ' + _bitTextarea;
   }
 
+/* Seguimiento (aplica a AGREGAR y EDITAR, para cualquier editor) */
+  const _segFecha = bdpISOaDDMMYYYY_(document.getElementById('bdp-form-seg-fecha')?.value || '');
+  const _segCheck = !!document.getElementById('bdp-form-seg-check')?.checked;
+  const _segOrigRec   = (esEdit && __bdpFormRow) ? __bdpFormRow.recordatorio     : '';
+  const _segOrigFecha = (esEdit && __bdpFormRow) ? __bdpFormRow.fecha_seguimiento : '';
+
 /* Validar campos super solo si aplican */
   let payload = {
     bitacora,
     actuacion,
     estado_proceso: estadoProc,
+    fecha_seguimiento: _segFecha,
+    recordatorio: bdpCalcRecordatorio_(_segOrigRec, _segOrigFecha, _segFecha, _segCheck),
     isSuper: puedeCamposGenerales ? 'true' : 'false'
   };
 
@@ -7565,6 +7586,22 @@ function abrirBDPDetalle_(row) {
   ]);
   body.appendChild(gest);
 
+  /* Sección: Seguimiento */
+  if (row.fecha_seguimiento) {
+    const rec = String(row.recordatorio || '').trim().toUpperCase();
+    let msg = '';
+    if (rec === 'RECORDADO')      msg = 'Recordado el día ' + formatFechaLarga_(row.fecha_seguimiento);
+    else if (rec === 'PROGRAMADO') msg = 'Te recordaré el día ' + formatFechaLarga_(row.fecha_seguimiento);
+    const wrap = document.createElement('div');
+    wrap.className = 'bdp-det-section';
+    wrap.innerHTML =
+      '<div class="bdp-det-section-title">📅 Seguimiento</div>' +
+      '<div class="bdp-det-grid"><div><b>Fecha de seguimiento</b>' +
+      '<span class="val">' + escapeHtml_(row.fecha_seguimiento) + '</span></div></div>' +
+      (msg ? '<div class="bdp-seg-aviso" style="margin-top:8px;">🔔 ' + escapeHtml_(msg) + '</div>' : '');
+    body.appendChild(wrap);
+  }
+
   /* Sección: Persuasivo */
   const persuas = bdpDetSection_('📨 Persuasivo', [
     ['Oficio persuasivo',       row.oficio_persuas],
@@ -7672,6 +7709,62 @@ document.getElementById('btn-bdp-det-back')?.addEventListener('click', () => {
   showView('view-bd-predial');
 });
 
+/* ── Seguimiento (fecha + recordar) — helpers compartidos ── */
+function bdpISOaDDMMYYYY_(iso) {          // 2026-07-13 → 13/07/2026
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+function bdpDDMMYYYYaISO_(str) {          // 13/07/2026 → 2026-07-13
+  const m = String(str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+}
+
+/* Decide qué guardar en AN respetando un 'RECORDADO' externo si la fecha no cambió */
+function bdpCalcRecordatorio_(originalRec, originalFecha, segFecha, segCheck) {
+  if (!segFecha || !segCheck) return '';
+  const o = String(originalRec || '').trim().toUpperCase();
+  return (o === 'RECORDADO' && segFecha === String(originalFecha || '').trim())
+    ? 'RECORDADO' : 'PROGRAMADO';
+}
+
+/* Conecta el comportamiento (habilitar check, aviso dinámico) */
+function bdpWireSeguimiento_(fechaId, checkId, avisoId, recordatorioActual) {
+  const fechaEl = document.getElementById(fechaId);
+  const checkEl = document.getElementById(checkId);
+  const avisoEl = document.getElementById(avisoId);
+  if (!fechaEl || !checkEl || !avisoEl) return;
+
+  fechaEl.min = new Date().toISOString().slice(0, 10);   // desde hoy en adelante
+  const yaRecordado = String(recordatorioActual || '').trim().toUpperCase() === 'RECORDADO';
+
+  const refrescar = () => {
+    const tieneFecha = !!fechaEl.value;
+    checkEl.disabled = !tieneFecha;
+    if (!tieneFecha) checkEl.checked = false;
+    if (checkEl.checked && tieneFecha) {
+      const larga = formatFechaLarga_(bdpISOaDDMMYYYY_(fechaEl.value));
+      avisoEl.textContent = (yaRecordado ? 'Recordado el día ' : 'Te recordaré el día ') + larga;
+      avisoEl.style.display = '';
+    } else {
+      avisoEl.style.display = 'none';
+      avisoEl.textContent = '';
+    }
+  };
+  fechaEl.onchange = refrescar;
+  checkEl.onchange = refrescar;
+  refrescar();
+}
+
+/* Carga valores + conecta */
+function bdpSetSeguimiento_(fechaId, checkId, avisoId, fechaDDMMYYYY, recordatorio) {
+  const fechaEl = document.getElementById(fechaId);
+  const checkEl = document.getElementById(checkId);
+  if (fechaEl) fechaEl.value = bdpDDMMYYYYaISO_(fechaDDMMYYYY);
+  const rec = String(recordatorio || '').trim().toUpperCase();
+  if (checkEl) checkEl.checked = (rec === 'PROGRAMADO' || rec === 'RECORDADO');
+  bdpWireSeguimiento_(fechaId, checkId, avisoId, recordatorio);
+}
+
 /* ── DECISIÓN ─────────────────────────────────────────── */
 function abrirBDPDecision_(row) {
   if (!canDecisionPredial_()) {
@@ -7683,6 +7776,7 @@ function abrirBDPDecision_(row) {
     `<b>${escapeHtml_(row.nombres || '')}</b> — Exp. ${escapeHtml_(row.no_exp_fisico || '')}<br>` +
     `Actuación actual: <b>${escapeHtml_(row.actuacion || 'NINGUNA')}</b>`;
   document.getElementById('bdp-dec-actuacion').value = row.actuacion || 'NINGUNA';
+  bdpSetSeguimiento_('bdp-seg-fecha','bdp-seg-check','bdp-seg-aviso', row.fecha_seguimiento, row.recordatorio);
   document.getElementById('modal-bdp-decision').classList.remove('hidden');
 }
 
@@ -7693,9 +7787,13 @@ document.getElementById('btn-bdp-dec-cancelar')?.addEventListener('click', () =>
 });
 
 document.getElementById('btn-bdp-dec-guardar')?.addEventListener('click', async () => {
-  if (!__bdpDecRow) return;
+ if (!__bdpDecRow) return;
   const nueva = document.getElementById('bdp-dec-actuacion').value;
   if (!nueva) { Swal.fire({ icon:'warning', title:'Selecciona una actuación' }); return; }
+
+  const segFecha = bdpISOaDDMMYYYY_(document.getElementById('bdp-seg-fecha').value || '');
+  const segCheck = document.getElementById('bdp-seg-check').checked;
+  const recordatorio = bdpCalcRecordatorio_(__bdpDecRow.recordatorio, __bdpDecRow.fecha_seguimiento, segFecha, segCheck);
   try {
     const ok = await Swal.fire({
       icon:'question',
@@ -7708,7 +7806,9 @@ document.getElementById('btn-bdp-dec-guardar')?.addEventListener('click', async 
     await apiPost('decisionpredial', {
       id_predial: __bdpDecRow.id_predial,
       actuacion: nueva,
-      usuario: currentUser?.nombre || ''
+      usuario: currentUser?.nombre || '',
+      fecha_seguimiento: segFecha,
+      recordatorio: recordatorio
     });
 
     document.getElementById('modal-bdp-decision').classList.add('hidden');
