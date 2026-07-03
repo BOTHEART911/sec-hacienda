@@ -6727,6 +6727,9 @@ async function bdpExpCargar_(folderId) {
           bdpExpCargar_(it.id);
         });
       } else {
+        const actions = document.createElement('div');
+        actions.className = 'bdp-exp-actions';
+
         const openBtn = document.createElement('button');
         openBtn.type = 'button';
         openBtn.className = 'bdp-exp-open';
@@ -6735,7 +6738,25 @@ async function bdpExpCargar_(folderId) {
           e.stopPropagation();
           window.open(it.url, '_blank', 'noopener');
         });
-        rowEl.appendChild(openBtn);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'bdp-exp-copy';
+        copyBtn.textContent = 'Copiar';
+        copyBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const ok = await bdpCopiarPortapapeles_(it.url);
+          copyBtn.textContent = ok ? '¡Copiado!' : 'Error';
+          copyBtn.classList.add(ok ? 'copied' : 'error');
+          setTimeout(() => {
+            copyBtn.textContent = 'Copiar';
+            copyBtn.classList.remove('copied', 'error');
+          }, 1200);
+        });
+
+        actions.appendChild(openBtn);
+        actions.appendChild(copyBtn);
+        rowEl.appendChild(actions);
       }
       listEl.appendChild(rowEl);
     });
@@ -6758,6 +6779,30 @@ document.getElementById('btn-bdp-exp-salir')?.addEventListener('click', () => {
   document.getElementById('modal-bdp-expedientes')?.classList.add('hidden');
   __bdpExpStack = [];
 });
+
+/* Copiar texto al portapapeles (con respaldo para contextos no seguros) */
+async function bdpCopiarPortapapeles_(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) {
+    return false;
+  }
+}
 
 /* ── Placeholders Fase 3 / 4 ───────────────────────────── */
 document.getElementById('btn-bdp-agregar')?.addEventListener('click', () => {
