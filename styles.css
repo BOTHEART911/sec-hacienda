@@ -1690,7 +1690,8 @@ button:active { transform: translateY(0) scale(.98); }
 #modal-rebotar .card,
 #modal-solicitar-proceso .card,
 #modal-decision .card,
-#modal-expediente .card {
+#modal-expediente .card,
+#modal-bdp-expedientes .card {
   background: rgba(255,255,255,.98) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -2738,6 +2739,7 @@ button:active { transform: translateY(0) scale(.98); }
 }
 .bdp-exp-name {
   flex: 1;
+  min-width: 0;
   font-size: .86rem;
   font-weight: 600;
   color: var(--text-main, #1f2937);
@@ -2746,15 +2748,19 @@ button:active { transform: translateY(0) scale(.98); }
   white-space: nowrap;
 }
 .bdp-exp-open {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: auto !important;   /* anula el  button { width:100% }  global */
   border: none;
   cursor: pointer;
-  font-weight: 800;
-  font-size: .78rem;
+  font-weight: 700;
+  font-size: .72rem;
+  letter-spacing: .3px;
   color: #fff;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
+  white-space: nowrap;
   background: linear-gradient(135deg, #06b6d4, #0284c7);
+  box-shadow: 0 2px 6px rgba(2,132,199,.3);
   transition: transform .12s ease, filter .12s ease;
 }
 .bdp-exp-open:hover { transform: translateY(-1px); filter: brightness(1.08); }
