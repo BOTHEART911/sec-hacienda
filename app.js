@@ -6817,6 +6817,8 @@ document.getElementById('btn-bdp-exp-salir')?.addEventListener('click', () => {
    MODAL EXPEDIENTE (archivo AL) — visualizar / explorar / asociar
    ============================================================ */
 let __bdpArchRow       = null;
+let __bdpArchMode      = 'live';   // 'live' (id existe) | 'defer' (agregar, sin id)
+let __bdpFormArchivoSel= '';       // url elegida en modo defer
 let __bdpArchStack     = [];
 let __bdpArchRootId    = '';
 let __bdpArchItems     = [];
@@ -6840,11 +6842,29 @@ function bdpDrivePreview_(url) {
 
 function abrirBDPExpediente_(row) {
   __bdpArchRow = row;
+  __bdpArchMode = 'live';
   document.getElementById('bdp-arch-context').innerHTML =
     '<b>' + escapeHtml_(row.nombres || '') + '</b> — Exp. ' + escapeHtml_(row.no_exp_fisico || '');
   document.getElementById('modal-bdp-archivo').classList.remove('hidden');
 
   const url = String(row.archivo_expediente || '').trim();
+  if (url) bdpArchMostrarArchivo_(url);
+  else     bdpArchMostrarExplorador_();
+
+ /* Entrada desde el formulario Ingresar/Editar */
+function abrirBDPExpedienteDesdeForm_() {
+  // EDITAR: expediente ya existe → trabaja en vivo
+  if (__bdpFormMode === 'edit' && __bdpFormRow && __bdpFormRow.id_predial) {
+    abrirBDPExpediente_(__bdpFormRow);
+    return;
+  }
+  // INGRESAR: aún no hay expediente → selección diferida
+  __bdpArchMode = 'defer';
+  __bdpArchRow  = null;
+  document.getElementById('bdp-arch-context').innerHTML =
+    '<b>Nuevo expediente</b> — el archivo se guardará al crear';
+  document.getElementById('modal-bdp-archivo').classList.remove('hidden');
+  const url = String(__bdpFormArchivoSel || '').trim();
   if (url) bdpArchMostrarArchivo_(url);
   else     bdpArchMostrarExplorador_();
 }
@@ -6940,6 +6960,12 @@ function bdpArchRender_(filtro) {
 }
 
 async function bdpArchAgregar_(it) {
+  if (__bdpArchMode === 'defer') {
+    __bdpFormArchivoSel = it.url;
+    playSoundOnce(SOUNDS.success);
+    bdpArchMostrarArchivo_(it.url);
+    return;
+  }
   try {
     const ok = await Swal.fire({
       icon: 'question', title: 'Agregar archivo',
@@ -6966,6 +6992,12 @@ document.getElementById('btn-bdp-arch-reemplazar')?.addEventListener('click', ()
 
 /* Eliminar → quita la referencia AL (no borra el archivo de Drive) */
 document.getElementById('btn-bdp-arch-eliminar')?.addEventListener('click', async () => {
+  if (__bdpArchMode === 'defer') {
+    playSoundOnce(SOUNDS.back);
+    __bdpFormArchivoSel = '';
+    bdpArchMostrarExplorador_();
+    return;
+  }
   const ok = await Swal.fire({
     icon: 'warning', title: '¿Quitar archivo?',
     html: 'Se quitará la referencia del archivo en este expediente.<br>(No se elimina el archivo de Drive)',
