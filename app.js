@@ -6679,14 +6679,17 @@ let __bdpExpStack     = [];   // pila de folderIds para "Atrás"
 let __bdpExpRootId    = '';   // id de la carpeta raíz del usuario
 let __bdpExpItems     = [];   // ítems de la carpeta actual (para filtrar)
 let __bdpExpCurrentId = '';   // id de la carpeta que se está viendo
+let __bdpExpAllFiles  = null;  // caché plano recursivo de TODOS los archivos (búsqueda profunda)
+let __bdpExpLoadingAll = false;
 
 const BDP_EXP_ICON_FOLDER = 'https://res.cloudinary.com/dqqeavica/image/upload/v1764111247/carpeta_drive_epbrhp.webp';
 const BDP_EXP_ICON_FILE   = 'https://res.cloudinary.com/dqqeavica/image/upload/v1776033644/pdf_frtzh4.webp';
 
 document.getElementById('btn-bdp-expedientes')?.addEventListener('click', async () => {
   playSoundOnce(SOUNDS.back);
-  if (!currentUser) { Swal.fire({ icon:'warning', title:'Sesión inválida' }); return; }
+ if (!currentUser) { Swal.fire({ icon:'warning', title:'Sesión inválida' }); return; }
   __bdpExpStack = [];
+  __bdpExpAllFiles = null;   // fuerza recarga del árbol al reabrir
   await bdpExpCargar_('');   // '' = carpeta raíz (columna K)
 });
 
@@ -6728,76 +6731,116 @@ async function bdpExpCargar_(folderId) {
   }
 }
 
-/* Pinta la lista aplicando el filtro de texto */
+/* Pinta la lista aplicando el filtro de texto.
+   - Sin filtro: navegación normal por el nivel actual.
+   - Con filtro: búsqueda PROFUNDA en todo el árbol (caché __bdpExpAllFiles). */
 function bdpExpRender_(filtro) {
-  const listEl   = document.getElementById('bdp-exp-list');
+  const listEl = document.getElementById('bdp-exp-list');
   if (!listEl) return;
   const folderId = __bdpExpCurrentId;
   const q = normalizeText_(filtro || '');
 
-  const items = q
-    ? __bdpExpItems.filter(it => normalizeText_(it.name).includes(q))
-    : __bdpExpItems;
-
-  if (!__bdpExpItems.length) {
-    listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>';
+  // Sin texto → mostrar el nivel actual como siempre
+  if (!q) {
+    if (!__bdpExpItems.length) {
+      listEl.innerHTML = '<p class="muted center" style="padding:24px;">Esta carpeta está vacía.</p>';
+      return;
+    }
+    bdpExpPintarItems_(__bdpExpItems, folderId, false);
     return;
   }
-  if (!items.length) {
+
+  // Con texto → búsqueda profunda en todo el árbol
+  if (__bdpExpAllFiles === null) {
+    bdpExpCargarTodos_();   // dispara la carga única (si no está en curso)
+    const localMatch = __bdpExpItems.filter(it => normalizeText_(it.name).includes(q));
+    listEl.innerHTML = '<p class="muted center" style="padding:16px;">🔎 Buscando en todas las subcarpetas…</p>';
+    if (localMatch.length) bdpExpPintarItems_(localMatch, folderId, false);
+    return;
+  }
+
+  const matches = __bdpExpAllFiles.filter(f => normalizeText_(f.name).includes(q));
+  if (!matches.length) {
     listEl.innerHTML = '<p class="muted center" style="padding:24px;">Sin resultados para el filtro.</p>';
     return;
   }
+  bdpExpPintarItems_(matches, folderId, true);   // true = mostrar la ruta (carpeta contenedora)
+}
 
+/* Carga UNA sola vez el árbol completo (todos los archivos con su ruta). */
+async function bdpExpCargarTodos_() {
+  if (__bdpExpLoadingAll || __bdpExpAllFiles !== null) return;
+  __bdpExpLoadingAll = true;
+  try {
+    const res = await apiGet('buscarmisexpedientes', { documento: currentUser.documento });
+    __bdpExpAllFiles = (res && Array.isArray(res.files)) ? res.files : [];
+  } catch (e) {
+    __bdpExpAllFiles = [];
+  } finally {
+    __bdpExpLoadingAll = false;
+    const fEl = document.getElementById('bdp-exp-filtro');
+    if (fEl && fEl.value.trim()) bdpExpRender_(fEl.value);   // re-render con el filtro vigente
+  }
+}
+
+/* Pinta una lista de ítems (carpetas y/o archivos).
+   showPath añade la carpeta contenedora bajo el nombre. */
+function bdpExpPintarItems_(items, folderId, showPath) {
+  const listEl = document.getElementById('bdp-exp-list');
+  if (!listEl) return;
   listEl.innerHTML = '';
   items.forEach(it => {
-      const isFolder = it.type === 'folder';
-      const rowEl = document.createElement('div');
-      rowEl.className = 'bdp-exp-item' + (isFolder ? ' is-folder' : '');
-      rowEl.innerHTML = `
-        <img class="bdp-exp-icon" src="${isFolder ? BDP_EXP_ICON_FOLDER : BDP_EXP_ICON_FILE}" alt="" />
-        <span class="bdp-exp-name" title="${escapeHtml_(it.name)}">${escapeHtml_(it.name)}</span>
-      `;
+    const isFolder = it.type === 'folder';
+    const rowEl = document.createElement('div');
+    rowEl.className = 'bdp-exp-item' + (isFolder ? ' is-folder' : '');
+    const rutaHtml = (showPath && it.path)
+      ? `<span style="display:block;font-size:11px;color:#64748b;font-weight:400;white-space:normal;">📁 ${escapeHtml_(it.path)}</span>`
+      : '';
+    rowEl.innerHTML = `
+      <img class="bdp-exp-icon" src="${isFolder ? BDP_EXP_ICON_FOLDER : BDP_EXP_ICON_FILE}" alt="" />
+      <span class="bdp-exp-name" title="${escapeHtml_(it.name)}">${escapeHtml_(it.name)}${rutaHtml}</span>
+    `;
 
-      if (isFolder) {
-        rowEl.addEventListener('click', () => {
-          playSoundOnce(SOUNDS.back);
-          __bdpExpStack.push(folderId || __bdpExpRootId);
-          bdpExpCargar_(it.id);
-        });
-      } else {
-        const actions = document.createElement('div');
-        actions.className = 'bdp-exp-actions';
+    if (isFolder) {
+      rowEl.addEventListener('click', () => {
+        playSoundOnce(SOUNDS.back);
+        __bdpExpStack.push(folderId || __bdpExpRootId);
+        bdpExpCargar_(it.id);
+      });
+    } else {
+      const actions = document.createElement('div');
+      actions.className = 'bdp-exp-actions';
 
-        const openBtn = document.createElement('button');
-        openBtn.type = 'button';
-        openBtn.className = 'bdp-exp-open';
-        openBtn.textContent = 'Abrir';
-        openBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          window.open(it.url, '_blank', 'noopener');
-        });
+      const openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.className = 'bdp-exp-open';
+      openBtn.textContent = 'Abrir';
+      openBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.open(it.url, '_blank', 'noopener');
+      });
 
-        const copyBtn = document.createElement('button');
-        copyBtn.type = 'button';
-        copyBtn.className = 'bdp-exp-copy';
-        copyBtn.textContent = 'Copiar';
-        copyBtn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const ok = await bdpCopiarPortapapeles_(it.url);
-          copyBtn.textContent = ok ? '¡Copiado!' : 'Error';
-          copyBtn.classList.add(ok ? 'copied' : 'error');
-          setTimeout(() => {
-            copyBtn.textContent = 'Copiar';
-            copyBtn.classList.remove('copied', 'error');
-          }, 1200);
-        });
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'bdp-exp-copy';
+      copyBtn.textContent = 'Copiar';
+      copyBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const ok = await bdpCopiarPortapapeles_(it.url);
+        copyBtn.textContent = ok ? '¡Copiado!' : 'Error';
+        copyBtn.classList.add(ok ? 'copied' : 'error');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copiar';
+          copyBtn.classList.remove('copied', 'error');
+        }, 1200);
+      });
 
-        actions.appendChild(openBtn);
-        actions.appendChild(copyBtn);
-        rowEl.appendChild(actions);
-      }
-      listEl.appendChild(rowEl);
-    });
+      actions.appendChild(openBtn);
+      actions.appendChild(copyBtn);
+      rowEl.appendChild(actions);
+    }
+    listEl.appendChild(rowEl);
+  });
 }
 
 /* Atrás */
