@@ -2490,11 +2490,13 @@ document.getElementById('btn-proc-add-guardar')?.addEventListener('click', async
   if (!consecutivo) { Swal.fire({ icon:'warning', title:'Consecutivo requerido' }); return; }
   if (!descripcion) { Swal.fire({ icon:'warning', title:'Asunto requerido' }); return; }
   if (!respuesta)   { Swal.fire({ icon:'warning', title:'Fecha de Respuesta requerida' }); return; }
-  // Validar 3 días hábiles mínimo
+ // Validar días mínimos (TUTELA no exige ningún mínimo)
   const hoy = formatDDMMYYYY_(new Date());
-  if (diasHabiles_(hoy, respuesta) < 3) {
-    Swal.fire({ icon:'warning', title:'Fecha muy cercana', text:'Selecciona al menos 3 días hábiles desde hoy.' });
-    return;
+  if (categoria !== 'TUTELA') {
+    if (diasHabiles_(hoy, respuesta) < 3) {
+      Swal.fire({ icon:'warning', title:'Fecha muy cercana', text:'Selecciona al menos 3 días hábiles desde hoy.' });
+      return;
+    }
   }
   if (!medio)    { Swal.fire({ icon:'warning', title:'Medio requerido' }); return; }
   if (!categoria){ Swal.fire({ icon:'warning', title:'Categoría requerida' }); return; }
