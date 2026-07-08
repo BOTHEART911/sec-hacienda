@@ -1755,9 +1755,16 @@ const ETAPAS_POR_CAT = {
     'Respuesta Proyectada','Respuesta Enviada / Finalizado'
   ],
  'RECURSOS DE LEY (DEFENSA DEL CIUDADANO)': [
-    'Auto Admisorio','Práctica de Pruebas','Fallo de Segunda Instancia'
+ 'Auto Admisorio','Práctica de Pruebas','Fallo de Segunda Instancia'
   ],
-  'TUTELA': []
+  'TUTELA': [
+    'Recepción y Reparto',
+    'Contestación / Respuesta a la Tutela',
+    'Fallo de Primera Instancia',
+    'Impugnación',
+    'Fallo de Segunda Instancia',
+    'Cumplimiento del Fallo'
+  ]
 };
 
 /* ── Colores de borde por categoría / subcategoría ──────── */
