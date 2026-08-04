@@ -1,5 +1,5 @@
 /* ============================================================
-   IDENTIDAD — FASE 0 (roles, sesión y foto de perfil)
+   IDENTIDAD — FASE 0 (roles, sesión y foto de perfil) 
    SEC-HACIENDA · se carga DESPUÉS de app.js
    No modifica app.js: reemplaza en caliente lo que hace falta.
    ============================================================ */
