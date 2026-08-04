@@ -1,0 +1,520 @@
+/* ============================================================
+   DESCARGAS — FASE 6 · SEC-HACIENDA
+   Los 3 modales de descarga a Excel.
+
+   Qué reemplaza
+     Los 3 botones viejos eran enlaces fijos a archivos de Drive
+     (columnas G, H e I de USUARIOS): había que mantenerlos a mano.
+     Ahora el archivo se arma en el momento, con las columnas que
+     cada quien marque y solo con SUS filas.
+
+   Cómo funciona
+     1) Al abrir un modal por primera vez se piden las opciones al
+        servidor: qué descargas ve esta persona, las columnas de la
+        hoja (leídas de su fila 1) y los valores reales de los
+        filtros. Una sola llamada para los 3 modales.
+     2) Al descargar, el servidor manda las filas por páginas y el
+        navegador arma el .xlsx. Quien baja 9.400 expedientes ve el
+        avance; quien baja 300 no alcanza a notarlo.
+
+   Quién puede qué
+     No se decide aquí. El botón se enciende con el alcance de la
+     Fase 5 y el servidor vuelve a comprobarlo en cada página: aunque
+     alguien edite la petición con la consola, no le llegan filas
+     ajenas.
+
+   Excel
+     La librería que escribe el .xlsx se baja solo cuando hace falta
+     (la primera descarga), no en el arranque de la app. Si no se
+     puede bajar, se ofrece el mismo contenido en CSV para que nadie
+     se quede sin su archivo.
+
+   No modifica app.js: se carga después y usa lo que app.js expone.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  if (window.__HACDSC_LISTO) return;      /* guarda contra doble montaje */
+  window.__HACDSC_LISTO = true;
+
+  var CDN_XLSX  = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  var CLAVE_COLS = 'hac.descargas.v1';    /* últimas columnas marcadas */
+  var VIDA_OPCIONES_MS = 10 * 60 * 1000;  /* refrescar opciones cada 10 min */
+
+  /* fuente -> botón que la abre y llave del alcance que la enciende */
+  var FUENTES = {
+    solicitudes: {
+      boton: 'btn-mis-informes',
+      ver:   'descargaSolicitudes',
+      titulo:'MIS INFORMES PREDIAL',
+      hoja:  'SOLICITUDES',
+      fecha: true
+    },
+    predial: {
+      boton: 'btn-bdp-mis-exp',
+      ver:   'descargaPredial',
+      titulo:'DATOS EXCEL',
+      hoja:  'PREDIAL',
+      filtros: true
+    },
+    procesos: {
+      boton: 'btn-mis-procesos',
+      ver:   'descargaProcesos',
+      titulo:'MIS PROCESOS',
+      hoja:  'PROCESOS'
+    }
+  };
+
+  var opciones = null;        /* respuesta de descargaopciones */
+  var pedidoEn = 0;
+  var fuenteActiva = '';
+  var bajando = false;
+
+  /* ══════════════ utilidades ══════════════ */
+
+  function $(id) { return document.getElementById(id); }
+
+  function uid() {
+    try {
+      if (typeof window.uidActual_ === 'function') {
+        var u = window.uidActual_();
+        if (u) return u;
+      }
+      var p = window.IDN && window.IDN.perfil ? window.IDN.perfil() : null;
+      if (p && p.uid) return p.uid;
+    } catch (_) {}
+    return '';
+  }
+
+  function avisar(icono, titulo, texto) {
+    if (window.Swal) {
+      window.Swal.fire({ icon: icono, title: titulo, text: texto || '' });
+    } else {
+      alert(titulo + (texto ? '\n' + texto : ''));
+    }
+  }
+
+  function hoyISO(d) {
+    var f = d || new Date();
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    return f.getFullYear() + '-' + p(f.getMonth() + 1) + '-' + p(f.getDate());
+  }
+
+  function selloArchivo() {
+    var f = new Date();
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    return p(f.getDate()) + '-' + p(f.getMonth() + 1) + '-' + f.getFullYear();
+  }
+
+  function guardadas(fuente) {
+    try {
+      var t = JSON.parse(localStorage.getItem(CLAVE_COLS) || '{}');
+      return Array.isArray(t[fuente]) ? t[fuente] : null;
+    } catch (_) { return null; }
+  }
+
+  function guardar(fuente, cols) {
+    try {
+      var t = JSON.parse(localStorage.getItem(CLAVE_COLS) || '{}');
+      t[fuente] = cols;
+      localStorage.setItem(CLAVE_COLS, JSON.stringify(t));
+    } catch (_) {}
+  }
+
+  /* ══════════════ opciones ══════════════ */
+
+  function traerOpciones(forzar) {
+    var u = uid();
+    if (!u) return Promise.resolve(null);
+    if (!forzar && opciones && (Date.now() - pedidoEn) < VIDA_OPCIONES_MS) {
+      return Promise.resolve(opciones);
+    }
+    return window.apiGet('descargaopciones', { uid: u }).then(function (res) {
+      if (res && res.encontrado) { opciones = res; pedidoEn = Date.now(); return res; }
+      return null;
+    }).catch(function (e) {
+      console.warn('DESCARGAS: no se pudieron traer las opciones.', e);
+      return null;
+    });
+  }
+
+  /* ══════════════ el modal ══════════════ */
+
+  function crearModal() {
+    if ($('modal-descargas')) return;
+
+    var capa = document.createElement('div');
+    capa.id = 'modal-descargas';
+    capa.className = 'hidden';
+    capa.setAttribute('role', 'dialog');
+    capa.innerHTML =
+      '<div class="card narrow dsc-caja">' +
+        '<h2 id="dsc-titulo" style="color:var(--primary);margin-top:0;">DESCARGA</h2>' +
+        '<p id="dsc-alcance" class="dsc-alcance"></p>' +
+        '<div id="dsc-filtros" class="dsc-filtros"></div>' +
+        '<div class="dsc-cols-cab">' +
+          '<label>Columnas del archivo</label>' +
+          '<div class="dsc-cols-acc">' +
+            '<button type="button" id="btn-dsc-todas" class="dsc-mini">Todas</button>' +
+            '<button type="button" id="btn-dsc-ninguna" class="dsc-mini">Ninguna</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="dsc-columnas" class="dsc-columnas"></div>' +
+        '<p id="dsc-avance" class="dsc-avance"></p>' +
+        '<div class="btn-row" style="margin-top:14px;">' +
+          '<button id="btn-dsc-descargar" class="btn-primary">DESCARGAR EXCEL</button>' +
+          '<button id="btn-dsc-cerrar" class="danger">CERRAR</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(capa);
+
+    $('btn-dsc-cerrar').addEventListener('click', cerrar);
+    $('btn-dsc-todas').addEventListener('click', function () { marcarTodas(true); });
+    $('btn-dsc-ninguna').addEventListener('click', function () { marcarTodas(false); });
+    $('btn-dsc-descargar').addEventListener('click', descargar);
+
+    /* Que cierre con clic fuera como los demás modales (Fase 3). */
+    try { if (window.BV && window.BV._cierres) window.BV._cierres['modal-descargas'] = ['btn-dsc-cerrar']; }
+    catch (_) {}
+  }
+
+  function marcarTodas(valor) {
+    var cajas = document.querySelectorAll('#dsc-columnas input[type=checkbox]');
+    for (var i = 0; i < cajas.length; i++) cajas[i].checked = valor;
+  }
+
+  function columnasMarcadas() {
+    var out = [];
+    var cajas = document.querySelectorAll('#dsc-columnas input[type=checkbox]');
+    for (var i = 0; i < cajas.length; i++) if (cajas[i].checked) out.push(cajas[i].value);
+    return out;
+  }
+
+  function pintarColumnas(fuente, lista) {
+    var cont = $('dsc-columnas');
+    cont.innerHTML = '';
+    var previas = guardadas(fuente);
+
+    for (var i = 0; i < lista.length; i++) {
+      var col = lista[i];
+      var id = 'dsc-c-' + col.c;
+      var fila = document.createElement('label');
+      fila.className = 'dsc-col';
+      fila.setAttribute('for', id);
+
+      var caja = document.createElement('input');
+      caja.type = 'checkbox';
+      caja.id = id;
+      caja.value = col.c;
+      caja.checked = previas ? (previas.indexOf(col.c) !== -1) : true;
+
+      var txt = document.createElement('span');
+      txt.textContent = col.t;
+
+      fila.appendChild(caja);
+      fila.appendChild(txt);
+      cont.appendChild(fila);
+    }
+  }
+
+  function pintarFiltros(fuente) {
+    var cont = $('dsc-filtros');
+    cont.innerHTML = '';
+    var def = FUENTES[fuente];
+
+    if (def.fecha) {
+      var hoy = new Date();
+      var primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      cont.innerHTML =
+        '<div class="dsc-rango">' +
+          '<div><label for="dsc-desde">Desde</label>' +
+            '<input type="date" id="dsc-desde" value="' + hoyISO(primero) + '"></div>' +
+          '<div><label for="dsc-hasta">Hasta</label>' +
+            '<input type="date" id="dsc-hasta" value="' + hoyISO(hoy) + '"></div>' +
+        '</div>' +
+        '<p class="dsc-nota">Se filtra por <b>fecha_guardado</b>. Déjalo vacío para llevarte todo.</p>';
+      return;
+    }
+
+    if (def.filtros) {
+      var f = (opciones && opciones.filtros) || { clasificaciones: [], letras: [], actuaciones: [] };
+      cont.appendChild(selector('dsc-clasificacion', 'CLASIFICACIÓN', f.clasificaciones, 'Todas'));
+      cont.appendChild(selector('dsc-letra', 'NO. EXP. FÍSICO (A–Z)', f.letras, 'Todas'));
+      cont.appendChild(selector('dsc-actuacion', 'ACTUACIÓN', f.actuaciones, 'Todas'));
+
+      var orden = document.createElement('label');
+      orden.className = 'dsc-orden';
+      orden.innerHTML = '<input type="checkbox" id="dsc-orden"> ' +
+        '<span>Ordenar de la A a la Z por NO. EXP. FÍSICO</span>';
+      cont.appendChild(orden);
+    }
+  }
+
+  function selector(id, etiqueta, valores, textoVacio) {
+    var caja = document.createElement('div');
+    caja.className = 'dsc-campo';
+
+    var lab = document.createElement('label');
+    lab.setAttribute('for', id);
+    lab.textContent = etiqueta;
+
+    var sel = document.createElement('select');
+    sel.id = id;
+
+    var op0 = document.createElement('option');
+    op0.value = '';
+    op0.textContent = textoVacio;
+    sel.appendChild(op0);
+
+    for (var i = 0; i < valores.length; i++) {
+      var o = document.createElement('option');
+      o.value = valores[i];
+      o.textContent = valores[i];
+      sel.appendChild(o);
+    }
+
+    caja.appendChild(lab);
+    caja.appendChild(sel);
+    return caja;
+  }
+
+  function abrir(fuente) {
+    if (!FUENTES[fuente]) return;
+
+    traerOpciones(false).then(function (op) {
+      if (!op) {
+        avisar('error', 'No se pudo preparar la descarga',
+               'Revisa la conexión e inténtalo otra vez.');
+        return;
+      }
+      if (!op.ver[fuente]) {
+        avisar('info', 'No tienes filas que descargar aquí',
+               'Esta descarga es de las filas que están a tu nombre.');
+        return;
+      }
+
+      crearModal();
+      fuenteActiva = fuente;
+
+      $('dsc-titulo').textContent = FUENTES[fuente].titulo;
+      $('dsc-alcance').textContent = op.todo
+        ? 'Se descargan TODAS las filas de la hoja ' + FUENTES[fuente].hoja + '.'
+        : 'Se descargan solo las filas que están a tu nombre.';
+      $('dsc-avance').textContent = '';
+
+      pintarFiltros(fuente);
+      pintarColumnas(fuente, op.columnas[fuente] || []);
+
+      $('modal-descargas').classList.remove('hidden');
+    });
+  }
+
+  function cerrar() {
+    if (bajando) return;                 /* no dejar el archivo a medias */
+    var m = $('modal-descargas');
+    if (m) m.classList.add('hidden');
+  }
+
+  /* ══════════════ la descarga ══════════════ */
+
+  function filtrosDelModal(fuente) {
+    var def = FUENTES[fuente];
+    var out = {};
+    if (def.fecha) {
+      var d = $('dsc-desde'), h = $('dsc-hasta');
+      if (d && d.value) out.desde = d.value;
+      if (h && h.value) out.hasta = h.value;
+    }
+    if (def.filtros) {
+      var c = $('dsc-clasificacion'), l = $('dsc-letra'), a = $('dsc-actuacion'), o = $('dsc-orden');
+      if (c && c.value) out.clasificacion = c.value;
+      if (l && l.value) out.letra = l.value;
+      if (a && a.value) out.actuacion = a.value;
+      if (o && o.checked) out.orden = 'exp';
+    }
+    return out;
+  }
+
+  function avance(texto) {
+    var el = $('dsc-avance');
+    if (el) el.textContent = texto || '';
+  }
+
+  function descargar() {
+    if (bajando) return;
+    var fuente = fuenteActiva;
+    if (!FUENTES[fuente]) return;
+
+    var cols = columnasMarcadas();
+    if (!cols.length) {
+      avisar('info', 'Marca al menos una columna', 'Sin columnas no hay archivo que armar.');
+      return;
+    }
+    guardar(fuente, cols);
+
+    var filtros = filtrosDelModal(fuente);
+    var u = uid();
+    if (!u) { avisar('error', 'Sesión no válida', 'Vuelve a iniciar sesión.'); return; }
+
+    bajando = true;
+    $('btn-dsc-descargar').disabled = true;
+    avance('Preparando…');
+
+    var encabezados = null;
+    var filas = [];
+    var titulo = FUENTES[fuente].titulo;
+
+    function pagina(n) {
+      return window.apiPost('descargar', {
+        uid: u, fuente: fuente, columnas: cols, filtros: filtros, pagina: n
+      }).then(function (res) {
+        if (!encabezados) encabezados = res.encabezados || [];
+        if (res.archivo) titulo = res.archivo;
+        filas = filas.concat(res.filas || []);
+        if (res.total) {
+          avance('Bajando ' + filas.length.toLocaleString('es-CO') +
+                 ' de ' + res.total.toLocaleString('es-CO') + '…');
+        }
+        if (res.hayMas) return pagina(n + 1);
+        return res;
+      });
+    }
+
+    pagina(1).then(function () {
+      if (!filas.length) {
+        avance('');
+        avisar('info', 'No hay filas para descargar',
+               'Con los filtros que elegiste no quedó ninguna fila.');
+        return;
+      }
+      avance('Armando el archivo…');
+      return escribirExcel(titulo, encabezados, filas).then(function () {
+        avance(filas.length.toLocaleString('es-CO') + ' filas descargadas.');
+      });
+    }).catch(function (e) {
+      avance('');
+      avisar('error', 'No se pudo descargar', (e && e.message) ? e.message : String(e));
+    }).then(function () {
+      bajando = false;
+      var b = $('btn-dsc-descargar');
+      if (b) b.disabled = false;
+    });
+  }
+
+  /* ══════════════ el archivo ══════════════ */
+
+  function cargarXLSX() {
+    if (window.XLSX) return Promise.resolve(true);
+    return new Promise(function (ok) {
+      var s = document.createElement('script');
+      s.src = CDN_XLSX;
+      s.onload = function () { ok(!!window.XLSX); };
+      s.onerror = function () { ok(false); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function anchos(encabezados, filas) {
+    var out = [];
+    for (var c = 0; c < encabezados.length; c++) {
+      var max = String(encabezados[c] || '').length;
+      var tope = Math.min(filas.length, 200);      /* muestra: no recorrer 9.400 */
+      for (var i = 0; i < tope; i++) {
+        var v = filas[i][c];
+        var n = String(v == null ? '' : v).length;
+        if (n > max) max = n;
+      }
+      out.push({ wch: Math.min(Math.max(max + 2, 10), 45) });
+    }
+    return out;
+  }
+
+  function nombreArchivo(titulo, ext) {
+    return String(titulo).replace(/[\\/:*?"<>|]/g, ' ').trim() +
+           ' ' + selloArchivo() + '.' + ext;
+  }
+
+  function escribirExcel(titulo, encabezados, filas) {
+    return cargarXLSX().then(function (hay) {
+      if (!hay) return escribirCSV(titulo, encabezados, filas);
+
+      var hoja = window.XLSX.utils.aoa_to_sheet([encabezados].concat(filas));
+      hoja['!cols'] = anchos(encabezados, filas);
+      hoja['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+      var libro = window.XLSX.utils.book_new();
+      var nombreHoja = String(titulo).substring(0, 28) || 'Datos';
+      window.XLSX.utils.book_append_sheet(libro, hoja, nombreHoja);
+      window.XLSX.writeFile(libro, nombreArchivo(titulo, 'xlsx'));
+      return true;
+    });
+  }
+
+  /* Respaldo si no se pudo bajar la librería: el mismo contenido en
+     CSV con punto y coma y BOM, que es lo que abre bien Excel aquí. */
+  function escribirCSV(titulo, encabezados, filas) {
+    var esc = function (v) {
+      var s = String(v == null ? '' : v);
+      return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    var lineas = [encabezados.map(esc).join(';')];
+    for (var i = 0; i < filas.length; i++) lineas.push(filas[i].map(esc).join(';'));
+
+    var blob = new Blob(['\ufeff' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo(titulo, 'csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+    avisar('info', 'Se descargó en CSV',
+           'No se pudo cargar la librería de Excel. El CSV abre en Excel con doble clic.');
+    return true;
+  }
+
+  /* ══════════════ enganche con los botones ══════════════ */
+
+  function engancharBotones() {
+    Object.keys(FUENTES).forEach(function (fuente) {
+      var b = $(FUENTES[fuente].boton);
+      if (!b || b.__dsc) return;
+      b.__dsc = true;
+      b.addEventListener('click', function () { abrir(fuente); });
+    });
+  }
+
+  /* Al cambiar de usuario se olvidan las opciones: nada de columnas
+     ni permisos heredados de la persona anterior. */
+  function olvidar() {
+    caducar();
+    cerrar();
+  }
+
+  /* Igual que olvidar, pero sin cerrar lo que esté abierto. Lo llama
+     js/alcance.js cuando el alcance cambió en caliente (a alguien le
+     acaban de asignar su primer expediente). */
+  function caducar() {
+    opciones = null;
+    pedidoEn = 0;
+  }
+
+  function arrancar() {
+    engancharBotones();
+    try { $('btn-logout')?.addEventListener('click', olvidar); } catch (_) {}
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar);
+  else arrancar();
+
+  window.DESCARGAS = {
+    abrir: abrir,
+    cerrar: cerrar,
+    olvidar: olvidar,
+    caducar: caducar,
+    opciones: function () { return opciones; },
+    recargarOpciones: function () { return traerOpciones(true); }
+  };
+})();
