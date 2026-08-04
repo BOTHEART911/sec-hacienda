@@ -1,7 +1,7 @@
 /* ============================================================
    BASE VISUAL — FASE 3 (SEC-HACIENDA)
    Se carga DESPUÉS de app.js, identidad.js y configuracion.js.
-   No modifica app.js: reemplaza en caliente lo que hace falta.
+   No modifica app.js: reemplaza en caliente lo que hace falta. 
 
    Capas:
      1 modo oscuro          6 transición lateral entre vistas
