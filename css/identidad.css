@@ -1,7 +1,7 @@
 /* ===========================================================================
    SEC-HACIENDA · css/identidad.css
    Estilos de la FASE 0 (identidad, roles y sesión).
-
+ 
    Reconstruido el 04/08/2026 a partir de las clases que genera js/identidad.js
    y de los tokens que ya usa styles.css (--primary, --input-border, etc.).
    .chip, .pin-pad, .pin-dot y .pin-keypad ya viven en styles.css: aquí solo
